@@ -522,84 +522,84 @@
 <p>计算机系统在表示信息时,有大端和小端之分,基本上我们使用的PC都是小端的,但手机或者其他设备未必.所以不同类型的机器如果想要通信如何统一呢?</p>
 <p><strong>解决办法就是:总是采用大端法,这是发送方和接收方达成的协议,因此又将大端称为网络字节序</strong></p>
 <p>主要有关于字节序的接口如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">#include&lt;netinet/in.h&gt;
-unsigned long int htonl(unsigned long int hostlong);
-unsigned short int htons(unsigned short int hostshort);
-unsigned long int ntonl(unsigned long int hostlong);
-unsigned short int ntonl(unsigned short int hostshort);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;netinet/in.h&gt;</span></span>
+<span class="token keyword">unsigned</span> <span class="token keyword">long</span> <span class="token keyword">int</span> <span class="token function">htonl</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">long</span> <span class="token keyword">int</span> hostlong<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">unsigned</span> <span class="token keyword">short</span> <span class="token keyword">int</span> <span class="token function">htons</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">short</span> <span class="token keyword">int</span> hostshort<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">unsigned</span> <span class="token keyword">long</span> <span class="token keyword">int</span> <span class="token function">ntonl</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">long</span> <span class="token keyword">int</span> hostlong<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">unsigned</span> <span class="token keyword">short</span> <span class="token keyword">int</span> <span class="token function">ntonl</span><span class="token punctuation">(</span><span class="token keyword">unsigned</span> <span class="token keyword">short</span> <span class="token keyword">int</span> hostshort<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>其中h表示主机字节序,n表示网络字节序.</p>
 <p>一般情况下,l表示长的,适合ip地址,s表示短的,适合端口号.</p>
 <h2 id="socket地址">2.socket地址</h2>
 <h3 id="通用socket">1) 通用socket</h3>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">#include&lt;bits/socket.h&gt;
-struct sockaddr{
-  sa_family_t sa_family;//地址组类型,通常与其他协议组对应
-  char sa_data[14];//存放socket地址值
-}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;bits/socket.h&gt;</span></span>
+<span class="token keyword">struct</span> <span class="token class-name">sockaddr</span><span class="token punctuation">{</span>
+  sa_family_t sa_family<span class="token punctuation">;</span><span class="token comment">//地址组类型,通常与其他协议组对应</span>
+  <span class="token keyword">char</span> sa_data<span class="token punctuation">[</span><span class="token number">14</span><span class="token punctuation">]</span><span class="token punctuation">;</span><span class="token comment">//存放socket地址值</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <figure>
 <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2017%2003%2024%201655456604%201655456604753%20tgmr0T%20image-20220617170324567%20.png" alt="image-20220617170324567"><figcaption aria-hidden="true">image-20220617170324567</figcaption>
 </figure>
 <p>其实14字节的sa_data无法容纳多数协议族的地址值,所以有新的通用sokcet地址结构体.</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">#include&lt;bits/socket.h&gt;
-struct sockaddr_storage{
-  sa_family_t sa_family;
-  unsigned long int __ss_align;
-  char __ss_padding[128-sizeof(__ss_align)];
-}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;bits/socket.h&gt;</span></span>
+<span class="token keyword">struct</span> <span class="token class-name">sockaddr_storage</span><span class="token punctuation">{</span>
+  sa_family_t sa_family<span class="token punctuation">;</span>
+  <span class="token keyword">unsigned</span> <span class="token keyword">long</span> <span class="token keyword">int</span> __ss_align<span class="token punctuation">;</span>
+  <span class="token keyword">char</span> __ss_padding<span class="token punctuation">[</span><span class="token number">128</span><span class="token operator">-</span><span class="token keyword">sizeof</span><span class="token punctuation">(</span>__ss_align<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="tcpip协议族地址">2) tcp/ip协议族地址</h3>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">struct sockaddr_in{
-    __SOCKADDR_COMMON (sin_);//表示协议族的类型
-    in_port_t sin_port;			/* Port number.  */
-    struct in_addr sin_addr;		/* Internet address.  */
-    /* Pad to size of `struct sockaddr'.  */
-    unsigned char sin_zero[sizeof (struct sockaddr)
-			   - __SOCKADDR_COMMON_SIZE
-			   - sizeof (in_port_t)
-			   - sizeof (struct in_addr)];
-};
-struct in_addr{
-    in_addr_t s_addr;
- };
-struct sockaddr_in6{
-    __SOCKADDR_COMMON (sin6_);//表示协议族类型
-    in_port_t sin6_port;	/* Transport layer port # */
-    uint32_t sin6_flowinfo;	/* IPv6 flow information */
-    struct in6_addr sin6_addr;	/* IPv6 address */
-    uint32_t sin6_scope_id;	/* IPv6 scope-id */
- };<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">struct</span> <span class="token class-name">sockaddr_in</span><span class="token punctuation">{</span>
+    <span class="token function">__SOCKADDR_COMMON</span> <span class="token punctuation">(</span>sin_<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//表示协议族的类型</span>
+    in_port_t sin_port<span class="token punctuation">;</span>			<span class="token comment">/* Port number.  */</span>
+    <span class="token keyword">struct</span> <span class="token class-name">in_addr</span> sin_addr<span class="token punctuation">;</span>		<span class="token comment">/* Internet address.  */</span>
+    <span class="token comment">/* Pad to size of `struct sockaddr'.  */</span>
+    <span class="token keyword">unsigned</span> <span class="token keyword">char</span> sin_zero<span class="token punctuation">[</span><span class="token keyword">sizeof</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">sockaddr</span><span class="token punctuation">)</span>
+			   <span class="token operator">-</span> __SOCKADDR_COMMON_SIZE
+			   <span class="token operator">-</span> <span class="token keyword">sizeof</span> <span class="token punctuation">(</span>in_port_t<span class="token punctuation">)</span>
+			   <span class="token operator">-</span> <span class="token keyword">sizeof</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">in_addr</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword">struct</span> <span class="token class-name">in_addr</span><span class="token punctuation">{</span>
+    in_addr_t s_addr<span class="token punctuation">;</span>
+ <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword">struct</span> <span class="token class-name">sockaddr_in6</span><span class="token punctuation">{</span>
+    <span class="token function">__SOCKADDR_COMMON</span> <span class="token punctuation">(</span>sin6_<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//表示协议族类型</span>
+    in_port_t sin6_port<span class="token punctuation">;</span>	<span class="token comment">/* Transport layer port # */</span>
+    <span class="token keyword">uint32_t</span> sin6_flowinfo<span class="token punctuation">;</span>	<span class="token comment">/* IPv6 flow information */</span>
+    <span class="token keyword">struct</span> <span class="token class-name">in6_addr</span> sin6_addr<span class="token punctuation">;</span>	<span class="token comment">/* IPv6 address */</span>
+    <span class="token keyword">uint32_t</span> sin6_scope_id<span class="token punctuation">;</span>	<span class="token comment">/* IPv6 scope-id */</span>
+ <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>由此可见,其中最主要的部分,就是内部有一个表示ip地址的结构体,还有一个端口号(一个16位).</p>
 <p>一般情况下,在使用时,我们需要转化成sockaddr类型才可以代入到其他API中.</p>
 <h3 id="ip转换函数">3) IP转换函数</h3>
 <p>在程序中.对于ip地址的表示适合使用整数.而平时符合人们习惯的是字符串.所以系统提供了一些接口便于转换.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">extern in_addr_t inet_addr (const char *__cp) __THROW;//string to int
-extern int inet_aton (const char *__cp, struct in_addr *__inp) __THROW;//转化成整型,返回到__inp
-extern char *inet_ntoa (struct in_addr __in) __THROW;//int to string<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">extern</span> <span class="token class-name">in_addr_t</span> <span class="token function">inet_addr</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>__cp<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//string to int</span>
+<span class="token keyword">extern</span> <span class="token keyword">int</span> <span class="token function">inet_aton</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>__cp<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">in_addr</span> <span class="token operator">*</span>__inp<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//转化成整型,返回到__inp</span>
+<span class="token keyword">extern</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token function">inet_ntoa</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">in_addr</span> __in<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//int to string</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>其实in_addr_t就是一个32位整数.</p>
 <h2 id="基本操作函数">3.基本操作函数</h2>
 <h3 id="基本api">1) 基本API</h3>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">#include&lt;sys/types.h&gt;
-#include&lt;sys/socket.h&gt;
-int socket (int __domain, int __type, int __protocol) __THROW;
-//协议组,服务类型,protocol一般都设置为0.
-int bind(int __fd, const struct sockaddr *__addr, socklen_t __len);//绑定某个socket
-int listen(int __fd, int __n) __THROW;//n在linux 2.2之后表示的是处于完全连接数量的上限.
-int accept(int __fd, struct sockaddr *__restrict__ __addr, socklen_t *__restrict__ __addr_len);//会将请求链接的addr结构体返回到第二个参数中
-int connect(int sockfd,const struct sockaddr *serv_addr,socklen_t addrlen);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/types.h&gt;</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/socket.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">socket</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __domain<span class="token punctuation">,</span> <span class="token keyword">int</span> __type<span class="token punctuation">,</span> <span class="token keyword">int</span> __protocol<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span>
+<span class="token comment">//协议组,服务类型,protocol一般都设置为0.</span>
+<span class="token keyword">int</span> <span class="token function">bind</span><span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__addr<span class="token punctuation">,</span> socklen_t __len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//绑定某个socket</span>
+<span class="token keyword">int</span> <span class="token function">listen</span><span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">int</span> __n<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//n在linux 2.2之后表示的是处于完全连接数量的上限.</span>
+<span class="token keyword">int</span> <span class="token function">accept</span><span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__restrict__ __addr<span class="token punctuation">,</span> socklen_t <span class="token operator">*</span>__restrict__ __addr_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//会将请求链接的addr结构体返回到第二个参数中</span>
+<span class="token keyword">int</span> <span class="token function">connect</span><span class="token punctuation">(</span><span class="token keyword">int</span> sockfd<span class="token punctuation">,</span><span class="token keyword">const</span> <span class="token keyword">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>serv_addr<span class="token punctuation">,</span>socklen_t addrlen<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="读写">2) 读写</h3>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">#include&lt;sys/types.h&gt;
-#include&lt;sys/socket.h&gt;
-//TCP数据读写
-ssize_t recv (int __fd, void *__buf, size_t __n, int __flags);//返回值是接受的长度,有时会小于
-//期望的长度
-ssize_t send (int __fd, const void *__buf, size_t __n, int __flags);//成功写入时返回长度,否则返回-1设置errno
-//UDP数据读写
-ssize_t sendto(int __fd, const void *__buf, size_t __n, int __flags, const struct sockaddr *__addr, socklen_t __addr_len);//其中的addr是目的地的addr
-ssize_t recvfrom(int __fd, void *__restrict__ __buf, size_t __n, int __flags, struct sockaddr *__restrict__ __addr, socklen_t *__restrict__ __addr_len);//其中的addr是源<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/types.h&gt;</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/socket.h&gt;</span></span>
+<span class="token comment">//TCP数据读写</span>
+ssize_t <span class="token function">recv</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>__buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword">int</span> __flags<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//返回值是接受的长度,有时会小于</span>
+<span class="token comment">//期望的长度</span>
+ssize_t <span class="token function">send</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">void</span> <span class="token operator">*</span>__buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword">int</span> __flags<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//成功写入时返回长度,否则返回-1设置errno</span>
+<span class="token comment">//UDP数据读写</span>
+ssize_t <span class="token function">sendto</span><span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">void</span> <span class="token operator">*</span>__buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword">int</span> __flags<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__addr<span class="token punctuation">,</span> socklen_t __addr_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//其中的addr是目的地的addr</span>
+ssize_t <span class="token function">recvfrom</span><span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">void</span> <span class="token operator">*</span>__restrict__ __buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword">int</span> __flags<span class="token punctuation">,</span> <span class="token keyword">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__restrict__ __addr<span class="token punctuation">,</span> socklen_t <span class="token operator">*</span>__restrict__ __addr_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//其中的addr是源</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="地址信息函数">4.地址信息函数</h2>
 <p>一般适用于我们需要知道一个连接socket的本端和远端的socket地址.使用下面的这个函数解决问题.</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">#include&lt;sys/socket.h&gt;
-int getsockname(int sockfd,struct sockaddr *address,socklen_t *address_len);
-int getpeername(int sockfd,struct sockaddr *address,socklen_t *address_len);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/socket.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">getsockname</span><span class="token punctuation">(</span><span class="token keyword">int</span> sockfd<span class="token punctuation">,</span><span class="token keyword">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>address<span class="token punctuation">,</span>socklen_t <span class="token operator">*</span>address_len<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">getpeername</span><span class="token punctuation">(</span><span class="token keyword">int</span> sockfd<span class="token punctuation">,</span><span class="token keyword">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>address<span class="token punctuation">,</span>socklen_t <span class="token operator">*</span>address_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>前者获取的是socket本端的地址,返回到address中,后者获取的远端的,也是返回到address中.</p>
 <h2 id="socket选项">5.socket选项</h2>
 <p>暂鸽.</p>
@@ -611,10 +611,10 @@ int getpeername(int sockfd,struct sockaddr *address,socklen_t *address_len);<spa
 <li>用于控制I/O行为与属性有关,比如fcntl等.</li>
 </ul>
 <h2 id="pipe和dup">1.pipe和dup</h2>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">int pipe (int __pipedes[2]) __THROW __wur;//传入一个数组,代表管道的两端
-int socketpair(int __domain,int __type,int __protocol,int __fds[2]) __THROW;//便于建立双向管道
-int dup (int __fd) __THROW __wur;
-int dup2 (int __fd, int __fd2) __THROW;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">int</span> <span class="token function">pipe</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __pipedes<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span> __THROW __wur<span class="token punctuation">;</span><span class="token comment">//传入一个数组,代表管道的两端</span>
+<span class="token keyword">int</span> <span class="token function">socketpair</span><span class="token punctuation">(</span><span class="token keyword">int</span> __domain<span class="token punctuation">,</span><span class="token keyword">int</span> __type<span class="token punctuation">,</span><span class="token keyword">int</span> __protocol<span class="token punctuation">,</span><span class="token keyword">int</span> __fds<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//便于建立双向管道</span>
+<span class="token keyword">int</span> <span class="token function">dup</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">)</span> __THROW __wur<span class="token punctuation">;</span>
+<span class="token keyword">int</span> <span class="token function">dup2</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword">int</span> __fd2<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>注意默认是阻塞的,如果当前是空的,那么read将会阻塞,如果是满的,那么write也将会阻塞,知道有足够空间.</p>
 <p>内部传输的数据和TCP流一样都是字节流,但是其中不同的地方主要在于,应用层能够往TCP连接写入的字节数量取决于对方的接受窗口和滑动窗口.而管道本身是有一个容量限制的(默认是65536).</p>
 <p>可使用fcntl来修改管道限制.</p>
@@ -641,52 +641,52 @@ int dup2 (int __fd, int __fd2) __THROW;<span aria-hidden="true" class="line-numb
 <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2009%2022%2025%201655515345%201655515345055%20Op9gch%20image-20220618092224738%20.png" alt="image-20220618092224738"><figcaption aria-hidden="true">image-20220618092224738</figcaption>
 </figure>
 <p>用户进程使用的syslog与守护进程rsyslogd通信.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">void syslog (int __pri, const char *__fmt, ...){
-  __syslog_chk (__pri, __USE_FORTIFY_LEVEL - 1, __fmt, __va_arg_pack ());
-}
-#define	LOG_EMERG	0	/* system is unusable */
-#define	LOG_ALERT	1	/* action must be taken immediately */
-#define	LOG_CRIT	2	/* critical conditions */
-#define	LOG_ERR		3	/* error conditions */
-#define	LOG_WARNING	4	/* warning conditions */
-#define	LOG_NOTICE	5	/* normal but significant condition */
-#define	LOG_INFO	6	/* informational */
-#define	LOG_DEBUG	7	/* debug-level messages */
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">void</span> <span class="token function">syslog</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __pri<span class="token punctuation">,</span> <span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>__fmt<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+  <span class="token function">__syslog_chk</span> <span class="token punctuation">(</span>__pri<span class="token punctuation">,</span> __USE_FORTIFY_LEVEL <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> __fmt<span class="token punctuation">,</span> <span class="token function">__va_arg_pack</span> <span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_EMERG</span>	<span class="token expression"><span class="token number">0</span>	</span><span class="token comment">/* system is unusable */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_ALERT</span>	<span class="token expression"><span class="token number">1</span>	</span><span class="token comment">/* action must be taken immediately */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_CRIT</span>	<span class="token expression"><span class="token number">2</span>	</span><span class="token comment">/* critical conditions */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_ERR</span>		<span class="token expression"><span class="token number">3</span>	</span><span class="token comment">/* error conditions */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_WARNING</span>	<span class="token expression"><span class="token number">4</span>	</span><span class="token comment">/* warning conditions */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_NOTICE</span>	<span class="token expression"><span class="token number">5</span>	</span><span class="token comment">/* normal but significant condition */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_INFO</span>	<span class="token expression"><span class="token number">6</span>	</span><span class="token comment">/* informational */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_DEBUG</span>	<span class="token expression"><span class="token number">7</span>	</span><span class="token comment">/* debug-level messages */</span></span>
 
-void openlog (const char *__ident, int __option, int __facility);
-#define	LOG_PID		0x01	/* log the pid with each message */
-#define	LOG_CONS	0x02	/* log on the console if errors in sending */
-#define	LOG_ODELAY	0x04	/* delay open until first syslog() (default) */
-#define	LOG_NDELAY	0x08	/* don't delay open */
-#define	LOG_NOWAIT	0x10	/* don't wait for console forks: DEPRECATED */
-#define	LOG_PERROR	0x20	/* log to stderr as well */
-int setlogmask (int __mask) __THROW;//
-void closelog (void);//用于关闭日志.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token keyword">void</span> <span class="token function">openlog</span> <span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>__ident<span class="token punctuation">,</span> <span class="token keyword">int</span> __option<span class="token punctuation">,</span> <span class="token keyword">int</span> __facility<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_PID</span>		<span class="token expression"><span class="token number">0x01</span>	</span><span class="token comment">/* log the pid with each message */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_CONS</span>	<span class="token expression"><span class="token number">0x02</span>	</span><span class="token comment">/* log on the console if errors in sending */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_ODELAY</span>	<span class="token expression"><span class="token number">0x04</span>	</span><span class="token comment">/* delay open until first syslog() (default) */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_NDELAY</span>	<span class="token expression"><span class="token number">0x08</span>	</span><span class="token comment">/* don't delay open */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_NOWAIT</span>	<span class="token expression"><span class="token number">0x10</span>	</span><span class="token comment">/* don't wait for console forks: DEPRECATED */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span>	<span class="token macro-name">LOG_PERROR</span>	<span class="token expression"><span class="token number">0x20</span>	</span><span class="token comment">/* log to stderr as well */</span></span>
+<span class="token keyword">int</span> <span class="token function">setlogmask</span> <span class="token punctuation">(</span><span class="token keyword">int</span> __mask<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//</span>
+<span class="token keyword">void</span> <span class="token function">closelog</span> <span class="token punctuation">(</span><span class="token keyword">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//用于关闭日志.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>Syslog其中第二个和第三个参数和printf类似用于结构化输出.priority是所谓的设施值和日志级别的按位或.</p>
 <p>openlog用于设置syslog的默认行为,其中ident指定的字符串被添加到日志消息的日期和时间之后.logopt对后续的syslog行为进行配置.facility用来修改syslog函数中的默认设施值.</p>
 <p>setlogmask通过设置掩码使得,日志级别大于日志掩码的日志信息被忽略.</p>
 <h2 id="用户信息">2.用户信息</h2>
 <p>一般来说服务器程序会以root身份启动,非root身份运行.</p>
 <p>下面代码展示了如何将root用户切换到非root用户.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">static bool switch_to_user(uid_t user_id,gid_t gp_id){
-    if(user_id == 0 &amp;&amp; gp_id == 0){//首先保证当前用户不是root
-        return false;
-    }
-    gid_t gid = getgid();
-    uid_t uid = getuid();
-    //确保当前用户合法
-    if((gid != 0 || uid != 0) &amp;&amp; (gid != gp_id || uid != user_id)){
-        return false;
-    }
-    if(uid != 0){
-        return false;
-    }
-    //切换到目标用户
-    if((setgid(gp_id) &lt; 0) || (setgid(user_id) &lt; 0)){
-        return false;
-    }
-    return true;
-}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">static</span> bool <span class="token function">switch_to_user</span><span class="token punctuation">(</span><span class="token class-name">uid_t</span> user_id<span class="token punctuation">,</span><span class="token class-name">gid_t</span> gp_id<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>user_id <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> gp_id <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span><span class="token comment">//首先保证当前用户不是root</span>
+        <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token class-name">gid_t</span> gid <span class="token operator">=</span> <span class="token function">getgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">uid_t</span> uid <span class="token operator">=</span> <span class="token function">getuid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">//确保当前用户合法</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>gid <span class="token operator">!=</span> <span class="token number">0</span> <span class="token operator">||</span> uid <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>gid <span class="token operator">!=</span> gp_id <span class="token operator">||</span> uid <span class="token operator">!=</span> user_id<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>uid <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">//切换到目标用户</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">setgid</span><span class="token punctuation">(</span>gp_id<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token punctuation">(</span><span class="token function">setgid</span><span class="token punctuation">(</span>user_id<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">return</span> true<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>一个进程是存在两个用户的:</p>
 <ul>
 <li>UID启动程序的用户ID.</li>
@@ -697,38 +697,38 @@ void closelog (void);//用于关闭日志.<span aria-hidden="true" class="line-n
 <h2 id="其他函数">3.其他函数</h2>
 <h3 id="查看资源限制">1)查看资源限制</h3>
 <h3 id="改变目录">2)改变目录</h3>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">#include&lt;unisted.h&gt;
-char *getcwd(char *buf,size_t size);//获取当前目录
-int chdir(const char *path);//切换到指定的目录<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;unisted.h&gt;</span></span>
+<span class="token keyword">char</span> <span class="token operator">*</span><span class="token function">getcwd</span><span class="token punctuation">(</span><span class="token keyword">char</span> <span class="token operator">*</span>buf<span class="token punctuation">,</span><span class="token class-name">size_t</span> size<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//获取当前目录</span>
+<span class="token keyword">int</span> <span class="token function">chdir</span><span class="token punctuation">(</span><span class="token keyword">const</span> <span class="token keyword">char</span> <span class="token operator">*</span>path<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//切换到指定的目录</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <h2 id="服务器进程后台化">4.服务器进程后台化</h2>
 <p>其核心思想在于<strong>创建子进程和关闭父进程</strong>.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">bool daemonize(){
-    pid_t pid = fork();
-    if(pid &lt; 0){
-        return false;
-    }else if(pid &gt; 0){
-        exit(0);//退出父进程
-    }
-    umask(0);//设置权限掩码,当进程创建出新文件时,将会是mode &amp; 0777.
-    pid_t sid = setsid();//称为新回话的首领,并新建一个进程组,其中pgid就是调用进程pid
-    if(sid &lt; 0){
-        return false;
-    }
-    if((chdir("/")) &lt; 0){
-        return false;
-    }
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">bool <span class="token function">daemonize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token class-name">pid_t</span> pid <span class="token operator">=</span> <span class="token function">fork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>pid <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token keyword">else</span> <span class="token keyword">if</span><span class="token punctuation">(</span>pid <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//退出父进程</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">umask</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//设置权限掩码,当进程创建出新文件时,将会是mode &amp; 0777.</span>
+    <span class="token class-name">pid_t</span> sid <span class="token operator">=</span> <span class="token function">setsid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//称为新回话的首领,并新建一个进程组,其中pgid就是调用进程pid</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span>sid <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">chdir</span><span class="token punctuation">(</span><span class="token string">"/"</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword">return</span> false<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">close</span><span class="token punctuation">(</span>STDIN_FILENO<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">close</span><span class="token punctuation">(</span>STDOUT_FILENO<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">close</span><span class="token punctuation">(</span>STDERR_FILENO<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    open("/dev/null",O_RDONLY);
-    open("/dev/null",O_RDWR);
+    <span class="token function">open</span><span class="token punctuation">(</span><span class="token string">"/dev/null"</span><span class="token punctuation">,</span>O_RDONLY<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">open</span><span class="token punctuation">(</span><span class="token string">"/dev/null"</span><span class="token punctuation">,</span>O_RDWR<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    return true;
-}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+    <span class="token keyword">return</span> true<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>或者有</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">#include&lt;unistd.h&gt;
-int daemon(int nochdir,int noclose);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;unistd.h&gt;</span></span>
+<span class="token keyword">int</span> <span class="token function">daemon</span><span class="token punctuation">(</span><span class="token keyword">int</span> nochdir<span class="token punctuation">,</span><span class="token keyword">int</span> noclose<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <h2 id="服务器编程框架">5.服务器编程框架</h2>
 <figure>
 <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2010%2043%2020%201655520200%201655520200658%20ge7Lkj%20image-20220618104320475%20.png" alt="image-20220618104320475"><figcaption aria-hidden="true">image-20220618104320475</figcaption>
@@ -799,18 +799,18 @@ int daemon(int nochdir,int noclose);<span aria-hidden="true" class="line-numbers
 <h2 id="selectpollepoll">2.select,poll,epoll</h2>
 <h3 id="select">1)select</h3>
 <p>基本用途在于再给定的一段时间内,能够监听用户感兴趣的文件描述符上的可读,可写和异常等事件.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">int select(int __nfds,fd_set *__restrict __readfds,fd_set *__restrict __writefds,fd_set *__restrict __exceptfds,struct timeval *__restrict __timeout);//成功返回则是就绪的文件描述符总数
-typedef struct{
-    /* XPG4.2 requires this member name.  Otherwise avoid the name
-       from the global namespace.  */
-#ifdef __USE_XOPEN
-    __fd_mask fds_bits[__FD_SETSIZE / __NFDBITS];
-# define __FDS_BITS(set) ((set)-&gt;fds_bits)
-#else
-    __fd_mask __fds_bits[__FD_SETSIZE / __NFDBITS];
-# define __FDS_BITS(set) ((set)-&gt;__fds_bits)
-#endif
-} fd_set;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">int</span> <span class="token function">select</span><span class="token punctuation">(</span><span class="token keyword">int</span> __nfds<span class="token punctuation">,</span>fd_set <span class="token operator">*</span>__restrict __readfds<span class="token punctuation">,</span>fd_set <span class="token operator">*</span>__restrict __writefds<span class="token punctuation">,</span>fd_set <span class="token operator">*</span>__restrict __exceptfds<span class="token punctuation">,</span><span class="token keyword">struct</span> <span class="token class-name">timeval</span> <span class="token operator">*</span>__restrict __timeout<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//成功返回则是就绪的文件描述符总数</span>
+<span class="token keyword">typedef</span> <span class="token keyword">struct</span><span class="token punctuation">{</span>
+    <span class="token comment">/* XPG4.2 requires this member name.  Otherwise avoid the name
+       from the global namespace.  */</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifdef</span> <span class="token expression">__USE_XOPEN</span></span>
+    __fd_mask fds_bits<span class="token punctuation">[</span>__FD_SETSIZE <span class="token operator">/</span> __NFDBITS<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span> <span class="token directive keyword">define</span> <span class="token macro-name function">__FDS_BITS</span><span class="token expression"><span class="token punctuation">(</span>set<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>set<span class="token punctuation">)</span><span class="token operator">-&gt;</span>fds_bits<span class="token punctuation">)</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">else</span></span>
+    __fd_mask __fds_bits<span class="token punctuation">[</span>__FD_SETSIZE <span class="token operator">/</span> __NFDBITS<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span> <span class="token directive keyword">define</span> <span class="token macro-name function">__FDS_BITS</span><span class="token expression"><span class="token punctuation">(</span>set<span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>set<span class="token punctuation">)</span><span class="token operator">-&gt;</span>__fds_bits<span class="token punctuation">)</span></span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+<span class="token punctuation">}</span> fd_set<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>第一个参数代表所要监听的文件描述符的总数,一般设置为所有文件描述符中最大值+1.</p>
 <p>中间三个参数代表的是,文件描述符的集合,分别对应可读,可写,异常三种事件的文件描述符的集合.</p>
 <p>对于fd_set这个数据结构,主要是有一个向量的数组构成,而这个数组中每个元素中的每一个bit都代表一个文件描述符.</p>
@@ -833,12 +833,12 @@ typedef struct{
 </blockquote>
 <h3 id="poll">2) poll</h3>
 <p>其作用在于在指定时间内<strong>轮询</strong>一定数量的文件描述符,测试是否有就绪者.</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">int poll (struct pollfd *__fds, nfds_t __nfds, int __timeout);
-struct pollfd{
-    int fd;			/* File descriptor to poll.  */
-    short int events;		/* Types of events poller cares about.  */
-    short int revents;		/* Types of events that actually occurred.  */
- };<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword">int</span> <span class="token function">poll</span> <span class="token punctuation">(</span><span class="token keyword">struct</span> <span class="token class-name">pollfd</span> <span class="token operator">*</span>__fds<span class="token punctuation">,</span> nfds_t __nfds<span class="token punctuation">,</span> <span class="token keyword">int</span> __timeout<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">struct</span> <span class="token class-name">pollfd</span><span class="token punctuation">{</span>
+    <span class="token keyword">int</span> fd<span class="token punctuation">;</span>			<span class="token comment">/* File descriptor to poll.  */</span>
+    <span class="token keyword">short</span> <span class="token keyword">int</span> events<span class="token punctuation">;</span>		<span class="token comment">/* Types of events poller cares about.  */</span>
+    <span class="token keyword">short</span> <span class="token keyword">int</span> revents<span class="token punctuation">;</span>		<span class="token comment">/* Types of events that actually occurred.  */</span>
+ <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>其中不同之处在于fds.events代表这个文件描述符就绪所关心的事件,revents由内核修改,返回的是实际发生的事件.</p>
 <figure>
 <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2021%2050%2004%201655473804%201655473804950%20EtphPy%20image-20220617215004772%20.png" alt="image-20220617215004772"><figcaption aria-hidden="true">image-20220617215004772</figcaption>

@@ -767,9 +767,9 @@ gdt_48:
 	.word	0x800		! gdt limit=2048, 256 GDT entries
 	.word	512+gdt,0x9	! gdt base = 0X9xxxx<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>在ucore中也是有类似的表示的.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">static struct pseudodesc idt_pd = {
-    sizeof(idt) - 1, (uintptr_t)idt
-};<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword">static</span> <span class="token keyword">struct</span> <span class="token class-name">pseudodesc</span> idt_pd <span class="token operator">=</span> <span class="token punctuation">{</span>
+    <span class="token keyword">sizeof</span><span class="token punctuation">(</span>idt<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token class-name">uintptr_t</span><span class="token punctuation">)</span>idt
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <p>如果说,这两个表的描述符所处于的地址具体处于什么地方,可以确定的是,它处于setup程序所对应的内存段中,末尾的位置.</p>
 <p>这两个表用于顶替BIOS中断表(在system移动之后就已经牺牲了,但也是临时的,其可以发挥的作用后面再进行说明.</p>
 <p>之后的这段代码为开启实模式作准备,用于开启A20引脚,从而为后续全面开放机器的寻址能力做基础.</p>
