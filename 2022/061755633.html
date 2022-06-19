@@ -486,14 +486,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    3.8k
+                    5.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    15 Min
+                    22 Min
                 </div>
                 
 
@@ -846,6 +846,154 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <figure>
 <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2021%2050%2020%201655473820%201655473820287%20cG3pAJ%20image-20220617215020121%20.png" alt="image-20220617215020121"><figcaption aria-hidden="true">image-20220617215020121</figcaption>
 </figure>
+<h1 id="六.进程间通信">六.进程间通信</h1>
+<p>Posix IPC和System V IPC的区别是什么?</p>
+<h2 id="消息传递">1.消息传递</h2>
+<h3 id="通道">1)通道</h3>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2049%2031%201655610571%201655610571693%20aKoz3i%20image-20220619084339477%20.png" alt="image-20220619084339477"><figcaption aria-hidden="true">image-20220619084339477</figcaption>
+</figure>
+<p>图中“路径名”和“文件内容或出错消息”描述了管道的作用.可以理解为一个提供单向数据流的连接.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;unistd.h&gt;</span></span>
+<span class="token keyword keyword-int">int</span> <span class="token function">pipe</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> fd<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//一般情况下,是单向的,fd[0]是读者,fd[1]是写者.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>不仅仅可以局限于一个进程中两个描述符的通信,更经常作为两个不同进程之间的通信.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2049%2037%201655610577%201655610577007%20TRxrrA%20image-20220619085303342%20.png" alt="image-20220619085303342" style="zoom:50%;"></p>
+<p>下面是一个例子,实现子进程和父进程之间的双工管道.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">client</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">,</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-void">void</span> <span class="token function">server</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">,</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-int">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> argc<span class="token punctuation">,</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token keyword keyword-int">int</span> pipe1<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pipe2<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token class-name">pid_t</span> childpid<span class="token punctuation">;</span>
+
+    <span class="token function">pipe</span><span class="token punctuation">(</span>pipe1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">pipe</span><span class="token punctuation">(</span>pipe2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>childpid <span class="token operator">=</span> <span class="token function">fork</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">==</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token function">close</span><span class="token punctuation">(</span>pipe1<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">close</span><span class="token punctuation">(</span>pipe2<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">server</span><span class="token punctuation">(</span>pipe1<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pipe2<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">close</span><span class="token punctuation">(</span>pipe1<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">close</span><span class="token punctuation">(</span>pipe2<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+    <span class="token function">client</span><span class="token punctuation">(</span>pipe2<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>pipe1<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">waitpid</span><span class="token punctuation">(</span>childpid<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">exit</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword keyword-return">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>对于子进程来说,要从pipe1[0]中读,从pipe2[1]中写.对于父进程来说,要从pipe1[1]中写,从pipe2[0]中读.进程最好关闭不再需要用到的文件描述符.</p>
+<p>除此之外,标准I/O还提供了popen函数,用于创建一个管道并且启动另外一个进程,该进程要么从管道读入标准输入,要么写入标准输出.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">FILE <span class="token operator">*</span>fpr<span class="token punctuation">,</span><span class="token operator">*</span>fpw<span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>fpr <span class="token operator">=</span> <span class="token function">popen</span><span class="token punctuation">(</span><span class="token string">"ls"</span><span class="token punctuation">,</span><span class="token string">"r"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">==</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span><span class="token comment">//“r”返回的是output</span>
+      <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error r\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  
+  <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">(</span>fpw <span class="token operator">=</span> <span class="token function">popen</span><span class="token punctuation">(</span><span class="token string">"ls"</span><span class="token punctuation">,</span><span class="token string">"w"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">==</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+      <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error w\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token function">fclose</span><span class="token punctuation">(</span>fpw<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">fclose</span><span class="token punctuation">(</span>fpr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> <span class="token number">0</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="fifo">2)FIFO</h3>
+<p>进程的缺点在于缺乏名字的标识,一般只能用于具有亲缘关系的进程之间进行通信.FIFO的像管道一样,作为单向数据流,但是可以<strong>有路径名与之关联</strong>,也可以说是<strong>有名管道</strong>.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/types&gt;</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/stat.h&gt;</span></span>
+<span class="token keyword keyword-int">int</span> <span class="token function">mkfifo</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token class-name">mode_t</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>至于在使用上,我们可以将其视为,在文件系统中建立了一个文件,这个文件就对应了一个管道,之后使用管道的进程通过调用<code>open</code>来获取读/写的一端(返回文件描述符).当结束使用时,除了关闭获取的文件描述符,还应该将创建的FIFO文件<code>unlink</code>.</p>
+<p>注意,当不能正确使用FIFO会出现问题,尤其是open的顺序和读写的设置.如果一系列的顺序如下,就会触发死锁,因为读者在写着存在之前是阻塞的.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">child<span class="token operator">:</span>
+	<span class="token function">open</span><span class="token punctuation">(</span>FIFO1<span class="token punctuation">,</span>O_RDONLY<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">open</span><span class="token punctuation">(</span>FIFO2<span class="token punctuation">,</span>O_WDONLY<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+parent<span class="token operator">:</span>
+	<span class="token function">open</span><span class="token punctuation">(</span>FIFO2<span class="token punctuation">,</span>O_RDONLY<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">open</span><span class="token punctuation">(</span>FIFO1<span class="token punctuation">,</span>O_WDONLY<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="管道和fifo的额外属性与限制">3)管道和FIFO的额外属性与限制</h3>
+<p>系统对于管道和FIFO的限制为:</p>
+<ul>
+<li>OPEN_MAX,一个进程在任意时刻,可以打开的最大描述符的数量.</li>
+<li>PIPE_BUF,可以原子地写往一个管道或者FIFO的最大数据量.</li>
+</ul>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">(</span>base<span class="token punctuation">)</span> ➜  network_programming getconf OPEN_MAX
+<span class="token number">1048575</span>
+<span class="token punctuation">(</span>base<span class="token punctuation">)</span> ➜  network_programming getconf PIPE_BUF /
+<span class="token number">512</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面展示了,如何查看系统对两个变量的限制.</p>
+<h3 id="消息队列">4)消息队列</h3>
+<p>这里,以Posix 消息队列为例.</p>
+<p>可以将其视为一个消息组成的list,有写权限的线程可以从中放置消息,有足够写权限的可以从中取出消息.</p>
+<p>相比pipe和fifo,消息队列的写者不依赖于读者的存在,而像pipe和fifo,如果不存在读者就先有写者,那么写者就是没有意义的.</p>
+<p>除此之外,消息队列具有<strong>随内核的持续性</strong>,而pipe和fifo一旦被关闭,内部数据也就消失了.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2049%2044%201655610584%201655610584976%20ne5L8O%20image-20220619100320018%20.png" alt="image-20220619100320018" style="zoom:50%;"></p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;mqueue.h&gt;</span></span>
+<span class="token class-name">mqd_t</span> <span class="token function">mq_open</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>__name<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __oflag<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span> __THROW <span class="token function">__nonnull</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//mqd_t是一个整型,消息队列描述符</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">mq_close</span> <span class="token punctuation">(</span><span class="token class-name">mqd_t</span> __mqdes<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">mq_unlink</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>__name<span class="token punctuation">)</span> __THROW <span class="token function">__nonnull</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>每一个消息队列,像文件一样有底层名称,并且维护着一个引用计数.对于close来说,将一个mq关闭,但没有将消息队列从系统删除,unlink则类似于文件删除的机制,如果引用计数不会减到0,那么只是将此name消除,知道引用计数减到0,这个消息队列就彻底被删除了.</p>
+<p>除此之外,还有设置消息队列属性的几个API.</p>
+<p>首先,我们先了解一下,一个消息队列都包含哪些属性</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">mq_attr</span><span class="token punctuation">{</span>
+  __syscall_slong_t mq_flags<span class="token punctuation">;</span>	<span class="token comment">/* Message queue flags.  */</span>
+  __syscall_slong_t mq_maxmsg<span class="token punctuation">;</span>	<span class="token comment">/* Maximum number of messages.  */</span>
+  __syscall_slong_t mq_msgsize<span class="token punctuation">;</span>	<span class="token comment">/* Maximum message size.  */</span>
+  __syscall_slong_t mq_curmsgs<span class="token punctuation">;</span>	<span class="token comment">/* Number of messages currently queued.  */</span>
+  __syscall_slong_t __pad<span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>具体而言,相关的API为:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> <span class="token function">mq_getattr</span> <span class="token punctuation">(</span><span class="token class-name">mqd_t</span> __mqdes<span class="token punctuation">,</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">mq_attr</span> <span class="token operator">*</span>__mqstat<span class="token punctuation">)</span> __THROW <span class="token function">__nonnull</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//将__mqdes对应的属性返回到__mqstat中.</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">mq_setattr</span> <span class="token punctuation">(</span><span class="token class-name">mqd_t</span> __mqdes<span class="token punctuation">,</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">mq_attr</span> <span class="token operator">*</span>__restrict __mqstat<span class="token punctuation">,</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">mq_attr</span> <span class="token operator">*</span>__restrict __omqstat<span class="token punctuation">)</span>
+  __THROW <span class="token function">__nonnull</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>下面简要介绍一下关于发送和接受的API.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token class-name">ssize_t</span> <span class="token function">mq_receive</span> <span class="token punctuation">(</span><span class="token class-name">mqd_t</span> __mqdes<span class="token punctuation">,</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>__msg_ptr<span class="token punctuation">,</span> <span class="token class-name">size_t</span> __msg_len<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-int">int</span> <span class="token operator">*</span>__msg_prio<span class="token punctuation">)</span> <span class="token function">__nonnull</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">mq_send</span> <span class="token punctuation">(</span><span class="token class-name">mqd_t</span> __mqdes<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>__msg_ptr<span class="token punctuation">,</span> <span class="token class-name">size_t</span> __msg_len<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-int">int</span> __msg_prio<span class="token punctuation">)</span> <span class="token function">__nonnull</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>在这两个API中前三个参数和一般前面所提到的send相似.</p>
+<p>而第四个参数,对于receive来说,用于返回所接受消息的优先级,对于send来说,则是所发送消息的优先级,要求必须小于MQ_PRIO_MAX.</p>
+<p>如果不想使用优先级,将send中的设置为0,receive设置为NULL.</p>
+<p>此外就像pipe和fifo一样,系统对于消息队列也存在一定的限制:</p>
+<ul>
+<li>MQ_OPEN_MAX,一个进程能够打开的消息队列的最大数量.</li>
+<li>MQ_PRIO_MAX,任意消息的最大优先级+1.</li>
+</ul>
+<p>下面是有关于System V 的消息队列的API:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> <span class="token function">msgget</span> <span class="token punctuation">(</span><span class="token class-name">key_t</span> __key<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __msgflg<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//创建或者获取一个已存在的消息队列.</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">msgsnd</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __msqid<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__msgp<span class="token punctuation">,</span> <span class="token class-name">size_t</span> __msgsz<span class="token punctuation">,</span><span class="token keyword keyword-int">int</span> __msgflg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">ssize_t</span> <span class="token function">msgrcv</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __msqid<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__msgp<span class="token punctuation">,</span> <span class="token class-name">size_t</span> __msgsz<span class="token punctuation">,</span><span class="token keyword keyword-long">long</span> <span class="token keyword keyword-int">int</span> __msgtyp<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __msgflg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">msgctl</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __msqid<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __cmd<span class="token punctuation">,</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">msqid_ds</span> <span class="token operator">*</span>__buf<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="同步">2.同步</h2>
+<h2 id="共享内存区">3.共享内存区</h2>
+<p>共享内存效率是很高的,因为不需要涉及到进程的数据传输,但是共享内存作为一份共享资源,处理不慎就容易造成竞争条件.</p>
+<p>其中以System V的共享内存方法为例,主要的API如下:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/shm.h&gt;</span></span>
+<span class="token keyword keyword-int">int</span> <span class="token function">shmget</span> <span class="token punctuation">(</span><span class="token class-name">key_t</span> __key<span class="token punctuation">,</span> <span class="token class-name">size_t</span> __size<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __shmflg<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span>
+<span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token function">shmat</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __shmid<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__shmaddr<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __shmflg<span class="token punctuation">)</span>
+     __THROW<span class="token punctuation">;</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">shmdt</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__shmaddr<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span>
+ <span class="token keyword keyword-int">int</span> <span class="token function">shmctl</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __shmid<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __cmd<span class="token punctuation">,</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">shmid_ds</span> <span class="token operator">*</span>__buf<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>shmget用于创建或者获取一个已经存在的共享内存.</li>
+<li>shmat,用于将某个共享内存和进程中的某个地址关联起来.</li>
+<li>shmdt,将__shmaddr关联的共享内存解除绑定.</li>
+<li>shmctl用于控制共享内存的某些属性.</li>
+</ul>
+<h2 id="进程池与线程池">4.进程池与线程池</h2>
+<p>池这个概念,我们之前阐述过,<strong>主要用于避免动态创建和释放带来的一些问题</strong>.</p>
+<p>就动态创建子进程或者子线程,主要问题如下:</p>
+<ul>
+<li>动态创建是耗时的.</li>
+<li>动态创建,往往会采用一个客户对应一个进程的方式,这样容易导致过多进程/线程,进程/线程切换的开销将会很大.</li>
+<li>子进程往往和其父进程有写时复制的特性,复制过多是一种开销极大的行为.</li>
+</ul>
+<p>进程池由服务器程序预先创建好,当又新的客户需要服务时,就从池中选取一个,使用完就放回池中.</p>
+<p>其中选取方式有以下几种:</p>
+<ul>
+<li>设计选取算法.随机,轮转等.</li>
+<li>采用工作队列,闲置的线程在队列中休眠,当需要处理客户时,从中唤醒一个.</li>
+</ul>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2046%2039%201655610399%201655610399762%20NH110l%20image-20220619114639529%20.png" alt="image-20220619114639529" style="zoom:50%;"></p>
 
                 
             </div>
