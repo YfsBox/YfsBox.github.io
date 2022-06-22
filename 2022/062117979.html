@@ -469,7 +469,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.2k
+                    1.3k
                 </div>
                 
 
@@ -556,7 +556,14 @@
 <p>编译器需要在构造函数中将每个数据成员初始化.如果数据成员中含有一些类对象,如果这些类对象的<code>default constructor</code>已经定义出来,那么编译器将会调用此对象的<code>default constructor</code>.如果有必要,会在原来的<code>constructor</code>上进行代码的扩张,对于多个<code>class object</code>的情况,将会按照声明次序调用.</p>
 <p>一下面这个例子,如果<code>Snow_White</code>含有<code>dopey,sneey,bashful,number(int)</code>这几个数据成员,没有定义<code>default constructor</code>就会合成<code>nontrival constructor</code>.在其中依次调用<code>default constructor</code>.</p>
 <h4 id="base-class-with-default-constructor">Base Class with Default Constructor</h4>
+<p>对于一个类自己没有定义的构造函数,但是它所继承的基类是有默认构造函数的,这个时候会涉及到构造函数的合成.</p>
+<p>基类中的默认构造函数会被调用,按照基类所被声明的部分.</p>
 <h4 id="class-with-a-virtual-function">Class with a Virtual Function</h4>
+<p>主要是两种情况:</p>
+<ul>
+<li>生命或者继承于某个<code>virtual function</code>.</li>
+<li>派生于一个继承串,其中有多个或一个<code>virtual base classes</code>.</li>
+</ul>
 
                 
             </div>
