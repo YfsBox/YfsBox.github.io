@@ -482,14 +482,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    2.4k
+                    4.3k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    9 Min
+                    17 Min
                 </div>
                 
 
@@ -551,6 +551,7 @@
 <h4 id="任务0的地址对应关系">任务0的地址对应关系</h4>
 <h4 id="任务1的地址对应关系">任务1的地址对应关系</h4>
 <h4 id="其他任务的地址对应关系">其他任务的地址对应关系</h4>
+<h3 id="写时复制与需时加载">5)写时复制与需时加载</h3>
 <h2 id="源码分析">2.源码分析</h2>
 <h3 id="主存区初始化">1)主存区初始化</h3>
 <p>首先,我们在初始化的main函数中,首先看到有一段代码,用来计算物理内存中比较关键的几个基地址的操作.</p>
@@ -589,7 +590,7 @@
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2022%2000%2010%2032%201655827832%201655827832623%20DvcoBv%20image-20220622001032402%20.png" alt="image-20220622001032402" style="zoom:33%;"></p>
 <p>到这里,如果想要比较深入地理解内存管理还是不够的,最好再看一下关于页表(页目录表)以及一些相关内核API的实现方式.</p>
 <p>关于页表和页目录表的定义,回忆之前的boot部分,需要记住的是,它们在内存中的范围是0-5000的.但是相比于ucore来说,linux 0.11有关于页表的实现是比较简陋的,ucore中会有相关的数据结构将页表和页表项进行抽象.</p>
-<h3 id="对于有关于页的内核api">2)对于有关于页的内核API</h3>
+<h3 id="对于有关于页与页表的内核api">2)对于有关于页与页表的内核API</h3>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c">
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">copy_page</span><span class="token expression"><span class="token punctuation">(</span>from<span class="token punctuation">,</span>to<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token function">__asm__</span><span class="token punctuation">(</span></span><span class="token string">"cld ; rep ; movsl"</span><span class="token expression"><span class="token operator">::</span></span><span class="token string">"S"</span> <span class="token expression"><span class="token punctuation">(</span>from<span class="token punctuation">)</span><span class="token punctuation">,</span></span><span class="token string">"D"</span> <span class="token expression"><span class="token punctuation">(</span>to<span class="token punctuation">)</span><span class="token punctuation">,</span></span><span class="token string">"c"</span> <span class="token expression"><span class="token punctuation">(</span><span class="token number">1024</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></span>
@@ -628,10 +629,82 @@
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p><code>copy_page</code>的功能在于给定 <code>from</code>和 <code>to</code>的物理地址,实现内存的拷贝,底层直接调用汇编,使用了“rep循环+mov”的模式,这种方式在boot的内存移动中也有所使用.</p>
 <p><code>get_free_page</code>总体来说是一种 <code>first fit</code>页分配算法,从 <code>mem_map</code>的末尾开始扫描,直到扫到一个空闲页就返回页地址(物理页地址).</p>
-<p><code>free_page</code>,释放物理地址 <code>addr</code>中的一页内存,除了判断是否出现地址异常之外,其核心部分无外乎对 <code>mem_map</code>引用计数的修改.</p>
+<p><code>free_page</code>,释放物理地址 <code>addr</code>中的<strong>一页内存</strong>,除了判断是否出现地址异常之外,其核心部分无外乎对 <code>mem_map</code>引用计数的修改.</p>
 <p>总体来说,上面的这三个API是关于内核处理内存中,最最基础而底层的,<strong>只是涉及到物理地址,并且只是以一物理页为单位进行操作</strong>.</p>
 <p>然而物理内存空间和线性内存空间的映射是如何建立的呢?</p>
 <p>答案就藏在 <code>put_page</code>中.这个用于将一个给定的线性地址绑定到一个物理页上.落实在对页表(页目录表)的设置上.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token function">put_page</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> page<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> address<span class="token punctuation">)</span>
+<span class="token punctuation">{</span><span class="token comment">//其中的参数指的是某一个物理页的地址,address则是要求进行绑定的线性地址</span>
+	<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> tmp<span class="token punctuation">,</span> <span class="token operator">*</span>page_table<span class="token punctuation">;</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>page <span class="token operator">&lt;</span> LOW_MEM <span class="token operator">||</span> page <span class="token operator">&gt;=</span> HIGH_MEMORY<span class="token punctuation">)</span><span class="token comment">//物理页地址不在主内存区的范围中</span>
+		<span class="token function">printk</span><span class="token punctuation">(</span><span class="token string">"Trying to put page %p at %p\n"</span><span class="token punctuation">,</span>page<span class="token punctuation">,</span>address<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>mem_map<span class="token punctuation">[</span><span class="token punctuation">(</span>page<span class="token operator">-</span>LOW_MEM<span class="token punctuation">)</span><span class="token operator">&gt;&gt;</span><span class="token number">12</span><span class="token punctuation">]</span> <span class="token operator">!=</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token comment">//如果已经申请</span>
+		<span class="token function">printk</span><span class="token punctuation">(</span><span class="token string">"mem_map disagrees with %p at %p\n"</span><span class="token punctuation">,</span>page<span class="token punctuation">,</span>address<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	page_table <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>address<span class="token operator">&gt;&gt;</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xffc</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//线性地址的前十位得到页目录表项的基地址</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">*</span>page_table<span class="token punctuation">)</span><span class="token operator">&amp;</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token comment">//如果页目录表存在</span>
+		page_table <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token number">0xfffff000</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>page_table<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//取出对应页表项地址</span>
+	<span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+		<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>tmp<span class="token operator">=</span><span class="token function">get_free_page</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">//如果不存在就先分配一个物理页,tmp得到该物理页的物理地址</span>
+			<span class="token keyword keyword-return">return</span> <span class="token number">0</span><span class="token punctuation">;</span><span class="token comment">//这个物理页是为了这个目录表所分配的</span>
+		<span class="token operator">*</span>page_table <span class="token operator">=</span> tmp<span class="token operator">|</span><span class="token number">7</span><span class="token punctuation">;</span>
+		page_table <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> tmp<span class="token punctuation">;</span><span class="token comment">//将此页目录表与新分配的物理页绑定</span>
+	<span class="token punctuation">}</span>
+	page_table<span class="token punctuation">[</span><span class="token punctuation">(</span>address<span class="token operator">&gt;&gt;</span><span class="token number">12</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0x3ff</span><span class="token punctuation">]</span> <span class="token operator">=</span> page <span class="token operator">|</span> <span class="token number">7</span><span class="token punctuation">;</span><span class="token comment">//然后再将此页目录下的页表项设置为这个page.此page与address的绑定正式完成.</span>
+<span class="token comment">/* no need for invalidate */</span>
+	<span class="token keyword keyword-return">return</span> page<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>简而言之,过程如下:</p>
+<ul>
+<li>检查条件,是否越界或者是否此页已经被占用.</li>
+<li>得出目录项地址.</li>
+<li>对于目录项有效(有物理页与该目录项绑定):直接得出页表项的基地址.</li>
+<li>如果无效,先分配一个物理页得出其物理地址<code>tmp</code>,根据此物理地址填充页目录项内容,<code>tmp</code>也就是该目录下所有页表项的基地址.然后</li>
+<li>根据<code>address</code>中页表索引定位到页表项,并根据<code>page</code>填写其内容.</li>
+</ul>
+<p>这个过程有点绕,但总的来说:</p>
+<ul>
+<li>如果页目录表本身就持有有效的页表项(p == 1):定位页目录项地址---&gt;根据页目录项内存定位目录下页表的基地址---&gt;根据<code>address</code>定位二级页表地址,并填写其内容.</li>
+<li>如果 P == 0,那么“根据address定位页目录项地址---&gt;分配二级页表项所占的物理页---&gt;将二级页表物理页与该目录项绑定---&gt;从新分配的tmp中由address检索出页表项,并填写内容”</li>
+</ul>
+<p>总体来说,这个地方和ucore的实现基本上是一致的.</p>
+<p>然后再来分析一下关于清除页面内容,同时需要释放相关的页表项的函数.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> <span class="token function">free_page_tables</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> from<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> size<span class="token punctuation">)</span><span class="token comment">//这里的from依旧是线性地址,size是字节数</span>
+<span class="token punctuation">{</span>
+	<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span>pg_table<span class="token punctuation">;</span>
+	<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span> dir<span class="token punctuation">,</span> nr<span class="token punctuation">;</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>from <span class="token operator">&amp;</span> <span class="token number">0x3fffff</span><span class="token punctuation">)</span>
+		<span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"free_page_tables called with wrong alignment"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>from<span class="token punctuation">)</span>
+		<span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"Trying to free up swapper memory space"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	size <span class="token operator">=</span> <span class="token punctuation">(</span>size <span class="token operator">+</span> <span class="token number">0x3fffff</span><span class="token punctuation">)</span> <span class="token operator">&gt;&gt;</span> <span class="token number">22</span><span class="token punctuation">;</span><span class="token comment">//此时求出来的是,这片内存所跨越的目录数</span>
+	dir <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>from<span class="token operator">&gt;&gt;</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xffc</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//得出第一个目录地址</span>
+	<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span> <span class="token punctuation">;</span> size<span class="token operator">--</span><span class="token operator">&gt;</span><span class="token number">0</span> <span class="token punctuation">;</span> dir<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//外层循环表示逐个目录</span>
+		<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>dir<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">//无效目录表示,这个目录内没有分配的物理页,直接越过</span>
+			<span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+		pg_table <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token number">0xfffff000</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>dir<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//得出来这个目录所对应的二级页表项的页的基地址</span>
+		<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>nr<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">;</span> nr<span class="token operator">&lt;</span><span class="token number">1024</span> <span class="token punctuation">;</span> nr<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//对于这个目录下的页,逐页释放.</span>
+			<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>pg_table<span class="token punctuation">)</span>
+				<span class="token function">free_page</span><span class="token punctuation">(</span><span class="token number">0xfffff000</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>pg_table<span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token operator">*</span>pg_table <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><span class="token comment">//页表设置为0.</span>
+			pg_table<span class="token operator">++</span><span class="token punctuation">;</span><span class="token comment">//下一页</span>
+		<span class="token punctuation">}</span>
+		<span class="token function">free_page</span><span class="token punctuation">(</span><span class="token number">0xfffff000</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>dir<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//将该目录所在的页清空</span>
+		<span class="token operator">*</span>dir <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token function">invalidate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-return">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果是直接清空对应的物理内存页的话,直接从<code>from</code>开始逐个释放掉就可以了.如果仍然是考虑从<code>from</code>逐个地遍历并且顺便将其页表,页目录表释放掉将会带来问题,因为线性地址到物理地址的映射本身就是依赖于页表和页目录表的,所以我们在进行内存释放时,不应该忽略这种依赖关系,否则将会在后续的遍历中打乱.</p>
+<p>而在linux 0.11中,使用了一种<strong>自顶向下</strong>的方式,首先确定内存释放时,所跨越的目录的范围,然后逐个目录地释放,每个目录中,逐页地释放.每次释放都是落实在<code>free_page+*pte = 0</code>上.</p>
+<p>简而言之:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-for">for</span> each dir<span class="token punctuation">{</span>
+  	<span class="token keyword keyword-if">if</span> 目录无效<span class="token operator">:</span> <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+  	<span class="token keyword keyword-for">for</span> each page<span class="token punctuation">{</span>
+      释放物理页内容<span class="token punctuation">,</span>页表项设置为<span class="token number">0.</span>
+    <span class="token punctuation">}</span>
+    释放目录物理页内容<span class="token punctuation">,</span>目录项设置为<span class="token number">0.</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>下面是有关于拷贝物理页的分析.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> <span class="token function">copy_page_tables</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> from<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> to<span class="token punctuation">,</span><span class="token keyword keyword-long">long</span> size<span class="token punctuation">)</span><span class="token comment">//此时from和to都是线性地址</span>
 <span class="token punctuation">{</span>
 	<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span> from_page_table<span class="token punctuation">;</span>
@@ -644,24 +717,24 @@
 		<span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"copy_page_tables called with wrong alignment"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 	from_dir <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>from<span class="token operator">&gt;&gt;</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xffc</span><span class="token punctuation">)</span><span class="token punctuation">;</span> 
 	to_dir <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>to<span class="token operator">&gt;&gt;</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xffc</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	size <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>size<span class="token operator">+</span><span class="token number">0x3fffff</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&gt;&gt;</span> <span class="token number">22</span><span class="token punctuation">;</span><span class="token comment">//分别得到目录表地址和size</span>
+	size <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>size<span class="token operator">+</span><span class="token number">0x3fffff</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&gt;&gt;</span> <span class="token number">22</span><span class="token punctuation">;</span><span class="token comment">//分别得到目录表地址和size(所占的目录数量)</span>
 	<span class="token keyword keyword-for">for</span><span class="token punctuation">(</span> <span class="token punctuation">;</span> size<span class="token operator">--</span><span class="token operator">&gt;</span><span class="token number">0</span> <span class="token punctuation">;</span> from_dir<span class="token operator">++</span><span class="token punctuation">,</span>to_dir<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
 		<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>to_dir<span class="token punctuation">)</span>
 			<span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"copy_page_tables: already exist"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 		<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>from_dir<span class="token punctuation">)</span><span class="token punctuation">)</span>
 			<span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
 		from_page_table <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token number">0xfffff000</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>from_dir<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//将目录表中的内容提取前20位,前20位对应的是页祯地址</span>
-    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>to_page_table <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token function">get_free_page</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">//获取一个空闲页,得到的直接是物理地址</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>to_page_table <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token function">get_free_page</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">//为to的目录分配物理页</span>
 			<span class="token keyword keyword-return">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>	<span class="token comment">/* Out of memory, see freeing */</span>
-		<span class="token operator">*</span>to_dir <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span><span class="token punctuation">)</span> to_page_table<span class="token punctuation">)</span> <span class="token operator">|</span> <span class="token number">7</span><span class="token punctuation">;</span><span class="token comment">//将此物理地址的后几个权限位设置.</span>
-		nr <span class="token operator">=</span> <span class="token punctuation">(</span>from<span class="token operator">==</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token number">0xA0</span><span class="token operator">:</span><span class="token number">1024</span><span class="token punctuation">;</span><span class="token comment">//from如果是0,说明是</span>
+		<span class="token operator">*</span>to_dir <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span><span class="token punctuation">)</span> to_page_table<span class="token punctuation">)</span> <span class="token operator">|</span> <span class="token number">7</span><span class="token punctuation">;</span><span class="token comment">//根据分配的物理页,设置to的目录项</span>
+		nr <span class="token operator">=</span> <span class="token punctuation">(</span>from<span class="token operator">==</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token number">0xA0</span><span class="token operator">:</span><span class="token number">1024</span><span class="token punctuation">;</span><span class="token comment">//如果from为0,则说明来自内核,否则就是正常的主存区内存.</span>
 		<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span> <span class="token punctuation">;</span> nr<span class="token operator">--</span> <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token punctuation">;</span> from_page_table<span class="token operator">++</span><span class="token punctuation">,</span>to_page_table<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//此时from_page_table是该目录下的第一个页的地址</span>
-			this_page <span class="token operator">=</span> <span class="token operator">*</span>from_page_table<span class="token punctuation">;</span>
+			this_page <span class="token operator">=</span> <span class="token operator">*</span>from_page_table<span class="token punctuation">;</span><span class="token comment">//得到的是from的某个页表项</span>
 			<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">&amp;</span> this_page<span class="token punctuation">)</span><span class="token punctuation">)</span>
 				<span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
-			this_page <span class="token operator">&amp;=</span> <span class="token operator">~</span><span class="token number">2</span><span class="token punctuation">;</span>
-			<span class="token operator">*</span>to_page_table <span class="token operator">=</span> this_page<span class="token punctuation">;</span>
-			<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>this_page <span class="token operator">&gt;</span> LOW_MEM<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+			this_page <span class="token operator">&amp;=</span> <span class="token operator">~</span><span class="token number">2</span><span class="token punctuation">;</span><span class="token comment">//忽略后面的权限位</span>
+			<span class="token operator">*</span>to_page_table <span class="token operator">=</span> this_page<span class="token punctuation">;</span><span class="token comment">//将from的页表项的内容拷贝到了to对应的页表项中.</span>
+			<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>this_page <span class="token operator">&gt;</span> LOW_MEM<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//??</span>
 				<span class="token operator">*</span>from_page_table <span class="token operator">=</span> this_page<span class="token punctuation">;</span>
 				this_page <span class="token operator">-=</span> LOW_MEM<span class="token punctuation">;</span>
 				this_page <span class="token operator">&gt;&gt;=</span> <span class="token number">12</span><span class="token punctuation">;</span>
@@ -672,6 +745,118 @@
 	<span class="token function">invalidate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 	<span class="token keyword keyword-return">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>对于页的拷贝,仍然是既涉及到页表和物理页内容的拷贝.由于物理页的定位依赖于页表内容,所以进行拷贝时不能打破这种依赖关系,所以在此在页的拷贝上仍然采取了和<code>free_page_tables</code>一样的自顶向下的递归方法.</p>
+<p>总体来说,过程可以概括如下:</p>
+<ul>
+<li>前置处理,得出<code>from</code>和<code>to</code>的目录地址,和<code>size</code>(所占的目录数量).</li>
+<li>进入一个二重循环,外围循环代表每一个目录的迭代,内层循环代表的是目录内每个页的迭代.</li>
+<li>初始化<code>tlb</code>.</li>
+</ul>
+<h3 id="缺页处理程序">3)缺页处理程序</h3>
+<p>这一部分的定义在page.s中,使用纯汇编实现.</p>
+<p>中断向量表的对应项的设置,早在trap.c中就给予设置了.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token function">set_trap_gate</span><span class="token punctuation">(</span><span class="token number">14</span><span class="token punctuation">,</span><span class="token operator">&amp;</span>page_fault<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这一部分栈中寄存器的映像和一般的其他中断还是略有区别的.</p>
+<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">.globl page_fault
+page_fault:
+	xchgl %eax,(%esp)
+	pushl %ecx
+	pushl %edx
+	push %ds
+	push %es
+	push %fs
+	movl $0x10,%edx
+	mov %dx,%ds
+	mov %dx,%es
+	mov %dx,%fs
+	movl %cr2,%edx
+	pushl %edx
+	pushl %eax
+	testl $1,%eax
+	jne 1f
+	call do_no_page
+	jmp 2f
+1:	call do_wp_page
+2:	addl $8,%esp
+	pop %fs
+	pop %es
+	pop %ds
+	popl %edx
+	popl %ecx
+	popl %eax
+	iret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>我们首先来回顾一下,相比于一般的<strong>中断调用含有出错号的情况</strong>,并没有压入一个函数地址,压入的通用寄存器数量也是较少的.<strong>最最核心的部分在于</strong>将出错的线性地址和错误类型压入,作为进一步调用函数的参数.要么是执行<code>do_no_page</code>要么是<code>do_wp_page</code>.这对应了两种缺页的情况:</p>
+<ul>
+<li>确实缺页,对于该线性地址,主存中没有一个物理页与之绑定.</li>
+<li>写页错误,这个与后面的写时复制有关.</li>
+</ul>
+<p>下面来具体的分析一下这两个函数.</p>
+<p>首先看<code>do_no_page</code>的处理:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">do_no_page</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> error_code<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> address<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token keyword keyword-int">int</span> nr<span class="token punctuation">[</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> tmp<span class="token punctuation">;</span>
+	<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> page<span class="token punctuation">;</span>
+	<span class="token keyword keyword-int">int</span> block<span class="token punctuation">,</span>i<span class="token punctuation">;</span>
+	address <span class="token operator">&amp;=</span> <span class="token number">0xfffff000</span><span class="token punctuation">;</span>
+	tmp <span class="token operator">=</span> address <span class="token operator">-</span> current<span class="token operator">-&gt;</span>start_code<span class="token punctuation">;</span><span class="token comment">//我们需要明确的一点是,当发生中断时,current移动就是触发该中断的进程.</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>current<span class="token operator">-&gt;</span>executable <span class="token operator">||</span> tmp <span class="token operator">&gt;=</span> current<span class="token operator">-&gt;</span>end_data<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token function">get_empty_page</span><span class="token punctuation">(</span>address<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">share_page</span><span class="token punctuation">(</span>tmp<span class="token punctuation">)</span><span class="token punctuation">)</span>
+		<span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>page <span class="token operator">=</span> <span class="token function">get_free_page</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+		<span class="token function">oom</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">//下面的操作是与磁盘的读取有关的.</span>
+	block <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">+</span> tmp<span class="token operator">/</span>BLOCK_SIZE<span class="token punctuation">;</span>
+	<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>i<span class="token operator">=</span><span class="token number">0</span> <span class="token punctuation">;</span> i<span class="token operator">&lt;</span><span class="token number">4</span> <span class="token punctuation">;</span> block<span class="token operator">++</span><span class="token punctuation">,</span>i<span class="token operator">++</span><span class="token punctuation">)</span>
+		nr<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">bmap</span><span class="token punctuation">(</span>current<span class="token operator">-&gt;</span>executable<span class="token punctuation">,</span>block<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">bread_page</span><span class="token punctuation">(</span>page<span class="token punctuation">,</span>current<span class="token operator">-&gt;</span>executable<span class="token operator">-&gt;</span>i_dev<span class="token punctuation">,</span>nr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	i <span class="token operator">=</span> tmp <span class="token operator">+</span> <span class="token number">4096</span> <span class="token operator">-</span> current<span class="token operator">-&gt;</span>end_data<span class="token punctuation">;</span>
+	tmp <span class="token operator">=</span> page <span class="token operator">+</span> <span class="token number">4096</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>i<span class="token operator">--</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		tmp<span class="token operator">--</span><span class="token punctuation">;</span>
+		<span class="token operator">*</span><span class="token punctuation">(</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>tmp <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">put_page</span><span class="token punctuation">(</span>page<span class="token punctuation">,</span>address<span class="token punctuation">)</span><span class="token punctuation">)</span>
+		<span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+	<span class="token function">free_page</span><span class="token punctuation">(</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">oom</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中的参数分别是错误码和线性地址,分别对应压栈过程中的<code>%eax</code>和<code>%edx</code>.</p>
+<p>关于<code>do_wp_page</code>相关的处理.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">do_wp_page</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> error_code<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> address<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression"><span class="token number">0</span></span></span>
+<span class="token comment">/* we cannot do this yet: the estdio library writes to code space */</span>
+<span class="token comment">/* stupid, stupid. I really want the libc.a from GNU */</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">CODE_SPACE</span><span class="token punctuation">(</span>address<span class="token punctuation">)</span><span class="token punctuation">)</span>
+		<span class="token function">do_exit</span><span class="token punctuation">(</span>SIGSEGV<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span></span>
+	<span class="token function">un_wp_page</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span>
+		<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">(</span>address<span class="token operator">&gt;&gt;</span><span class="token number">10</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> <span class="token number">0xffc</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token number">0xfffff000</span> <span class="token operator">&amp;</span>
+		<span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>address<span class="token operator">&gt;&gt;</span><span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span><span class="token number">0xffc</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token function">un_wp_page</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token operator">*</span> table_entry<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> old_page<span class="token punctuation">,</span>new_page<span class="token punctuation">;</span>
+
+	old_page <span class="token operator">=</span> <span class="token number">0xfffff000</span> <span class="token operator">&amp;</span> <span class="token operator">*</span>table_entry<span class="token punctuation">;</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>old_page <span class="token operator">&gt;=</span> LOW_MEM <span class="token operator">&amp;&amp;</span> mem_map<span class="token punctuation">[</span><span class="token function">MAP_NR</span><span class="token punctuation">(</span>old_page<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token operator">==</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token operator">*</span>table_entry <span class="token operator">|=</span> <span class="token number">2</span><span class="token punctuation">;</span>
+		<span class="token function">invalidate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token punctuation">(</span>new_page<span class="token operator">=</span><span class="token function">get_free_page</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+		<span class="token function">oom</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>old_page <span class="token operator">&gt;=</span> LOW_MEM<span class="token punctuation">)</span>
+		mem_map<span class="token punctuation">[</span><span class="token function">MAP_NR</span><span class="token punctuation">(</span>old_page<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token operator">--</span><span class="token punctuation">;</span>
+	<span class="token operator">*</span>table_entry <span class="token operator">=</span> new_page <span class="token operator">|</span> <span class="token number">7</span><span class="token punctuation">;</span>
+	<span class="token function">invalidate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">copy_page</span><span class="token punctuation">(</span>old_page<span class="token punctuation">,</span>new_page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>	<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h2 id="hit-os实验中一些内容">3.HIT OS实验中一些内容</h2>
 <h2 id="结合ucore进行分析">4.结合ucore进行分析</h2>
 

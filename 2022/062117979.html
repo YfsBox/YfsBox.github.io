@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1k
+                    1.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    3 Min
+                    4 Min
                 </div>
                 
 
@@ -552,6 +552,11 @@
 <p>“编译器需要”和“程序员需要”是两个不同的概念.</p>
 <p>不过已经修改之后的说法是这样的:“当对于一个没有声明构造函数的类,此时会有隐式地构造函数产生,但此构造函数是浅薄无力的.”</p>
 <h4 id="member-class-object-with-default-constructor">Member Class Object with Default Constructor</h4>
+<p>一个没有定义过构造函数的类,如果有含有构造函数的对象成员,那么这个隐式生成的构造函数就是nontrivial的.</p>
+<p>编译器需要在构造函数中将每个数据成员初始化.如果数据成员中含有一些类对象,如果这些类对象的<code>default constructor</code>已经定义出来,那么编译器将会调用此对象的<code>default constructor</code>.如果有必要,会在原来的<code>constructor</code>上进行代码的扩张,对于多个<code>class object</code>的情况,将会按照声明次序调用.</p>
+<p>一下面这个例子,如果<code>Snow_White</code>含有<code>dopey,sneey,bashful,number(int)</code>这几个数据成员,没有定义<code>default constructor</code>就会合成<code>nontrival constructor</code>.在其中依次调用<code>default constructor</code>.</p>
+<h4 id="base-class-with-default-constructor">Base Class with Default Constructor</h4>
+<h4 id="class-with-a-virtual-function">Class with a Virtual Function</h4>
 
                 
             </div>
