@@ -469,7 +469,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    915
+                    1k
                 </div>
                 
 
@@ -511,7 +511,7 @@
 </figure>
 <p>第三个大致是实际的c++所使用的模式.</p>
 <p>其中所有static属性的成员都处于此对象内存之外,非虚函数也是.</p>
-<p>class object之内,除了nonstatic data member,还有一个虚函数指针(vptr),指向一个虚函数表(vtbl),这个表头含有<code>type_info object</code>.其中<strong>constructor,destructor和copy assignment</strong>会做一些有关于vptr的动作.</p>
+<p>class object之内,除了nonstatic data member,还有一个虚函数指针(vptr),指向一个虚函数表(vtbl),这个表头含有 <code>type_info object</code>.其中<strong>constructor,destructor和copy assignment</strong>会做一些有关于vptr的动作.</p>
 <h3 id="a-keyword-distinction">1.2 A Keyword Distinction</h3>
 <p>首先来讨论一下,在c++中使用struct和class的区别:</p>
 <p>其实,c++之所以要引入struct,很大程度上是为了兼容现存的c代码.但如果这样,有必要引入class吗?其实引入class不单单是引入关键词这么简单,还有它所支持的继承和封装的哲学.</p>
@@ -531,9 +531,9 @@
 </blockquote>
 <p>C++支持多态的方法:</p>
 <ul>
-<li>隐含的转化操作,将<code>derived class</code>指针转化为指向<code>public base type</code>的指针.</li>
-<li>借助<code>virtual function</code>机制.</li>
-<li>借助<code>dynamic_cast</code>和<code>typeid</code>运算符.</li>
+<li>隐含的转化操作,将 <code>derived class</code>指针转化为指向 <code>public base type</code>的指针.</li>
+<li>借助 <code>virtual function</code>机制.</li>
+<li>借助 <code>dynamic_cast</code>和 <code>typeid</code>运算符.</li>
 </ul>
 <p>多态主要用于为不同的类通过一个通用的接口来进行封装,这个通用接口被定义在base class中.</p>
 <p><strong>需要多少内存才能表示一个class object?</strong></p>
@@ -547,6 +547,11 @@
 <p>对于指向Bear对象,但是分别为Bear和ZooAnimal类型的指针,所指向的地址相同,但是<strong>其解释的内存内容所包含的范围不同</strong>.一个是整个Bear对象,一个只含有ZooAnimal部分.</p>
 <p>当Slicing发生时,确实将ZooAnimal部分的内存进行了拷贝,但为什么vptr不能支持派生类的多态呢?</p>
 <h2 id="chapter-2.-the-semantics-of-constructors">chapter 2. The Semantics of Constructors</h2>
+<h3 id="default-constructor-construction">2.1 Default Constructor Construction</h3>
+<p>C++ ARM中有一句非常含糊的话:“当编译器需要时,会生成默认的构造函数”.</p>
+<p>“编译器需要”和“程序员需要”是两个不同的概念.</p>
+<p>不过已经修改之后的说法是这样的:“当对于一个没有声明构造函数的类,此时会有隐式地构造函数产生,但此构造函数是浅薄无力的.”</p>
+<h4 id="member-class-object-with-default-constructor">Member Class Object with Default Constructor</h4>
 
                 
             </div>
@@ -656,43 +661,50 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;Current
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/062117979.html">
+                <a href="/2022/06211691.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2015%2034%2002%201655796842%201655796842773%20V7XCTd%20CD91185C5387BCDC6AAF36ABF14D7A5A%20.jpg" class="responsive-img" alt="Inside The C++ Object Model reading notes">
                         
-                        <span class="card-title">Inside The C++ Object Model reading notes</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
+                        
+                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
+                        </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-user fa-fw"></i>
-                            yfs
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
+                                    源码分析
+                                </a>
+                            
                             
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/c/">
-                        <span class="chip bg-color">c++</span>
+                    <a href="/tags/linux/">
+                        <span class="chip bg-color">linux</span>
+                    </a>
+                    
+                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">操作系统</span>
                     </a>
                     
                 </div>
@@ -740,8 +752,8 @@
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux%E5%86%85%E6%A0%B8/">
-                        <span class="chip bg-color">linux内核</span>
+                    <a href="/tags/linux/">
+                        <span class="chip bg-color">linux</span>
                     </a>
                     
                     <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">

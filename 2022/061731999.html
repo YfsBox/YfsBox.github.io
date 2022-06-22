@@ -444,8 +444,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/linux%E5%86%85%E6%A0%B8/">
-                                <span class="chip bg-color">linux内核</span>
+                            <a href="/tags/linux/">
+                                <span class="chip bg-color">linux</span>
                             </a>
                         
                             <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
@@ -541,12 +541,12 @@
 </figure>
 <h3 id="bootsect.s源码分析">2) bootsect.s源码分析</h3>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">! 定义了4个基本的端地址,分别对应bootseg代码的初始和移动后地址,setup代码地址,系统内核地址,系统内核末尾地址
-SETUPLEN = 4			
-BOOTSEG  = 0x07c0		
-INITSEG  = 0x9000	
-SETUPSEG = 0x9020		
-SYSSEG   = 0x1000		
-ENDSEG   = SYSSEG + SYSSIZE	
+SETUPLEN = 4		
+BOOTSEG  = 0x07c0	
+INITSEG  = 0x9000
+SETUPSEG = 0x9020	
+SYSSEG   = 0x1000	
+ENDSEG   = SYSSEG + SYSSIZE
 ! 设备号
 ROOT_DEV = 0x306
 ! 设置好基本的段寄存器信息,并且将boot的代码移动到0x9000.
@@ -953,7 +953,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	<span class="token function">set_trap_gate</span><span class="token punctuation">(</span><span class="token number">39</span><span class="token punctuation">,</span><span class="token operator">&amp;</span>parallel_interrupt<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>我们可以发现,这一部分代码以设置中断向量表的陷阱门为主,并且这些陷阱门很大一部分代表的是一些与故障有关的中断.其中的含义,标注在注释中.除此之外,还开启硬件的中断请求允许.</p>
-<p>这里和ucore对于中断的初始化方法基本上一致,ucore有关于中断的初始化集中于两个函数中.其中pic_init的作用类似于<code>outb_p(inb_p(0x21)&amp;0xfb,0x21);outb(inb_p(0xA1)&amp;0xdf,0xA1);</code>作用在于激活8259A有关于中断的请求.除此之外ucore最后初始化中断向量表结束之后,还将中断向量表(描述符)地址加载到了相应的寄存器中(<code>lidt(&amp;idt_pd);</code>).我们再看linux 0.11的话,中断向量表配置好之后,我们没有在trap_init中看到加载的操作.,究竟是怎么做的?</p>
+<p>这里和ucore对于中断的初始化方法基本上一致,ucore有关于中断的初始化集中于两个函数中.其中pic_init的作用类似于 <code>outb_p(inb_p(0x21)&amp;0xfb,0x21);outb(inb_p(0xA1)&amp;0xdf,0xA1);</code>作用在于激活8259A有关于中断的请求.除此之外ucore最后初始化中断向量表结束之后,还将中断向量表(描述符)地址加载到了相应的寄存器中(<code>lidt(&amp;idt_pd);</code>).我们再看linux 0.11的话,中断向量表配置好之后,我们没有在trap_init中看到加载的操作.,究竟是怎么做的?</p>
 <p>更具体看中断向量表的配置的话,这些set操作是几个宏定义,更底层是借助汇编实现的.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">set_intr_gate</span><span class="token expression"><span class="token punctuation">(</span>n<span class="token punctuation">,</span>addr<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 	<span class="token expression"><span class="token function">_set_gate</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>idt<span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token number">14</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">,</span>addr<span class="token punctuation">)</span></span></span>
@@ -963,7 +963,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">set_system_gate</span><span class="token expression"><span class="token punctuation">(</span>n<span class="token punctuation">,</span>addr<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 	<span class="token expression"><span class="token function">_set_gate</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>idt<span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span>addr<span class="token punctuation">)</span></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这几项,分别对应的是:idt表中的地址,类型(陷阱,中断.....),特权级,处理程序的地址.而这里的这个idt,是head.s中就定义好的idt,其地址位于system模块中,位于0x7000偏移量的中断向量表,再回顾head.s中的行为,我们可以发现head中早就有使用<code>lidt idt_descr</code>的指令,加载到CPU中的IDTR寄存器.从而使CPU明确了idt的位置.所以,至此上面所提到的关于idt加载的问题也就解决了.</p>
+<p>这几项,分别对应的是:idt表中的地址,类型(陷阱,中断.....),特权级,处理程序的地址.而这里的这个idt,是head.s中就定义好的idt,其地址位于system模块中,位于0x7000偏移量的中断向量表,再回顾head.s中的行为,我们可以发现head中早就有使用 <code>lidt idt_descr</code>的指令,加载到CPU中的IDTR寄存器.从而使CPU明确了idt的位置.所以,至此上面所提到的关于idt加载的问题也就解决了.</p>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2016%2046%2036%201655628396%201655628396096%20ijF22W%20image-20220619164635886%20.png" alt="image-20220619164635886" style="zoom:50%;"></p>
 <p>其中断描述符设置的细节和ucore区别不大,因为两者中断描述符的结构都是一样的.若真要说,有什么区别,就是是否使用了c语言的抽象,我认为linux 0.11中,直接使用了汇编写到了idt的内存中,实现了对idt项的设置.而ucore,则多了一层抽象,ucore借助了c语言的抽象,它将段描述符抽象成结构体,读idt项的设置体现为对该结构体项的赋值,而这些结构体也恰恰是对idt表中一个个中断描述符的抽象.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//ucore对于中断描述符的设置</span>
@@ -994,13 +994,13 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 <li><strong>idt加载的时机不同</strong>.看ucore的boot就可以发现,其中没有关于idt的设置.而linux 0.11在head.s运行阶段,就做好了对idt的初始化,包括IDTR寄存器的载入.</li>
 <li><strong>ucore对于中断描述符的抽象化层次更高</strong>,ucore的中断描述符和中断向量表都抽象了对应的c语言形式的数据结构,其set也是处于c语言的层次上进行的,而linux 0.11对于中断描述符的设置,除了一层宏定义外,在往下就是直接使用汇编来对idt的内存进行设置.</li>
 </ul>
-<p>下面,我们再来看一下,中断处理程序的定义.每个中断事件对应的中断处理程序的入口,集中定义在<code>/kernel/asm.s</code> 中.其中的模式,基本上都是类似的,但是大体上可以分为三类:</p>
+<p>下面,我们再来看一下,中断处理程序的定义.每个中断事件对应的中断处理程序的入口,集中定义在 <code>/kernel/asm.s</code> 中.其中的模式,基本上都是类似的,但是大体上可以分为三类:</p>
 <ul>
 <li>压入处理函数地址,并跳转到执行no_error_code的.</li>
 <li>压入处理函数地址,并跳转到执行error_code的.</li>
 <li>Irq13.</li>
 </ul>
-<p>首先压入一个要执行的函数的地址,这些地址在trap.c中有定义.然后执行<code>no_error_code</code>,</p>
+<p>首先压入一个要执行的函数的地址,这些地址在trap.c中有定义.然后执行 <code>no_error_code</code>,</p>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2017%2022%2006%201655630526%201655630526660%20gsB7FZ%20image-20220619172206398%20.png" alt="image-20220619172206398" style="zoom:50%;"></p>
 <p>总体来说,这个过程中堆栈的状况是如图中所示的,不过图中的例子都是特权级发生转变的情况,如果是没有发生转变的情况,那么就不会有原ss和esp的压入,c函数地址前的寄存器都是硬件压入的.</p>
 <p>但仅仅把握住这些还是不够的,应该还结合代码进行更细致地分析.</p>
@@ -1035,11 +1035,11 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	popl %ebx
 	popl %eax
 	iret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>结合代码分析,除了压栈和弹栈之外,最核心的操作在于借助交换指令,将错误码和处理函数地址保存到了%eax和%ebx中,所以后来执行<code>call *%ebx</code>进行地址跳转,进入到中断处理函数,%eax保存了错误码,所执行的中断处理函数中是有用的,接着则是将栈弹出.</p>
+<p>结合代码分析,除了压栈和弹栈之外,最核心的操作在于借助交换指令,将错误码和处理函数地址保存到了%eax和%ebx中,所以后来执行 <code>call *%ebx</code>进行地址跳转,进入到中断处理函数,%eax保存了错误码,所执行的中断处理函数中是有用的,接着则是将栈弹出.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">do_divide_error</span><span class="token punctuation">(</span><span class="token keyword keyword-long">long</span> esp<span class="token punctuation">,</span> <span class="token keyword keyword-long">long</span> error_code<span class="token punctuation">)</span><span class="token punctuation">{</span>
 	<span class="token function">die</span><span class="token punctuation">(</span><span class="token string">"divide error"</span><span class="token punctuation">,</span>esp<span class="token punctuation">,</span>error_code<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token comment">//在具体的中断处理函数中,确实用到了%eax中保存的error_code.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>相比之下,ucore和linux 0.11在这个地方处理的最大不同,我认为仍然在于抽象的层次上.ucore将压栈过程中的这一系列寄存器(也包含中断向量号,错误码等)抽象成了一个<code>trapframe</code>数据结构,并且定义了一个<code>trap_dispatch</code>函数作为分发器,将之前所抽象的trapframe的指针作为媒介传递到这个“分发器”中,这个复用器会根据中断向量号分出不同的分支,进而也对应了不同的处理,执行完之后返回.而linux 0.11只是直接压入处理函数的地址,并且直接执行这个地址上的函数.</p>
+<p>相比之下,ucore和linux 0.11在这个地方处理的最大不同,我认为仍然在于抽象的层次上.ucore将压栈过程中的这一系列寄存器(也包含中断向量号,错误码等)抽象成了一个 <code>trapframe</code>数据结构,并且定义了一个 <code>trap_dispatch</code>函数作为分发器,将之前所抽象的trapframe的指针作为媒介传递到这个“分发器”中,这个复用器会根据中断向量号分出不同的分支,进而也对应了不同的处理,执行完之后返回.而linux 0.11只是直接压入处理函数的地址,并且直接执行这个地址上的函数.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//ucore中trapframe</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">trapframe</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-struct">struct</span> <span class="token class-name">pushregs</span> tf_regs<span class="token punctuation">;</span>
@@ -1065,8 +1065,8 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 <span class="token punctuation">}</span> <span class="token keyword keyword-__attribute__">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span>packed<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="系统调用到中断处理之间的部分">2)系统调用到中断处理之间的部分</h3>
 <p>下面,我们主要关注system_call.s程序.</p>
-<p>首先,需要明白的是,用户调用通过使用中断调用<code>int 0x80</code>和存放寄存器%eax中的功能号来使用内核提供的各种系统服务.用户并不是直接使用系统调用中断,而是通过libc中的接口调用.</p>
-<p>以<code>unistd.h</code>函数库中的系统调用为例,这些系统调用都需要借助<code>int 0x80</code>来进行处理,而这些需要使用<code>int 0x80</code>的系统调用每个又都有不同的编号,进而区分为不同的事件.这些事件号在触发<code>int 0x80</code>时被保存在%eax寄存器中.</p>
+<p>首先,需要明白的是,用户调用通过使用中断调用 <code>int 0x80</code>和存放寄存器%eax中的功能号来使用内核提供的各种系统服务.用户并不是直接使用系统调用中断,而是通过libc中的接口调用.</p>
+<p>以 <code>unistd.h</code>函数库中的系统调用为例,这些系统调用都需要借助 <code>int 0x80</code>来进行处理,而这些需要使用 <code>int 0x80</code>的系统调用每个又都有不同的编号,进而区分为不同的事件.这些事件号在触发 <code>int 0x80</code>时被保存在%eax寄存器中.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">_syscall3</span><span class="token expression"><span class="token punctuation">(</span>type<span class="token punctuation">,</span>name<span class="token punctuation">,</span>atype<span class="token punctuation">,</span>a<span class="token punctuation">,</span>btype<span class="token punctuation">,</span>b<span class="token punctuation">,</span>ctype<span class="token punctuation">,</span>c<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 <span class="token expression">type <span class="token function">name</span><span class="token punctuation">(</span>atype a<span class="token punctuation">,</span>btype b<span class="token punctuation">,</span>ctype c<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token punctuation">{</span> </span><span class="token punctuation">\</span>
@@ -1079,7 +1079,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 <span class="token expression">errno<span class="token operator">=</span><span class="token operator">-</span>__res<span class="token punctuation">;</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token keyword keyword-return">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token punctuation">}</span></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这个时候,有一个疑问,就在于我们当初在进行初始化idt的时候没有设置0x80所对应的的中断描述符,既然如此<code>int 0x80</code>又是怎样执行的呢?</p>
+<p>这个时候,有一个疑问,就在于我们当初在进行初始化idt的时候没有设置0x80所对应的的中断描述符,既然如此 <code>int 0x80</code>又是怎样执行的呢?</p>
 <p>这在linux 0.11中,我认为是比较奇怪的,它在sched.c中对0x80对应的中断描述符进行了设置.其实现代码如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">sched_init</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span>
@@ -1096,16 +1096,16 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 <span class="token comment">//这个宏定义展开之后是这样的</span>
 <span class="token keyword keyword-int">int</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> fd<span class="token punctuation">)</span> 
 <span class="token punctuation">{</span> 
-    <span class="token keyword keyword-long">long</span> __res<span class="token punctuation">;</span>      
+    <span class="token keyword keyword-long">long</span> __res<span class="token punctuation">;</span>    
     __asm__ <span class="token keyword keyword-volatile">volatile</span> <span class="token punctuation">(</span><span class="token string">"int $0x80"</span> 
         <span class="token operator">:</span> <span class="token string">"=a"</span> <span class="token punctuation">(</span>__res<span class="token punctuation">)</span> 
-        <span class="token operator">:</span> <span class="token string">"0"</span> <span class="token punctuation">(</span>__NR_close<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token string">"b"</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-long">long</span><span class="token punctuation">)</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>      
+        <span class="token operator">:</span> <span class="token string">"0"</span> <span class="token punctuation">(</span>__NR_close<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token string">"b"</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-long">long</span><span class="token punctuation">)</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>    
     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>__res <span class="token operator">&gt;=</span> <span class="token number">0</span><span class="token punctuation">)</span>
         <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> __res<span class="token punctuation">;</span> 
     errno <span class="token operator">=</span> <span class="token operator">-</span>__res<span class="token punctuation">;</span> 
     <span class="token keyword keyword-return">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span> 
 <span class="token punctuation">}</span><span class="token comment">//将事件号__NR_close存入%eax,将参数fd存入%edx后,触发int 0x80中断,注意参数要存在通用寄存器中,并且最多3个.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>之后进入<code>system_call</code>进行处理,下面重点分析一下这个程序.</p>
+<p>之后进入 <code>system_call</code>进行处理,下面重点分析一下这个程序.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">system_call:
 	cmpl $nr_system_calls-1,%eax
 	ja bad_sys_call
@@ -1245,8 +1245,8 @@ sys_setreuid<span class="token punctuation">,</span>sys_setregid <span class="to
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/linux%E5%86%85%E6%A0%B8/">
-                                    <span class="chip bg-color">linux内核</span>
+                                <a href="/tags/linux/">
+                                    <span class="chip bg-color">linux</span>
                                 </a>
                             
                                 <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
@@ -1309,7 +1309,7 @@ sys_setreuid<span class="token punctuation">,</span>sys_setregid <span class="to
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            Inside The C++ Object Model,即《深度探索C++对象模型》,是讲解c++对象底层实现机制的经典著作.
                         
                     </div>
                     <div class="publish-info">
