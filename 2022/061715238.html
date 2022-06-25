@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    5.9k
+                    6.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    22 Min
+                    24 Min
                 </div>
                 
 
@@ -494,7 +494,39 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="一.effective-c">一.Effective C++</h1>
+                <h2 id="accustoming-youself-to-c">1.Accustoming Youself to C++</h2>
+<h3 id="item-01.-view-c-as-a-federation-of-languages">item 01. View C++ as a federation of languages</h3>
+<p>我们可以将C++看作4个部分:</p>
+<ul>
+<li>C的继承,C是没有模版,异常,重载的.</li>
+<li>Object-Oriented C++.如封装,继承,多态,virtual函数(实现动态绑定).</li>
+<li>Template C++.</li>
+<li>STL.以template为基础实现,内含容器,迭代器,算法以及函数对象.</li>
+</ul>
+<h3 id="item-02.-perfer-constsenumsand-lnlines-to-define">item 02. Perfer consts,enums,and lnlines to #define</h3>
+<p>如果使用宏定义,将会在预处理时就展开.编译器不会看见.</p>
+<p>如果使用<code>const</code>,就可以被编译器看到,出现的错误或者警告信息如果涉及到此内容,将会是比较直观的,</p>
+<p>除此之外,<code>#define</code>是不能创建出新的class专属常量的.</p>
+<p>或者我们可以考虑以<code>enum</code>代替.</p>
+<p>此外,我们还会使用<code>#define</code>实现一个函数,避免了调用过程的开销.但是在编写时,比较不方便.还会有一些容易出错的情况:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-int">int</span> a <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">,</span>b <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token function">CALL_WITH_MAX</span><span class="token punctuation">(</span><span class="token operator">++</span>a<span class="token punctuation">,</span>b<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//对于这种情况,往往会出人意料,因为宏定义的“函数”,是直接将“参数”替换并展开的,和函数传参的机制有所不同</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>我们可以尽可能使用<code>inline</code>函数.</p>
+<h3 id="item-03.-use-const-whenever-possible">item 03. Use const whenever possible</h3>
+<p>首先下面说明了<code>const</code>的几种不同的使用状况:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>p<span class="token punctuation">;</span><span class="token comment">//指针是non-const,但是其值是const</span>
+<span class="token keyword keyword-char">char</span> <span class="token operator">*</span> <span class="token keyword keyword-const">const</span> p<span class="token punctuation">;</span><span class="token comment">//指针是const,其值为non-const</span>
+<span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span> <span class="token keyword keyword-const">const</span> p<span class="token punctuation">;</span><span class="token comment">//都是const</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>在具体的应用中,比如说迭代器,相当于一个<code>T const *</code>.指针不变,但是指针所指向的值可变.</p>
+<p>在函数声明中的作用也很显著:</p>
+<ul>
+<li>返回值.</li>
+<li>参数.</li>
+<li>成员函数.</li>
+</ul>
+<h3 id="item-04.make-sure-that-objects-are-initialized-before-theyre-used">item 04.Make sure that objects are initialized before they’re used</h3>
+<p>在一个<code>class</code>中,我们应该确保的是,通过构造函数使对象的每个成员被初始化.</p>
+<p>如果我们在构造函数体内部,以赋值的方式进行初始化,其实并不是最佳做法.初始化动作其实是发生在进入构造函数本体之前的.<strong>更好的方法是借助成员初值列表</strong>.此外,应该注意,在list中的排列顺序应该与在<code>class</code>中的声明顺序相同.</p>
 <h2 id="构造析构赋值">2.构造,析构,赋值</h2>
 <h3 id="了解c默默调用的函数">5)了解c++默默调用的函数</h3>
 <p>如果我们在定义一个类时,copy,copy assignment,destroy还有constant,都是编译器可以为我们默认定义的(即使我们没有声明或定义).并且都是public,inline.</p>
