@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.3k
+                    2.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    4 Min
+                    9 Min
                 </div>
                 
 
@@ -552,7 +552,6 @@
 <p>“编译器需要”和“程序员需要”是两个不同的概念.</p>
 <p>不过已经修改之后的说法是这样的:“当对于一个没有声明构造函数的类,此时会有隐式地构造函数产生,但此构造函数是浅薄无力的.”</p>
 <h4 id="member-class-object-with-default-constructor">Member Class Object with Default Constructor</h4>
-<p>一个没有定义过构造函数的类,如果有含有构造函数的对象成员,那么这个隐式生成的构造函数就是nontrivial的.</p>
 <p>编译器需要在构造函数中将每个数据成员初始化.如果数据成员中含有一些类对象,如果这些类对象的<code>default constructor</code>已经定义出来,那么编译器将会调用此对象的<code>default constructor</code>.如果有必要,会在原来的<code>constructor</code>上进行代码的扩张,对于多个<code>class object</code>的情况,将会按照声明次序调用.</p>
 <p>一下面这个例子,如果<code>Snow_White</code>含有<code>dopey,sneey,bashful,number(int)</code>这几个数据成员,没有定义<code>default constructor</code>就会合成<code>nontrival constructor</code>.在其中依次调用<code>default constructor</code>.</p>
 <h4 id="base-class-with-default-constructor">Base Class with Default Constructor</h4>
@@ -561,9 +560,100 @@
 <h4 id="class-with-a-virtual-function">Class with a Virtual Function</h4>
 <p>主要是两种情况:</p>
 <ul>
-<li>生命或者继承于某个<code>virtual function</code>.</li>
-<li>派生于一个继承串,其中有多个或一个<code>virtual base classes</code>.</li>
+<li>声明或者继承于某个<code>virtual function</code>.</li>
+<li>派生于一个继承链,其中有多个或一个<code>virtual base classes</code>.</li>
 </ul>
+<p>在这时会有扩张操作发生:</p>
+<ul>
+<li>一个<code>virtual function table</code>被产生.</li>
+<li>每一个<code>class object</code>中,一个额外的指针成员会被合成,内有<code>class vtbl</code>.</li>
+</ul>
+<p>对于一个类中的<code>class objects</code>,编译器会合成每一个类对象中的vptr.</p>
+<h4 id="class-with-a-virtual-base-class">Class with a Virtual Base Class</h4>
+<p>对于含有一个<code>virtual base class</code>的派生类,编译器必须使其在<strong>运行时</strong>明确基类的地址.</p>
+<p>????</p>
+<p>最后梳理一下,总共有四种情况,导致需要编译器需要合成<code>default constructor</code>.</p>
+<p>在合成的<code>defuault constructor</code>中,只有<code>base class subobjects</code>和<code>member class objects</code>被初始化.</p>
+<p>所以注意两个误解:</p>
+<ul>
+<li>如果没有定义<code>default constructor</code>就会合成.</li>
+<li>合成的<code>default constructor</code>会设定每一个数据成员.</li>
+</ul>
+<h3 id="copy-constructor-construction">2.2 Copy Constructor Construction</h3>
+<h4 id="default-memberwize">Default Memberwize</h4>
+<p>当没有提供<code>explicit copy constructor</code>时,如果要发生拷贝构造,内部是以“逐个成员进行拷贝”的手法.对于其中的<code>member class object</code>,则以递归的方式进行“逐个成员拷贝”.</p>
+<p>比如说</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Word</span><span class="token punctuation">{</span>
+  <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+	<span class="token comment">//...</span>
+  <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+  	<span class="token keyword keyword-int">int</span> occur_<span class="token punctuation">;</span>
+    String word_<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面的这种情况,<code>default memberwise initialzation</code>会拷贝<code>occur_</code>,然后递归地处理<code>word_</code>.</p>
+<h2 id="chapter-3.-the-semantics-of-data">chapter 3. The Semantics of Data</h2>
+<p>首先考虑一个菱形继承的例子(X,Y,Z,A).调用<code>sizeof</code>打印出来的结果依次为:1,8,8,12.</p>
+<p>对于X,这个空的类,其大小为1,其实是编译器预留出来的一个<code>char</code>,其作用在于<strong>使不同的类在内存中地址不同.</strong></p>
+<p>对于Z,Y虚拟继承了X,其内存占用主要来自于:</p>
+<ul>
+<li>支持继承带来的负担.通常是一个指针或者偏移量.</li>
+<li>编译器对于特殊情况的优化处理.</li>
+<li>Alignment,对齐机制.比如说32位机器上,会对齐到8个字节.</li>
+</ul>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2024%2013%2002%2008%201656046928%201656046928575%20eWwYKG%20image-20220624130108426%20.png" alt="image-20220624130108426" style="zoom: 67%;"></p>
+<p>对于有12个字节的A应该是这这种情况:</p>
+<ul>
+<li>确保唯一性的<code>char</code>,1B.</li>
+<li><code>class A</code>自身,0 B.</li>
+<li><code>Base class X,Y</code>,8 B</li>
+<li>alignment.</li>
+</ul>
+<h3 id="the-binding-of-a-data-member">3.1 The Binding of a Data Member</h3>
+<p>在一个类中定义了x,外部也有一个x全局变量.如果类的成员函数引用这个x,指的究竟是哪一个呢?就现在而言,是内部的x.</p>
+<p><strong>如果一个内联函数在一个class声明后被定义,就需要重新评估求值.</strong></p>
+<p>比如说下面的这一段:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-extern">extern</span> <span class="token keyword keyword-int">int</span> x<span class="token punctuation">;</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">Point3d</span><span class="token punctuation">{</span>
+<span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+  	<span class="token keyword keyword-float">float</span> <span class="token function">X</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> x<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token comment">//这就是一个inline函数,对于该函数的分析,会等到整个类声明出现了为止.</span>
+<span class="token keyword keyword-private">private</span><span class="token operator">:</span><span class="token comment">//像这种再类内部定义的函数位inline函数,会等到整个class都声明完后进行</span>
+  	<span class="token keyword keyword-float">float</span> x<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>但是参数列表中就不是这样的......</p>
+<h3 id="data-member-layout">3.2 Data Member Layout</h3>
+<p>这一届主要探讨的是member在类中的排列顺序问题.</p>
+<p><code>Nonstatic data members</code>在对象中的排列顺序和其被声明的顺序一样.中间插入的<code>static data members</code>不会计入.因为有时候有<code>alignment</code>填空,<strong>更准确地说,同一个access,不一定连续较晚出现的成员的地址较高.</strong></p>
+<p>除此之外,在含有<code>virtual function class</code>的对象中还以有一个<code>vptr</code>.</p>
+<p>目前的各家编译器,一般是将<code>access section</code>连锁在一起,按照声明顺序形成连续的区块.</p>
+<h3 id="access-of-a-data-member">3.3 Access of a Data Member</h3>
+<p>我们将讨论<code>nonstatic</code>和<code>static</code>两种情况.</p>
+<h4 id="static-data-member">Static Data Member</h4>
+<p>最突出的特点就是,其地址在class之外,其实体是唯一的,处于数据段中.</p>
+<p>当访问时的编译器的转化如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//origin.chunksize = 250;</span>
+Point3d<span class="token double-colon punctuation">::</span>chunkSize <span class="token operator">=</span> <span class="token number">250</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>尽管看上去是经过一个对象的“.”或者“-&gt;”实现,但实际上对于<code>static</code>类型来说,并不需要经过<code>class object</code>.</p>
+<p>并且这种特征不受继承特征的影响.</p>
+<p>????</p>
+<h4 id="nontatic-data-members">Nontatic Data Members</h4>
+<p>直接处于<code>class object</code>中,除了借助<code>explot</code>和<code>implicit</code>的class object,否则无法存取.</p>
+<p><strong>当在成员函数处理<code>nonstatic members</code>,就会有<code>implicit class object</code>生成.</strong>其实都是借助了一个<code>implicit class object</code>,this指针.</p>
+<p>比如说,在下面代码段中:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Point3d
+<span class="token class-name">Point3d</span><span class="token double-colon punctuation">::</span><span class="token function">translate</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Point3d <span class="token operator">&amp;</span>pt<span class="token punctuation">)</span><span class="token punctuation">{</span>
+  x <span class="token operator">+=</span> pt<span class="token punctuation">.</span>x<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token comment">//相当于</span>
+Point3d
+<span class="token class-name">Point3d</span><span class="token double-colon punctuation">::</span><span class="token function">translate</span><span class="token punctuation">(</span>Point3d <span class="token operator">*</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">,</span><span class="token keyword keyword-const">const</span> Point3d <span class="token operator">&amp;</span>opt<span class="token punctuation">)</span><span class="token punctuation">{</span>
+  <span class="token keyword keyword-this">this</span> <span class="token operator">-&gt;</span> x <span class="token operator">+=</span> pt<span class="token punctuation">.</span>x<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果不是在此类的内部存取一个<code>data member</code>:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">origin<span class="token punctuation">.</span>_y <span class="token operator">=</span> <span class="token number">0.0</span><span class="token punctuation">;</span>
+<span class="token comment">//其存取方式可以看做是</span>
+<span class="token operator">&amp;</span>origin <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token operator">&amp;</span> Point3d<span class="token double-colon punctuation">::</span>_y <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//offset是在编译阶段就确定了.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p><strong>关于虚拟继承的话,看不太懂,暂鸽.</strong></p>
+<h3 id="inheritance-and-the-data-member">3.4 Inheritance and the Data Member</h3>
 
                 
             </div>
@@ -677,13 +767,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/06211691.html">
+                <a href="/2022/06211699.html">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:内存管理">
                         
-                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
+                        <span class="card-title">linux 0.11源码分析:内存管理</span>
                     </div>
                 </a>
                 <div class="card-content article-content">

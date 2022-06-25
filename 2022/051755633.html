@@ -477,7 +477,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-06-17
+                    2022-05-17
                 </div>
                 
 
@@ -537,7 +537,7 @@
   <span class="token keyword keyword-char">char</span> sa_data<span class="token punctuation">[</span><span class="token number">14</span><span class="token punctuation">]</span><span class="token punctuation">;</span><span class="token comment">//存放socket地址值</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2017%2003%2024%201655456604%201655456604753%20tgmr0T%20image-20220617170324567%20.png" alt="image-20220617170324567"><figcaption aria-hidden="true">image-20220617170324567</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2017%2003%2024%201655456604%201655456604753%20tgmr0T%20image-20220617170324567%20.png" alt="1"><figcaption aria-hidden="true">1</figcaption>
 </figure>
 <p>其实14字节的sa_data无法容纳多数协议族的地址值,所以有新的通用sokcet地址结构体.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;bits/socket.h&gt;</span></span>
@@ -638,7 +638,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <li>rsyslogd或者syslogd接受/proc/kmsg和/dev/log的日志,根据配置文件输出到特定的日志文件/var/log/*.</li>
 </ul>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2009%2022%2025%201655515345%201655515345055%20Op9gch%20image-20220618092224738%20.png" alt="image-20220618092224738"><figcaption aria-hidden="true">image-20220618092224738</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2009%2022%2025%201655515345%201655515345055%20Op9gch%20image-20220618092224738%20.png" alt="2"><figcaption aria-hidden="true">2</figcaption>
 </figure>
 <p>用户进程使用的syslog与守护进程rsyslogd通信.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">syslog</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __pri<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>__fmt<span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
@@ -731,7 +731,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <span class="token keyword keyword-int">int</span> <span class="token function">daemon</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> nochdir<span class="token punctuation">,</span><span class="token keyword keyword-int">int</span> noclose<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <h2 id="服务器编程框架">5.服务器编程框架</h2>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2010%2043%2020%201655520200%201655520200658%20ge7Lkj%20image-20220618104320475%20.png" alt="image-20220618104320475"><figcaption aria-hidden="true">image-20220618104320475</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2010%2043%2020%201655520200%201655520200658%20ge7Lkj%20image-20220618104320475%20.png" alt="3"><figcaption aria-hidden="true">3</figcaption>
 </figure>
 <ul>
 <li>IO处理单元,等待并接受客户连接,接受客户数据,将服务器响应数据返回给客户端.</li>
@@ -744,7 +744,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <h3 id="reactor">1) Reactor</h3>
 <p>主线程只是监听文件描述符上是否有事件发生,如果有就通知工作线程,不做实质性的处理工作.这里主线程仅仅起到等待就绪和通知的作用.</p>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2011%2037%2048%201655523468%201655523468604%208lSs8o%20image-20220618113748394%20.png" alt="image-20220618113748394"><figcaption aria-hidden="true">image-20220618113748394</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2011%2037%2048%201655523468%201655523468604%208lSs8o%20image-20220618113748394%20.png" alt="4"><figcaption aria-hidden="true">4</figcaption>
 </figure>
 <p>其工作过程简而言之:</p>
 <ul>
@@ -755,7 +755,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <h3 id="proactor">2) Proactor</h3>
 <p>这种模式将所有I/O操作都交给主线程和内核处理,工作线程仅仅处理业务逻辑.</p>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2011%2049%2054%201655524194%201655524194235%20ihiwQP%20image-20220618114954050%20.png" alt="image-20220618114954050"><figcaption aria-hidden="true">image-20220618114954050</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2011%2049%2054%201655524194%201655524194235%20ihiwQP%20image-20220618114954050%20.png" alt="5"><figcaption aria-hidden="true">5</figcaption>
 </figure>
 <h2 id="并发模式">7.并发模式</h2>
 <h2 id="其他">8.其他</h2>
@@ -794,7 +794,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <p>I/O复用就是利用了这种方法,通过I/O复用函数向内核注册事件,当事件就绪内核会通知给应用程序.其本身其实是阻塞的,但是拥有监听并通知事件就绪的能力.</p>
 <p>除此之外,还有信号驱动式I/O.</p>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2011%2026%2006%201655522766%201655522766494%20kGnP2f%20image-20220618112606278%20.png" alt="image-20220618112606278"><figcaption aria-hidden="true">image-20220618112606278</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2011%2026%2006%201655522766%201655522766494%20kGnP2f%20image-20220618112606278%20.png" alt="6"><figcaption aria-hidden="true">6</figcaption>
 </figure>
 <h2 id="selectpollepoll">2.select,poll,epoll</h2>
 <h3 id="select">1)select</h3>
@@ -841,23 +841,23 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
  <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>其中不同之处在于fds.events代表这个文件描述符就绪所关心的事件,revents由内核修改,返回的是实际发生的事件.</p>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2021%2050%2004%201655473804%201655473804950%20EtphPy%20image-20220617215004772%20.png" alt="image-20220617215004772"><figcaption aria-hidden="true">image-20220617215004772</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2021%2050%2004%201655473804%201655473804950%20EtphPy%20image-20220617215004772%20.png" alt="7"><figcaption aria-hidden="true">7</figcaption>
 </figure>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2021%2050%2020%201655473820%201655473820287%20cG3pAJ%20image-20220617215020121%20.png" alt="image-20220617215020121"><figcaption aria-hidden="true">image-20220617215020121</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2021%2050%2020%201655473820%201655473820287%20cG3pAJ%20image-20220617215020121%20.png" alt="8"><figcaption aria-hidden="true">8</figcaption>
 </figure>
 <h1 id="六.进程间通信">六.进程间通信</h1>
 <p>Posix IPC和System V IPC的区别是什么?</p>
 <h2 id="消息传递">1.消息传递</h2>
 <h3 id="通道">1)通道</h3>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2049%2031%201655610571%201655610571693%20aKoz3i%20image-20220619084339477%20.png" alt="image-20220619084339477"><figcaption aria-hidden="true">image-20220619084339477</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2049%2031%201655610571%201655610571693%20aKoz3i%20image-20220619084339477%20.png" alt="9"><figcaption aria-hidden="true">9</figcaption>
 </figure>
 <p>图中“路径名”和“文件内容或出错消息”描述了管道的作用.可以理解为一个提供单向数据流的连接.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;unistd.h&gt;</span></span>
 <span class="token keyword keyword-int">int</span> <span class="token function">pipe</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> fd<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//一般情况下,是单向的,fd[0]是读者,fd[1]是写者.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>不仅仅可以局限于一个进程中两个描述符的通信,更经常作为两个不同进程之间的通信.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2049%2037%201655610577%201655610577007%20TRxrrA%20image-20220619085303342%20.png" alt="image-20220619085303342" style="zoom:50%;"></p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2011%2049%2037%201655610577%201655610577007%20TRxrrA%20image-20220619085303342%20.png" alt="11" style="zoom:50%;"></p>
 <p>下面是一个例子,实现子进程和父进程之间的双工管道.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">client</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">,</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-void">void</span> <span class="token function">server</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">,</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -892,7 +892,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
   <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>fpr <span class="token operator">=</span> <span class="token function">popen</span><span class="token punctuation">(</span><span class="token string">"ls"</span><span class="token punctuation">,</span><span class="token string">"r"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">==</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">{</span><span class="token comment">//“r”返回的是output</span>
       <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error r\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
-  
+
   <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">(</span>fpw <span class="token operator">=</span> <span class="token function">popen</span><span class="token punctuation">(</span><span class="token string">"ls"</span><span class="token punctuation">,</span><span class="token string">"w"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">==</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
       <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"error w\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
@@ -904,7 +904,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/types&gt;</span></span>
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/stat.h&gt;</span></span>
 <span class="token keyword keyword-int">int</span> <span class="token function">mkfifo</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token class-name">mode_t</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>至于在使用上,我们可以将其视为,在文件系统中建立了一个文件,这个文件就对应了一个管道,之后使用管道的进程通过调用<code>open</code>来获取读/写的一端(返回文件描述符).当结束使用时,除了关闭获取的文件描述符,还应该将创建的FIFO文件<code>unlink</code>.</p>
+<p>至于在使用上,我们可以将其视为,在文件系统中建立了一个文件,这个文件就对应了一个管道,之后使用管道的进程通过调用 <code>open</code>来获取读/写的一端(返回文件描述符).当结束使用时,除了关闭获取的文件描述符,还应该将创建的FIFO文件 <code>unlink</code>.</p>
 <p>注意,当不能正确使用FIFO会出现问题,尤其是open的顺序和读写的设置.如果一系列的顺序如下,就会触发死锁,因为读者在写着存在之前是阻塞的.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c">child<span class="token operator">:</span>
 	<span class="token function">open</span><span class="token punctuation">(</span>FIFO1<span class="token punctuation">,</span>O_RDONLY<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -1020,7 +1020,7 @@ parent<span class="token operator">:</span>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/061755633.html">http://example.com/2022/061755633.html</a>
+                    <a href="http://example.com/2022/051755633.html">http://example.com/2022/051755633.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -1115,59 +1115,6 @@ parent<span class="token operator">:</span>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/061731999.html">
-                    <div class="card-image">
-                        
-                        
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:boot与系统调用">
-                        
-                        <span class="card-title">linux 0.11源码分析:boot与系统调用</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-06-17
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
-                                    源码分析
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
-                    </a>
-                    
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                Next&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
                 <a href="/2022/061715238.html">
                     <div class="card-image">
                         
@@ -1183,9 +1130,9 @@ parent<span class="token operator">:</span>
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-17
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-06-17
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -1199,6 +1146,63 @@ parent<span class="token operator">:</span>
                     
                     <a href="/tags/c/">
                         <span class="chip bg-color">c++</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Current&nbsp;<i class="far fa-dot-circle"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/051755633.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2021%2059%2024%201655474364%201655474364996%20p5DWQ3%20image-20220617215924827%20.png" class="responsive-img" alt="linux网络编程与系统编程基础">
+                        
+                        <span class="card-title">linux网络编程与系统编程基础</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            没有什么深度,大概就是记录一些最重要最基础的东西,其内容很大一部分是根据《linux高性能服务器编程》,《unix网络编程》等书籍所作.
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-05-17
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" class="post-category">
+                                    基础知识
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/linux/">
+                        <span class="chip bg-color">linux</span>
+                    </a>
+                    
+                    <a href="/tags/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/">
+                        <span class="chip bg-color">系统编程</span>
+                    </a>
+                    
+                    <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">
+                        <span class="chip bg-color">网络编程</span>
                     </a>
                     
                 </div>
