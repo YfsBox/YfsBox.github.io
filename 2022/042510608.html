@@ -498,7 +498,8 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="1-STL概论与版本简介"><a href="#1-STL概论与版本简介" class="headerlink" title="1. STL概论与版本简介"></a>1. STL概论与版本简介</h2><p>首先是STL的六大基础组件:</p>
+                <h2 id="stl概论与版本简介">1. STL概论与版本简介</h2>
+<p>首先是STL的六大基础组件:</p>
 <ul>
 <li><strong>容器</strong>.简而言之就是各种数据结构:vector,deque,set,map等.实现上是一种 <code>class template</code>.</li>
 <li><strong>算法</strong>,sort,search,copy,erase等.实现上是 <code>function template</code>.</li>
@@ -507,13 +508,14 @@
 <li><strong>配接器</strong>,一种用来修饰容器,仿函数,或者迭代器接口的东西.</li>
 <li><strong>分配器</strong>,负责空间的管理和配置.</li>
 </ul>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2025%2015%2041%2030%201656142890%201656142890568%20ZpulNa%20image-20220625154130365%20.png" alt="image-20220625154130365" style="zoom:50%;">
-
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2025%2015%2041%2030%201656142890%201656142890568%20ZpulNa%20image-20220625154130365%20.png" alt="image-1" style="zoom:50%;"></p>
 <p>简而言之,算法对于容器的操作借助迭代器实现,仿函数影响算法实现的策略,空间分配器是为容器管理内存的.</p>
 <p>其中GCC所采用的是 <code>SGI STL</code>,也是后来我们重点学习的版本.</p>
-<h2 id="2-Allocator"><a href="#2-Allocator" class="headerlink" title="2.Allocator"></a>2.Allocator</h2><p>allocator是容器实现的基础,但是allocator不一定是分配内存,也可以分配磁盘.</p>
+<h2 id="allocator">2.Allocator</h2>
+<p>allocator是容器实现的基础,但是allocator不一定是分配内存,也可以分配磁盘.</p>
 <p>分配器很多时候是一个 <code>template class</code>,其中有一些主要的接口,这些接口主要有:<code>allocator,deallocator,constructor,destroy</code>等.</p>
-<h3 id="1-最简易的allocator实现"><a href="#1-最简易的allocator实现" class="headerlink" title="1)最简易的allocator实现."></a>1)最简易的allocator实现.</h3><p>下面是一个简单的实现,我们来对其源代码进行分析.</p>
+<h3 id="最简易的allocator实现.">1)最简易的allocator实现.</h3>
+<p>下面是一个简单的实现,我们来对其源代码进行分析.</p>
 <p>在一个简易的STL实现中,分配器文件的代码主要有两个部分:一个是模版类allocator,另一个是实现的模版函数(下面代码段中所示).而 <code>allocator</code>中主要是将这些接口进行封装.而这些函数,最主要的是 <code>allocator,deallocator,constructor,destroy</code>等,分别是对 <code>new,delete,构造函数,析构函数</code>进行的封装.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
     <span class="token keyword keyword-inline">inline</span> T<span class="token operator">*</span> <span class="token function">_allocate</span><span class="token punctuation">(</span>ptrdiff_t size<span class="token punctuation">,</span> T<span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -537,7 +539,6 @@
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">_destroy</span><span class="token punctuation">(</span>T<span class="token operator">*</span> ptr<span class="token punctuation">)</span> <span class="token punctuation">{</span>
         ptr<span class="token operator">-&gt;</span><span class="token operator">~</span><span class="token function">T</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//调用析构函数.</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>所以总体来看这些接口并不复杂,只是做了一层很薄的封装而已.</p>
 <p>下面是allocator的简易实现.可见,除了简单的调用了前面实现的函数接口.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
@@ -567,8 +568,8 @@
         <span class="token keyword keyword-return">return</span> <span class="token function">size_type</span><span class="token punctuation">(</span>UINT_MAX <span class="token operator">/</span> <span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="2-SGI-STL中allocator的实现"><a href="#2-SGI-STL中allocator的实现" class="headerlink" title="2) SGI STL中allocator的实现"></a>2) SGI STL中allocator的实现</h3><p>其中分别介绍 <code>alocator和alloc</code> <code>allocator</code>只是多了层很薄的封装,实现的效率不高,也不是 <code>SGI STL</code>中所使用的主流.而后者则是 <code>SGI STL</code>中效率比较高,使用的主流,很多容器默认采用的分配器就是这个.但是它的实现相对比较复杂.</p>
+<h3 id="sgi-stl中allocator的实现">2) SGI STL中allocator的实现</h3>
+<p>其中分别介绍 <code>alocator和alloc</code> <code>allocator</code>只是多了层很薄的封装,实现的效率不高,也不是 <code>SGI STL</code>中所使用的主流.而后者则是 <code>SGI STL</code>中效率比较高,使用的主流,很多容器默认采用的分配器就是这个.但是它的实现相对比较复杂.</p>
 <p>我们首先回顾一下,c++中 <code>new和delete</code>的过程:</p>
 <ul>
 <li><code>new</code>一个对象时,先调用分配内存在调用构造函数.</li>
@@ -576,7 +577,8 @@
 </ul>
 <p>这两个动作都是<strong>两阶段</strong>的.</p>
 <p>在 <code>STL allocator</code>的实现中,将两个阶段分离.分为 <code>allocator,deallocator,constructor,destroy</code>.因而在 <code>&lt;memory&gt;</code>中,分别包含 <code>&lt;stl_alloc.h&gt;</code>和 <code>&lt;stl_construct.h&gt;</code> .</p>
-<h4 id="construct和destroy的实现"><a href="#construct和destroy的实现" class="headerlink" title="construct和destroy的实现"></a>construct和destroy的实现</h4><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">__cplusplus <span class="token operator">&gt;=</span> <span class="token number">201103L</span></span></span>
+<h4 id="construct和destroy的实现">construct和destroy的实现</h4>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">__cplusplus <span class="token operator">&gt;=</span> <span class="token number">201103L</span></span></span>
   <span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">_T1</span><span class="token punctuation">,</span> <span class="token keyword keyword-typename">typename</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> _Args<span class="token operator">&gt;</span>
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span>
     <span class="token function">_Construct</span><span class="token punctuation">(</span>_T1<span class="token operator">*</span> __p<span class="token punctuation">,</span> _Args<span class="token operator">&amp;&amp;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> __args<span class="token punctuation">)</span>
@@ -593,7 +595,6 @@
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span>
     <span class="token function">_Construct_novalue</span><span class="token punctuation">(</span>_T1<span class="token operator">*</span> __p<span class="token punctuation">)</span>
     <span class="token punctuation">{</span> <span class="token double-colon punctuation">::</span><span class="token keyword keyword-new">new</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-void">void</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>__p<span class="token punctuation">)</span><span class="token punctuation">)</span> _T1<span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>首先上面是 <code>constructor</code>实现,借助 <code>placement new</code>实现.</p>
 <blockquote>
 <p><code>placement new</code>指的是,相比一般的 <code>new</code>,此操作用于在<strong>已经分配的内存</strong>上创建对象.</p>
@@ -617,7 +618,6 @@
     std<span class="token double-colon punctuation">::</span><span class="token function">_Destroy</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">__addressof</span><span class="token punctuation">(</span><span class="token operator">*</span>__first<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//值得注意的是,迭代器之间的每一个都是调用的_Destory!!!!</span>
 <span class="token punctuation">}</span>
    <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>如果迭代器之间的范围很大.并且都是那种 <code>trivial destroy</code>,那么将会造成效率的浪费.</p>
 <p>其解决方法为:<strong>首先借助 <code>value_type</code>判断是否为 <code>trivial</code>,如果是,就什么也不做,否则就对每个对象调用第一类型的析构函数</strong></p>
 <p>具体实现如下:</p>
@@ -635,8 +635,8 @@
       std<span class="token double-colon punctuation">::</span><span class="token class-name">_Destroy_aux</span><span class="token operator">&lt;</span><span class="token function">__has_trivial_destructor</span><span class="token punctuation">(</span>_Value_type<span class="token punctuation">)</span><span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span>
 	<span class="token function">__destroy</span><span class="token punctuation">(</span>__first<span class="token punctuation">,</span> __last<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h4 id="std-alloc中的分配与释放"><a href="#std-alloc中的分配与释放" class="headerlink" title="std::alloc中的分配与释放"></a>std::alloc中的分配与释放</h4><p>主要见 <code>&lt;stl_alloc.h&gt;</code>,其中设计考虑到问题如下:</p>
+<h4 id="stdalloc中的分配与释放">std::alloc中的分配与释放</h4>
+<p>主要见 <code>&lt;stl_alloc.h&gt;</code>,其中设计考虑到问题如下:</p>
 <ul>
 <li>多线程</li>
 <li>分配在堆上.</li>
@@ -677,7 +677,6 @@
     <span class="token keyword keyword-return">return</span><span class="token punctuation">(</span>__old<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其实现方式还是比较简单的,主要是对于 <code>malloc</code>和 <code>free</code>的封装.对于分配失败的情况,也就是当调用 <code>malloc</code>返回为0的时候,会调用 <code>_S_oom_malloc</code>或者 <code>_S_oom_realloc</code>进行处理.这其实是一种类似于 <code>new-handler</code>的机制.</p>
 <blockquote>
 <p><code>new-handler</code>是一种当内存分配时,如果无法满足,就会调用一个我们所指定的处理函数(handler).</p>
@@ -698,7 +697,6 @@
         <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>__result<span class="token punctuation">)</span> <span class="token keyword keyword-return">return</span><span class="token punctuation">(</span>__result<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//知道满足要求时,返回.</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>简而言之,这个内存不足所触发的处理函数,处于一个无限循环中,每一寸循环反复地调用“内存不足处理例程”,执行完之后就再次尝试分配内存,知道成功时返回,如果没有设置相应的“内存不足处理例程”,就直接抛出异常.</p>
 <p>而关于 <code>__default_alloc_template</code>的实现方式,相对而言要复杂得多.</p>
 <p>由于在堆上分配内存时,都要留一个 <code>cookie</code>,这是一种内存的额外开销,尤其对于较小的内存块,导致空间利用率比较低.除此以外还要考虑内存空间碎片的问题.所以第二级分配器做法如下:</p>
@@ -719,7 +717,6 @@
 <span class="token macro property"><span class="token directive-hash">#</span> <span class="token directive keyword">else</span></span>
     <span class="token keyword keyword-static">static</span> _Obj<span class="token operator">*</span> __STL_VOLATILE _S_free_list<span class="token punctuation">[</span>_NFREELISTS<span class="token punctuation">]</span><span class="token punctuation">;</span> 
 <span class="token macro property"><span class="token directive-hash">#</span> <span class="token directive keyword">endif</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>上面的代码是关于 <code>free-list</code>的部分,其中 <code>_Obj</code>定义了节点,节点采用了联合的方式,这助于节省内存空间.既可以视为一个指向下一节点的指针,也可以视为保存着内容的内存块.</p>
 <p>一般采用的是链表的数组,也就是 <code>_NFREELISTS</code>(16)个.对应着不同大小.</p>
 <p>其中主要的函数接口和第一级一样,只不过增加了其他用于内存管理的数据结构及其操作.所以下面首先还是从几个基本的函数接口说起.</p>
@@ -750,7 +747,6 @@
     <span class="token punctuation">}</span>
     <span class="token keyword keyword-return">return</span> __ret<span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>简而言之,首先根据其大小,检索出在 <code>free-list</code>中对应索引的 <code>list</code>,然后在尝试直接从这个链表中拿出空闲块,如果失败,就调用 <code>_S_refill</code>进行处理,如果成功,就将该内存块取走,并且调整 <code>free-list</code>.至于 <code>_S_refill</code>的作用会在后面进行说明.</p>
 <p>然后是 <code>deallocate</code>的实现:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span> <span class="token function">deallocate</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token operator">*</span> __p<span class="token punctuation">,</span> size_t __n<span class="token punctuation">)</span><span class="token punctuation">{</span>
@@ -770,7 +766,6 @@
       <span class="token comment">// lock is released here</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这个过程是比较简单的,简而言之,就是先根据大小索引出对应的链表,然后将要释放的内存块的转型为 <code>_Obj</code>,将此内存块的下一节指向对应链表,并且将链表的头部移动到新加入的内存块上.</p>
 
                 
