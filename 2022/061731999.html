@@ -482,7 +482,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    7.2k
+                    7.4k
                 </div>
                 
 
@@ -863,7 +863,9 @@ gdt:	.quad 0x0000000000000000	/* NULL descriptor */
 <li>3-这一段原本想作为系统调用的段,但是没有使用.</li>
 <li>后面为预留的252项,主要防止LDT和TSS.</li>
 </ul>
-<p>在这里gdt是直接配置好的.</p>
+<p>在这里gdt是直接配置好的.所以简单的概括一下,最初的`<code>GDT</code>的状况,也就是只设置好了<strong>内核代码段和内核数据段</strong>.又因为<code>GDT</code>决定了虚拟地址到线性地址的映射,所以从这个角度考虑的话,内核代码段和内核数据段的情况如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2000%2032%2008%201656261128%201656261128239%20Ie5acS%20image-20220627003207948%20.png" alt="image-20220627003207948" style="zoom:50%;"></p>
+<p>也就是说,根据<code>head.s</code>中的对于GDT内容的定义,内核代码段和内核数据段的线性地址空间处于<code>0-16MB</code>范围内.占<code>4096</code>个物理页.</p>
 <p>关于A20的检查,我没有深究.</p>
 <p>下面分析一下,分页机制的开启.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">pg_dir:

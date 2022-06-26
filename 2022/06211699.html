@@ -482,14 +482,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    4.3k
+                    5.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    17 Min
+                    20 Min
                 </div>
                 
 
@@ -516,7 +516,8 @@
 <p>主内存区是提供给进程申请或者使用的内存区,在内存申请或者释放的过程中,需要内核区代码的介入.</p>
 <h3 id="内存地址空间">2)内存地址空间</h3>
 <p>主要概念有:虚拟地址与逻辑地址,线性地址和物理地址.</p>
-<p>虚拟地址由<strong>段选择符和段内偏移</strong>组成,需要经过地址翻译才能得到物理地址.<strong>虚拟地址空间的定义</strong>是由GDT和LDT决定的.</p>
+<p>虚拟地址由<strong>段选择符和段内偏移</strong>组成,需要经过地址翻译才能得到物理地址.甚至可以说,虚拟地址一部分藏在段寄存器里也就是(段选择符),另一部分一般是在程序中生成的逻辑地址.</p>
+<p><strong>虚拟地址空间的定义</strong>是由GDT和LDT决定的.<strong>GDT和LDT在<code>linux 0.11</code>中是虚拟地址到线性地址的桥梁</strong>.主要体现于,借此将段寄存器中的值(段选择符)转化成了一个段基地址.</p>
 <p>而逻辑地址则是虚拟地址中的偏移部分,也是应用程序直接接触的地址(很多地方不区分虚拟地址和逻辑地址).</p>
 <p>线性地址指的则是<strong>段基地址和段内偏移</strong>.在不使用分页机制中,线性地址就是物理地址.</p>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2022%2002%2051%201655820171%201655820171342%20WCaRKX%20image-20220621220251141%20.png" alt="image-20220621220251141" style="zoom: 25%;"></p>
@@ -548,10 +549,23 @@
 <h3 id="虚拟地址线性地址和物理地址之间的关系">4)虚拟地址,线性地址和物理地址之间的关系</h3>
 <h4 id="内核代码和数据的地址">内核代码和数据的地址</h4>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2023%2005%2056%201655823956%201655823956110%20mUVlvo%20image-20220621230555952%20.png" alt="image-20220621230555952" style="zoom: 33%;"></p>
+<p>这一部分,首先对于虚拟地址到线性地址的转换,这一部分是由GDT表决定的,这一部分在<code>boot/head.s</code>中,就对GDT中有关于内核部分的内存定义好了,其实这两个段的范围是重合的.如下图所示:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">gdt<span class="token operator">:</span>	<span class="token punctuation">.</span>quad <span class="token number">0x0000000000000000</span>	<span class="token comment">/* NULL descriptor */</span>
+	<span class="token punctuation">.</span>quad <span class="token number">0x00c09a0000000fff</span>	<span class="token comment">/* 16Mb */</span>
+	<span class="token punctuation">.</span>quad <span class="token number">0x00c0920000000fff</span>	<span class="token comment">/* 16Mb */</span>
+	<span class="token punctuation">.</span>quad <span class="token number">0x0000000000000000</span>	<span class="token comment">/* TEMPORARY - don't use */</span>
+	<span class="token punctuation">.</span>fill <span class="token number">252</span><span class="token punctuation">,</span><span class="token number">8</span><span class="token punctuation">,</span><span class="token number">0</span>			<span class="token comment">/* space for LDT's and TSS's etc */</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>然后对于线性地址到物理地址之间的转换又是怎么实现的呢?</p>
+<p>关于内核部分的话,其线性地址到物理地址是完全重合的.<strong>为什么是重合的呢?</strong></p>
 <h4 id="任务0的地址对应关系">任务0的地址对应关系</h4>
 <h4 id="任务1的地址对应关系">任务1的地址对应关系</h4>
 <h4 id="其他任务的地址对应关系">其他任务的地址对应关系</h4>
 <h3 id="写时复制与需时加载">5)写时复制与需时加载</h3>
+<h4 id="写时复制">写时复制</h4>
+<p>是一种推迟或者免除数据复制的方法.当进程A通过<code>fork</code>创建出来一个新的子进程B的时候,默认对于内存空间是共享的,对于B也是以只读的方式访问内存空间,父进程也是只读.当两者中有需要写的时候,就会触发缺页异常,会执行<code>do_wp_page()</code>来解决问题.</p>
+<p>更具体地说,<code>do_wp_page()</code>对需要写入的物理页,取消共享(<code>up_wp_page()</code>).为写进程复制一个新的物理页,两者对于这块物理页都有相互独立的一份.最后,修改权限位.</p>
+<p>返回中断处理时,重新执行写操作指令.</p>
+<p>所以总体来说,能够减少一些不必要的数据复制的开销.</p>
 <h2 id="源码分析">2.源码分析</h2>
 <h3 id="主存区初始化">1)主存区初始化</h3>
 <p>首先,我们在初始化的main函数中,首先看到有一段代码,用来计算物理内存中比较关键的几个基地址的操作.</p>
@@ -585,19 +599,20 @@
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>首先我们来看一下mem_map这个数据结构.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-char">char</span> mem_map <span class="token punctuation">[</span> PAGING_PAGES <span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token number">0</span><span class="token punctuation">,</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>这个数据结构只是内核用来记录物理内存的使用状态的,其中的作用范围在于<strong>1MB以上的内存(内核代码和数据之外)</strong>.每一项的数值指的是<strong>此物理被占用的次数</strong>.这个数据结构起到linux 0.11中的空闲空间管理的作用,相比ucore使用 <code>free_list</code>,这个数据结构如果想要展开使用一些页分配的调度算法,比如说 <code>first fit,best fit</code>等,相比list是比较不方便的.所以这个地方体现了linux 0.11在内存管理上是比ucore要简陋的.</p>
-<p>所以总体上来看,<code>mem_init</code>所做的工作,仅仅是将除了主内存区之外对应的 <code>mem_map</code>设置为0(未使用的).执行完此函数后,最终的 <code>mem_map</code>效果如下:</p>
+<p>这个数据结构的作用相当于<code>ucore</code>中的<code>free_list</code>.其中每一项所对应的物理内存的关系是固定的.</p>
+<p>这个数据结构只是内核<strong>用来记录物理内存的使用状态的,是空闲空间管理的基础</strong>,其中的作用范围在于<strong>1MB以上的内存(内核代码和数据之外)</strong>.每一项的数值指的是<strong>此物理被占用的次数</strong>.这个数据结构起到linux 0.11中的空闲空间管理的作用,相比ucore使用 <code>free_list</code>,这个数据结构如果想要展开使用一些页分配的调度算法,比如说 <code>first fit,best fit</code>等,相比list是比较不方便的.所以这个地方体现了linux 0.11在内存管理上是比ucore要简陋的.</p>
+<p>所以总体上来看,<code>mem_init</code>所做的工作,主要是将主内存区对应的 <code>mem_map</code>设置为0(未使用的).执行完此函数后,最终的 <code>mem_map</code>效果如下:</p>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2022%2000%2010%2032%201655827832%201655827832623%20DvcoBv%20image-20220622001032402%20.png" alt="image-20220622001032402" style="zoom:33%;"></p>
 <p>到这里,如果想要比较深入地理解内存管理还是不够的,最好再看一下关于页表(页目录表)以及一些相关内核API的实现方式.</p>
 <p>关于页表和页目录表的定义,回忆之前的boot部分,需要记住的是,它们在内存中的范围是0-5000的.但是相比于ucore来说,linux 0.11有关于页表的实现是比较简陋的,ucore中会有相关的数据结构将页表和页表项进行抽象.</p>
 <h3 id="对于有关于页与页表的内核api">2)对于有关于页与页表的内核API</h3>
+<p>对于页和页表的一些内核API,也应该注意各API之间也有不同的层次感和抽象.下面的这几个相对而言<code>get_free_page,free_page,cpoy_page</code>,是比较底层的实现,并且抽象层次较低(基于物理地址的)的.后来的一些抽象层次更高的API,很多都是基于下面的这几个API实现的.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c">
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">copy_page</span><span class="token expression"><span class="token punctuation">(</span>from<span class="token punctuation">,</span>to<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token function">__asm__</span><span class="token punctuation">(</span></span><span class="token string">"cld ; rep ; movsl"</span><span class="token expression"><span class="token operator">::</span></span><span class="token string">"S"</span> <span class="token expression"><span class="token punctuation">(</span>from<span class="token punctuation">)</span><span class="token punctuation">,</span></span><span class="token string">"D"</span> <span class="token expression"><span class="token punctuation">(</span>to<span class="token punctuation">)</span><span class="token punctuation">,</span></span><span class="token string">"c"</span> <span class="token expression"><span class="token punctuation">(</span><span class="token number">1024</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></span>
 <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token function">get_free_page</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span>
 <span class="token keyword keyword-register">register</span> <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> __res <span class="token keyword keyword-asm">asm</span><span class="token punctuation">(</span><span class="token string">"ax"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
 <span class="token function">__asm__</span><span class="token punctuation">(</span><span class="token string">"std ; repne ; scasb\n\t"</span>
 	<span class="token string">"jne 1f\n\t"</span>
 	<span class="token string">"movb $1,1(%%edi)\n\t"</span>
@@ -615,7 +630,6 @@
 	<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-return">return</span> __res<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
-
 <span class="token keyword keyword-void">void</span> <span class="token function">free_page</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> addr<span class="token punctuation">)</span>
 <span class="token punctuation">{</span>
 	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>addr <span class="token operator">&lt;</span> LOW_MEM<span class="token punctuation">)</span> <span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
@@ -626,12 +640,13 @@
 	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>mem_map<span class="token punctuation">[</span>addr<span class="token punctuation">]</span><span class="token operator">--</span><span class="token punctuation">)</span> <span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
 	mem_map<span class="token punctuation">[</span>addr<span class="token punctuation">]</span><span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">;</span>
 	<span class="token function">panic</span><span class="token punctuation">(</span><span class="token string">"trying to free free page"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p><code>copy_page</code>的功能在于给定 <code>from</code>和 <code>to</code>的物理地址,实现内存的拷贝,底层直接调用汇编,使用了“rep循环+mov”的模式,这种方式在boot的内存移动中也有所使用.</p>
-<p><code>get_free_page</code>总体来说是一种 <code>first fit</code>页分配算法,从 <code>mem_map</code>的末尾开始扫描,直到扫到一个空闲页就返回页地址(物理页地址).</p>
-<p><code>free_page</code>,释放物理地址 <code>addr</code>中的<strong>一页内存</strong>,除了判断是否出现地址异常之外,其核心部分无外乎对 <code>mem_map</code>引用计数的修改.</p>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>copy_page</code>的功能在于给定 <code>from</code>和 <code>to</code>的物理地址,实现内存的拷贝,底层直接调用汇编,使用了“rep循环+mov”的模式,这种方式在boot的内存移动中也有所使用.到这里,对于<code>copy_page</code>这个API,是建立在<code>from</code>和<code>to</code>所对应的物理页面都已经分配好并且有效的前提上的.</p>
+<p><code>get_free_page</code>总体来说是一种 <code>first fit</code>页分配算法,从 <code>mem_map</code>的<strong>末尾</strong>开始扫描,直到扫到一个空闲页就返回页地址(物理页地址).因此到这里也可以推知,后来需要分配内存块时,其在微观上是以一个物理页为单位,逐页逐页地找出内存空间的.<strong>这也就体现了,在虚拟内存空间连续的内存块,在物理空间上未必是连续的</strong></p>
+<p><code>free_page</code>,释放物理地址 <code>addr</code>中的<strong>一页内存</strong>,除了判断是否出现地址异常之外,<strong>其核心部分无外乎对 <code>mem_map</code>中对应物理页的引用计数的修改</strong>.其实这对于完整意义上的内存页释放来说,根本就是不够的,还需要后面的关于<code>page_table</code>的操作,这样在<code>free_page_tables</code>这个API中有所体现.</p>
 <p>总体来说,上面的这三个API是关于内核处理内存中,最最基础而底层的,<strong>只是涉及到物理地址,并且只是以一物理页为单位进行操作</strong>.</p>
 <p>然而物理内存空间和线性内存空间的映射是如何建立的呢?</p>
+<p>在此之前,<strong>需要明确的是<code>page_table</code>是线性地址到物理地址的桥梁.</strong></p>
 <p>答案就藏在 <code>put_page</code>中.这个用于将一个给定的线性地址绑定到一个物理页上.落实在对页表(页目录表)的设置上.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token function">put_page</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> page<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> address<span class="token punctuation">)</span>
 <span class="token punctuation">{</span><span class="token comment">//其中的参数指的是某一个物理页的地址,address则是要求进行绑定的线性地址</span>
@@ -700,9 +715,9 @@
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-for">for</span> each dir<span class="token punctuation">{</span>
   	<span class="token keyword keyword-if">if</span> 目录无效<span class="token operator">:</span> <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
   	<span class="token keyword keyword-for">for</span> each page<span class="token punctuation">{</span>
-      释放物理页内容<span class="token punctuation">,</span>页表项设置为<span class="token number">0.</span>
+      释放物理页<span class="token punctuation">,</span>页表项设置为<span class="token number">0.</span>
     <span class="token punctuation">}</span>
-    释放目录物理页内容<span class="token punctuation">,</span>目录项设置为<span class="token number">0.</span>
+    释放目录物理页<span class="token punctuation">,</span>目录项设置为<span class="token number">0.</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>下面是有关于拷贝物理页的分析.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> <span class="token function">copy_page_tables</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> from<span class="token punctuation">,</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> to<span class="token punctuation">,</span><span class="token keyword keyword-long">long</span> size<span class="token punctuation">)</span><span class="token comment">//此时from和to都是线性地址</span>
@@ -972,17 +987,18 @@ page_fault:
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+                <i class="far fa-dot-circle"></i>&nbsp;Current
+            </div>
             <div class="card">
-                <a href="/2022/06211691.html">
+                <a href="/2022/06211699.html">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:内存管理">
                         
-                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
+                        <span class="card-title">linux 0.11源码分析:内存管理</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -992,9 +1008,9 @@ page_fault:
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -1007,6 +1023,7 @@ page_fault:
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -1029,18 +1046,19 @@ page_fault:
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/062117979.html">
+                <a href="/2022/06211691.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2015%2034%2002%201655796842%201655796842773%20V7XCTd%20CD91185C5387BCDC6AAF36ABF14D7A5A%20.jpg" class="responsive-img" alt="Inside The C++ Object Model reading notes">
                         
-                        <span class="card-title">Inside The C++ Object Model reading notes</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
+                        
+                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            Inside The C++ Object Model,即《深度探索C++对象模型》,是讲解c++对象底层实现机制的经典著作.
+                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
                         
                     </div>
                     <div class="publish-info">
@@ -1049,8 +1067,12 @@ page_fault:
                             </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-user fa-fw"></i>
-                            yfs
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
+                                    源码分析
+                                </a>
+                            
                             
                         </span>
                     </div>
@@ -1058,8 +1080,12 @@ page_fault:
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/c/">
-                        <span class="chip bg-color">c++</span>
+                    <a href="/tags/linux/">
+                        <span class="chip bg-color">linux</span>
+                    </a>
+                    
+                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">操作系统</span>
                     </a>
                     
                 </div>
