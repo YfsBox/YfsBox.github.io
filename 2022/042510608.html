@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    2.5k
+                    4.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    10 Min
+                    18 Min
                 </div>
                 
 
@@ -508,7 +508,7 @@
 <li><strong>配接器</strong>,一种用来修饰容器,仿函数,或者迭代器接口的东西.</li>
 <li><strong>分配器</strong>,负责空间的管理和配置.</li>
 </ul>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2025%2015%2041%2030%201656142890%201656142890568%20ZpulNa%20image-20220625154130365%20.png" alt="image-1" style="zoom:50%;"></p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2025%2015%2041%2030%201656142890%201656142890568%20ZpulNa%20image-20220625154130365%20.png" alt="六大组件" style="zoom:50%;"></p>
 <p>简而言之,算法对于容器的操作借助迭代器实现,仿函数影响算法实现的策略,空间分配器是为容器管理内存的.</p>
 <p>其中GCC所采用的是 <code>SGI STL</code>,也是后来我们重点学习的版本.</p>
 <h2 id="allocator">2.Allocator</h2>
@@ -767,6 +767,180 @@
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这个过程是比较简单的,简而言之,就是先根据大小索引出对应的链表,然后将要释放的内存块的转型为 <code>_Obj</code>,将此内存块的下一节指向对应链表,并且将链表的头部移动到新加入的内存块上.</p>
+<p>剩余的一些关于 <code>allocator</code>的细节,暂鸽</p>
+<h2 id="迭代器">3.迭代器</h2>
+<p>在设计STL时,有一种重要的思想就是将容器和算法分离,最后以一种粘合剂将两者联系起来.这就是迭代器的地位.</p>
+<p>首先我们可以说迭代器是一种<strong>smart pointer</strong>,首先我们考虑一下指针的操作中,最重要的是 <code>dereference</code>和 <code>access</code>,也就是说 <code>operator *</code>和 <code>operator -&gt;</code>的重要性.比如说,我们可以在 <code>auto_ptr</code>发现这种方法的实现.</p>
+<p><code>auto_ptr</code>几乎就是对一个指针的一层封装,其中重点需要我们关注的地方就在于它提供了对于 <code>operator *</code>和 <code>operator -&gt;</code>的重载.</p>
+<p>类似于下面的这种实现方式.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">ListIterator</span> <span class="token punctuation">{</span>
+<span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+    <span class="token function">ListIterator</span><span class="token punctuation">(</span>T <span class="token operator">*</span>p <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">m_ptr</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">{</span><span class="token punctuation">}</span> 
+    T<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>m_ptr<span class="token punctuation">;</span><span class="token punctuation">}</span>  <span class="token comment">//取值，即dereference</span>
+    T<span class="token operator">*</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">-&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> m_ptr<span class="token punctuation">;</span><span class="token punctuation">}</span> <span class="token comment">//成员访问，即member access</span>
+    <span class="token comment">//...</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果我们想要为一个链表设计一个迭代器,应该怎么设计呢?相比 <code>auto_ptr</code>而言,不仅仅是 <code>operator *</code>和 <code>operator -&gt;</code>和重载,还有 <code>operator ++</code>的重载,这对于链表来说,相当于节点指针的移动.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">Item</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">ListIter</span> <span class="token punctuation">{</span>
+    Item <span class="token operator">*</span>ptr<span class="token punctuation">;</span> <span class="token comment">// 保持与容器的联系</span>
+    <span class="token function">ListIter</span><span class="token punctuation">(</span>Item<span class="token operator">*</span> p <span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">ptr</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+    Item<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>ptr<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    Item<span class="token operator">*</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">-&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> ptr<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    ListIter<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">++</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//这意味着在list上后下一个节点移动</span>
+        ptr <span class="token operator">=</span> ptr<span class="token operator">-&gt;</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    ListIter <span class="token keyword keyword-operator">operator</span><span class="token operator">++</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        ListIter temp <span class="token operator">=</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+        <span class="token operator">++</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-return">return</span> temp<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">==</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> ListIter<span class="token operator">&amp;</span> i<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> ptr <span class="token operator">==</span> i<span class="token punctuation">.</span>ptr<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">!=</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> ListIter<span class="token operator">&amp;</span> i<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> ptr <span class="token operator">!=</span> i<span class="token punctuation">.</span>ptr<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>下面我们简单地看一下 <code>find</code>是怎么借助迭代器实现的.由于 <code>find</code>函数内部需要借助"!="来检验每个元素是否与目标的value相吻合,因此还需要对“!=”进行重载.</p>
+<p>如果想要设计出 <code>list</code>的迭代器需要对 <code>list</code>的很多实现的细节有所了解,很多STL都提供自己专属的迭代器.</p>
+<h3 id="迭代器-associated-types">1)迭代器 associated types</h3>
+<p>我们也时常将<strong>迭代器所指对象的类型,称为 <code>value type</code></strong>.</p>
+<p>除此之外 <code>associated types</code>总共有5种:</p>
+<ul>
+<li><code>value type</code>,迭代器所指对象的类型.</li>
+<li><code>difference type</code>.两个迭代器之间的距离,可以用来表示一个容器的最大容量.</li>
+<li><code>reference type</code>,主要分为 <code>const</code>和 <code>non-const</code>,也就是说,迭代器所指对象是否可以改变.</li>
+<li><code>pointer type</code>.</li>
+<li><code>iterator type</code>,迭代器种类,这个是比较复杂的问题.在后面细说.</li>
+</ul>
+<h3 id="template-参数推导">2) template 参数推导</h3>
+<p>我们在此介绍的参数推导的方式主要是借助 <code>function template</code>来进行参数推导.就一下面这串代码为例,当带入 <code>func</code>的时候,会根据第二个参数不同类型往下进入不同的重载版本.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">I</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">func</span><span class="token punctuation">(</span>I iter<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">func_imp</span><span class="token punctuation">(</span>iter<span class="token punctuation">,</span> <span class="token operator">*</span>iter<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 传入 iter 和 iter 所指的值，class 自动推导</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">I</span><span class="token operator">&gt;</span> 
+<span class="token keyword keyword-void">void</span> <span class="token function">func_imp</span><span class="token punctuation">(</span>I<span class="token operator">&amp;</span> p<span class="token punctuation">,</span> B<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    cout <span class="token operator">&lt;&lt;</span> <span class="token string">"B version"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">I</span><span class="token operator">&gt;</span> 
+<span class="token keyword keyword-void">void</span> <span class="token function">func_imp</span><span class="token punctuation">(</span>I<span class="token operator">&amp;</span> p<span class="token punctuation">,</span> D2<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    cout <span class="token operator">&lt;&lt;</span> <span class="token string">"D2 version"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-int">int</span> <span class="token operator">*</span> p<span class="token punctuation">;</span>
+    <span class="token function">func</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> <span class="token function">B</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">func</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> <span class="token function">D1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">func</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> <span class="token function">D2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>就像上面,我们可以在不同的 <code>func_imp</code>中有不同类型的返回值,但是用户直接调用的往往是 <code>func</code>.</p>
+<h3 id="声明内嵌型别">3)声明内嵌型别</h3>
+<p>可以考虑加上内嵌型别:<strong>为指定的对象类型定义一个别名,然后可以将此别名直接获取.</strong>实现方式如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">MyIter</span> <span class="token punctuation">{</span>
+<span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+    <span class="token keyword keyword-typedef">typedef</span> T value_type<span class="token punctuation">;</span> <span class="token comment">//内嵌类型声明</span>
+    <span class="token function">MyIter</span><span class="token punctuation">(</span>T <span class="token operator">*</span>p <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">m_ptr</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+    T<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>m_ptr<span class="token punctuation">;</span><span class="token punctuation">}</span>
+<span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+    T <span class="token operator">*</span>m_ptr<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">//以迭代器所指对象的类型作为返回类型</span>
+<span class="token comment">//注意typename是必须的，它告诉编译器这是一个类型</span>
+<span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">MyIter</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-typename">typename</span> <span class="token class-name">MyIter</span><span class="token double-colon punctuation">::</span>value_type <span class="token function">Func</span><span class="token punctuation">(</span>MyIter iter<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>iter<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> argc<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span>  <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>argv<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    MyIter<span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span> <span class="token function">iter</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">(</span><span class="token number">666</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span>cout<span class="token operator">&lt;&lt;</span><span class="token function">Func</span><span class="token punctuation">(</span>iter<span class="token punctuation">)</span><span class="token operator">&lt;&lt;</span>std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>  <span class="token comment">//print=&gt; 666</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>就像上面这样,可以实现一个能够返回迭代器 <code>value type</code>类型的对象.但是这种做法还是存在一定的问题的:<strong>我们当前的迭代器是一个以 <code>class type</code>的方式实现的,倘若我们的迭代器只是一个原生的指针,就难以嵌入一个 <code>value_type</code>.</strong></p>
+<p>再次强调,内嵌型别只适合一般情况,<strong>也就是迭代器是以 <code>class type</code>实现的情况.</strong></p>
+<h3 id="partial-specialization">4) Partial Specialization</h3>
+<p>这种方法用来解决上面所提到的问题.</p>
+<blockquote>
+<p><code>Partial Specialization</code>指的是,如果我们的 <code>class template</code>拥有一个以上的参数,那么我们可以对其中的某个参数进行特化工作.</p>
+<p>可以理解为,为某一种特化的情况,提供另一种 <code>template</code>定义.</p>
+</blockquote>
+<p>比如说.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span><span class="token comment">//一般的范化版本</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">C</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token comment">//特化版本,适用于T为原生指针的情况.</span>
+<span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">C</span><span class="token operator">&lt;</span>T <span class="token operator">*</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="萃取机的应用与实现">5) 萃取机的应用与实现</h3>
+<p>下面我们可以介绍一下"<strong>参数推导机制+内嵌型别机制获取型别+Partial Specialization</strong>"在STL中的应用方式了.</p>
+<p>因此STL中引入中间一层机制,作为<strong>萃取机</strong>,萃取机能够根据带入的迭代器类型,进而“推导”出相应的 <code>associaed type</code>然后可以直接获取 <code>associaed type</code>.实现方式如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Iterator</span><span class="token operator">&gt;</span><span class="token comment">//一般的泛化模式</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">iterator_traits</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>iterator_category iterator_category<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>value_type        value_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>difference_type   difference_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>pointer           pointer<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>reference         reference<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在引入 <code>traits</code>之后,其应用方式有如下的变化.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">Iterator</span><span class="token operator">&gt;</span> <span class="token comment">//引入萃取机之前</span>
+<span class="token keyword keyword-typename">typename</span> <span class="token class-name">Iterator</span><span class="token double-colon punctuation">::</span>value_type  <span class="token function">func</span><span class="token punctuation">(</span>Iterator iter<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>iter<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">Iterator</span><span class="token operator">&gt;</span> <span class="token comment">//引入萃取机之后</span>
+<span class="token keyword keyword-typename">typename</span> <span class="token class-name">iterator_traits</span><span class="token operator">&lt;</span>Iterator<span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span>value_type  <span class="token function">func</span><span class="token punctuation">(</span>Iterator iter<span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>iter<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>除此之外,对于原生指针的情况,会使用 <code>partial specialization</code>的方式来实现.下面是对于一种偏特化的实现方式,支持原生指针.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">iterator_traits</span><span class="token operator">&lt;</span>_Tp<span class="token operator">*</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-typedef">typedef</span> random_access_iterator_tag iterator_category<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _Tp                         value_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> ptrdiff_t                   difference_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _Tp<span class="token operator">*</span>                        pointer<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _Tp<span class="token operator">&amp;</span>                        reference<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>除了原生指针之外,还有对于指向常量的指针也会采用 <code>partial specialization</code>.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">iterator_traits</span><span class="token operator">&lt;</span><span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-typedef">typedef</span> random_access_iterator_tag iterator_category<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _Tp                         value_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> ptrdiff_t                   difference_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span>                  pointer<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">&amp;</span>                  reference<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>所以直到这里,关于 <code>traits</code>的方法也就讲得差不多了,<strong>主要是借助增加一个中间的 <code>template class</code>,这个类可以获取迭代器的 <code>associated type</code>,对于一般的 <code>class type</code>的迭代器借助了其内嵌型别,对于一些特殊情况(原生指针,pointer-to-const)等,采用了 <code>partial specialization</code>的方法.</strong></p>
+<p>最终,对于一个函数 <code>func</code>我们可以实现一种固定的方式.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">I</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-typename">typename</span> <span class="token class-name">my_iterator_traits</span><span class="token operator">&lt;</span>I<span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span>value_type <span class="token function">Func</span><span class="token punctuation">(</span>I ite<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"normal version"</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>ite<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>复盘一下,如果一个算法或者函数,需要知道迭代器的 <code>associated type</code>,会发生什么?</p>
+<ul>
+<li>询问 <code>iterator_traits</code>.</li>
+<li>如果是 <code>class type</code>,其结果来自于其嵌入的 <code>type</code>.</li>
+<li>如果是原生指针或者 <code>pointer-to-const</code>,则需要从偏特化的 <code>iterator_traits</code>得出答案.</li>
+</ul>
+<h3 id="迭代器的种类">6) 迭代器的种类</h3>
+<p>迭代器分类方式的依据在于:<strong>读写和访问方式</strong></p>
+<p>分为如下几种:</p>
+<ul>
+<li><code>input iterator</code>.只写.</li>
+<li><code>output iterator</code>,只读.</li>
+<li><code>forward iterator</code>,读写单向移动.</li>
+<li><code>bidirectional iterator</code>,读写双向移动.</li>
+<li><code>random access iterator</code>,读写随机访问.</li>
+</ul>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2026%2019%2026%2042%201656242802%201656242802825%20gwTNTp%20image-20220626192642614%20.png" alt="类别与关系" style="zoom: 50%;"></p>
+<p>之所以划分成不同的迭代器种类,主要考虑的原因就在于:<strong>能够根据不同的类别,相应的算法能够采取不同的处理方式,进而达到效率最大化</strong>.</p>
+<p>下面主要是 <code>advance()</code>和 <code>distance()</code>对于不同种类迭代器的不同处理方式.</p>
+<p><strong>暂鸽,6,27中午再补</strong>.</p>
 
                 
             </div>
