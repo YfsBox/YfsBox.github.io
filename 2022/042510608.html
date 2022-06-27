@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    4.4k
+                    4.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    18 Min
+                    19 Min
                 </div>
                 
 
@@ -939,8 +939,36 @@
 </ul>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2026%2019%2026%2042%201656242802%201656242802825%20gwTNTp%20image-20220626192642614%20.png" alt="类别与关系" style="zoom: 50%;"></p>
 <p>之所以划分成不同的迭代器种类,主要考虑的原因就在于:<strong>能够根据不同的类别,相应的算法能够采取不同的处理方式,进而达到效率最大化</strong>.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">input_iterator_tag</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">output_iterator_tag</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">forward_iterator_tag</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">input_iterator_tag</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">bidirectional_iterator_tag</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">forward_iterator_tag</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">random_access_iterator_tag</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">bidirectional_iterator_tag</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>然后如果以<code>input_iterator</code>为例的话,其内部的第一个<code>typedef</code>也就是迭代器类型,就是关于<code>input_iterator_tag</code>这种结构体.</p>
 <p>下面主要是 <code>advance()</code>和 <code>distance()</code>对于不同种类迭代器的不同处理方式.</p>
-<p><strong>暂鸽,6,27中午再补</strong>.</p>
+<p>在<code>advance</code>中,不同类型的迭代器实现方式不同.下图分别为<code>InputIter,BidirectionalIterator,_RandomAccessIterator</code>.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_InputIter</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Distance</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">__advance</span><span class="token punctuation">(</span>_InputIter<span class="token operator">&amp;</span> __i<span class="token punctuation">,</span> _Distance __n<span class="token punctuation">,</span> input_iterator_tag<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>__n<span class="token operator">--</span><span class="token punctuation">)</span> <span class="token operator">++</span>__i<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token comment">//直接单项操作,只能向前</span>
+
+<span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_BidirectionalIterator</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Distance</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">__advance</span><span class="token punctuation">(</span>_BidirectionalIterator<span class="token operator">&amp;</span> __i<span class="token punctuation">,</span> _Distance __n<span class="token punctuation">,</span> 
+                      bidirectional_iterator_tag<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">__STL_REQUIRES</span><span class="token punctuation">(</span>_BidirectionalIterator<span class="token punctuation">,</span> _BidirectionalIterator<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>__n <span class="token operator">&gt;=</span> <span class="token number">0</span><span class="token punctuation">)</span>
+    <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>__n<span class="token operator">--</span><span class="token punctuation">)</span> <span class="token operator">++</span>__i<span class="token punctuation">;</span>
+  <span class="token keyword keyword-else">else</span>
+    <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>__n<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token operator">--</span>__i<span class="token punctuation">;</span><span class="token comment">//根据n的大小,要么向前要么向后.</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_RandomAccessIterator</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Distance</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">__advance</span><span class="token punctuation">(</span>_RandomAccessIterator<span class="token operator">&amp;</span> __i<span class="token punctuation">,</span> _Distance __n<span class="token punctuation">,</span> 
+                      random_access_iterator_tag<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">__STL_REQUIRES</span><span class="token punctuation">(</span>_RandomAccessIterator<span class="token punctuation">,</span> _RandomAccessIterator<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  __i <span class="token operator">+=</span> __n<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>所以,最后总结,之所以要区分<code>iterator item</code>的方式是大大不同的.所以需要迭代器种类,进而做出最合适的算法.</p>
 
                 
             </div>
