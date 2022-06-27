@@ -768,7 +768,7 @@
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这个过程是比较简单的,简而言之,就是先根据大小索引出对应的链表,然后将要释放的内存块的转型为 <code>_Obj</code>,将此内存块的下一节指向对应链表,并且将链表的头部移动到新加入的内存块上.</p>
 <p>剩余的一些关于 <code>allocator</code>的细节,暂鸽</p>
-<h2 id="迭代器">3.迭代器</h2>
+<h2 id="iterator">3.iterator</h2>
 <p>在设计STL时,有一种重要的思想就是将容器和算法分离,最后以一种粘合剂将两者联系起来.这就是迭代器的地位.</p>
 <p>首先我们可以说迭代器是一种<strong>smart pointer</strong>,首先我们考虑一下指针的操作中,最重要的是 <code>dereference</code>和 <code>access</code>,也就是说 <code>operator *</code>和 <code>operator -&gt;</code>的重要性.比如说,我们可以在 <code>auto_ptr</code>发现这种方法的实现.</p>
 <p><code>auto_ptr</code>几乎就是对一个指针的一层封装,其中重点需要我们关注的地方就在于它提供了对于 <code>operator *</code>和 <code>operator -&gt;</code>的重载.</p>
