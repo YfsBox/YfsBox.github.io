@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    6.7k
+                    7.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    27 Min
+                    32 Min
                 </div>
                 
 
@@ -1166,7 +1166,119 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
       <span class="token function">_M_insert_aux</span><span class="token punctuation">(</span>__position<span class="token punctuation">,</span> __x<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> <span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> __n<span class="token punctuation">;</span><span class="token comment">//返回的也是指针,指向所插入元素的地址.</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>最后,总体来说,<code>vector</code>就是一种封装了的,可以动态增长空间的高级数组,需要注意的是<strong>每次需要动态扩容时,扩容前后的所使用的内存空间往往不是同一块</strong>.这种现象容易带来的陷阱就是<strong>是已获取的迭代器失效</strong>,因为发生扩容之后,旧的内存空间已经释放,此时迭代器可能指向旧的内存地址,所以就是无效的.</p>
 <h3 id="list">2) list</h3>
+<p><code>list</code>简而言之是一种链表.</p>
+<h4 id="a.list的数据结构">a.list的数据结构</h4>
+<p>首先我们来看一下,链表节点的实现方式:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">_List_node_base</span> <span class="token punctuation">{</span>
+  _List_node_base<span class="token operator">*</span> _M_next<span class="token punctuation">;</span>
+  _List_node_base<span class="token operator">*</span> _M_prev<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">_List_node</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">_List_node_base</span></span> <span class="token punctuation">{</span>
+  _Tp _M_data<span class="token punctuation">;</span> 
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>一个节点主要分为两个部分,一个数据部分是我们所指定的类型,还有一个部分就是指针部分,指针部分的类型是固定的,始终就是<code>_List_node_base</code>.并且是一个双向链表.</p>
+<p>在<code>SGI</code>中是一种<strong>环状双向链表</strong>.首先分析的是<code>_List_base</code>.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">_List_base</span> 
+<span class="token punctuation">{</span>
+  <span class="token comment">//............省略</span>
+<span class="token keyword keyword-protected">protected</span><span class="token operator">:</span>
+  <span class="token comment">// 专属之空间配置器，每次配置一个节点大小,下面这一部分就是对于分配器的封装部分</span>
+  <span class="token keyword keyword-typedef">typedef</span> simple_alloc<span class="token operator">&lt;</span>_List_node<span class="token operator">&lt;</span>_Tp<span class="token operator">&gt;</span><span class="token punctuation">,</span> _Alloc<span class="token operator">&gt;</span> _Alloc_type<span class="token punctuation">;</span>
+  _List_node<span class="token operator">&lt;</span>_Tp<span class="token operator">&gt;</span><span class="token operator">*</span> <span class="token function">_M_get_node</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> _Alloc_type<span class="token double-colon punctuation">::</span><span class="token function">allocate</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span> <span class="token comment">// 分配一个节点并返回地址</span>
+  <span class="token keyword keyword-void">void</span> <span class="token function">_M_put_node</span><span class="token punctuation">(</span>_List_node<span class="token operator">&lt;</span>_Tp<span class="token operator">&gt;</span><span class="token operator">*</span> __p<span class="token punctuation">)</span> <span class="token punctuation">{</span> _Alloc_type<span class="token double-colon punctuation">::</span><span class="token function">deallocate</span><span class="token punctuation">(</span>__p<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>  <span class="token comment">// 释放一个节点</span>
+<span class="token keyword keyword-protected">protected</span><span class="token operator">:</span>
+  _List_node<span class="token operator">&lt;</span>_Tp<span class="token operator">&gt;</span><span class="token operator">*</span> _M_node<span class="token punctuation">;</span>  <span class="token comment">// 只要一个指针，便可表示整个环状双向链表，空白节点</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2023%2059%2047%201656345587%201656345587372%20fGI29B%20image-20220627235947060%20.png" alt="List" style="zoom:50%;"></p>
+<p>之后还有一个继承了<code>_List_base</code>的类<code>list</code>,也就是用户直接接触的<code>list</code>.这一部分除了继承了<code>_List_base</code>之外没有什么涉及到核心数据结构的东西.</p>
+<h4 id="b.list-iterator">b.List Iterator</h4>
+<p>这里迭代器的实现方式,也是采用了一个基类在加派生类的方式实现的,其中迭代器的基类中也说明了一个迭代器的类型.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">_List_iterator_base</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-typedef">typedef</span> size_t                     size_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> ptrdiff_t                  difference_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> bidirectional_iterator_tag iterator_category<span class="token punctuation">;</span>  <span class="token comment">// 双向移动迭代器</span>
+  _List_node_base<span class="token operator">*</span> _M_node<span class="token punctuation">;</span> <span class="token comment">// 迭代器内部当然要有一个普通指针，指向 list 的节点</span>
+  <span class="token function">_List_iterator_base</span><span class="token punctuation">(</span>_List_node_base<span class="token operator">*</span> __x<span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">_M_node</span><span class="token punctuation">(</span>__x<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+  <span class="token function">_List_iterator_base</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+  <span class="token keyword keyword-void">void</span> <span class="token function">_M_incr</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> _M_node <span class="token operator">=</span> _M_node<span class="token operator">-&gt;</span>_M_next<span class="token punctuation">;</span> <span class="token punctuation">}</span>  <span class="token comment">// 前驱</span>
+  <span class="token keyword keyword-void">void</span> <span class="token function">_M_decr</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> _M_node <span class="token operator">=</span> _M_node<span class="token operator">-&gt;</span>_M_prev<span class="token punctuation">;</span> <span class="token punctuation">}</span>  <span class="token comment">// 后继</span>
+  <span class="token comment">// 比较两个容器操作</span>
+  <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">==</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _List_iterator_base<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> _M_node <span class="token operator">==</span> __x<span class="token punctuation">.</span>_M_node<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">!=</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _List_iterator_base<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> _M_node <span class="token operator">!=</span> __x<span class="token punctuation">.</span>_M_node<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中说明了迭代器是一种双向迭代器,并且核心在于一个<code>_List_node_base *</code>,也就是说是一个指向节点指针部分的指针.</p>
+<p>其迭代器相比<code>vector</code>有一个重要的特征,<code>vector</code>会因为扩容导致的内存空间变化而导致迭代器失效,但是<code>list</code>的迭代器往往除了被删除的节点之外,都不会面临这种问题.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ref</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ptr</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">_List_iterator</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">_List_iterator_base</span></span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-typedef">typedef</span> _List_iterator<span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span>_Tp<span class="token operator">&amp;</span><span class="token punctuation">,</span>_Tp<span class="token operator">*</span><span class="token operator">&gt;</span>             iterator<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _List_iterator<span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span><span class="token keyword keyword-const">const</span> _Tp<span class="token operator">&amp;</span><span class="token punctuation">,</span><span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span><span class="token operator">&gt;</span> const_iterator<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _List_iterator<span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span>_Ref<span class="token punctuation">,</span>_Ptr<span class="token operator">&gt;</span>             _Self<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _Tp value_type<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _Ptr pointer<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _Ref reference<span class="token punctuation">;</span>
+  <span class="token keyword keyword-typedef">typedef</span> _List_node<span class="token operator">&lt;</span>_Tp<span class="token operator">&gt;</span> _Node<span class="token punctuation">;</span>
+  <span class="token function">_List_iterator</span><span class="token punctuation">(</span>_Node<span class="token operator">*</span> __x<span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">_List_iterator_base</span><span class="token punctuation">(</span>__x<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+  <span class="token function">_List_iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+  <span class="token function">_List_iterator</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> iterator<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">_List_iterator_base</span><span class="token punctuation">(</span>__x<span class="token punctuation">.</span>_M_node<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+  reference <span class="token keyword keyword-operator">operator</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>_Node<span class="token operator">*</span><span class="token punctuation">)</span> _M_node<span class="token punctuation">)</span><span class="token operator">-&gt;</span>_M_data<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">ifndef</span> <span class="token expression">__SGI_STL_NO_ARROW_OPERATOR</span></span>
+  pointer <span class="token keyword keyword-operator">operator</span><span class="token operator">-&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">&amp;</span><span class="token punctuation">(</span><span class="token keyword keyword-operator">operator</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span> <span class="token comment">/* __SGI_STL_NO_ARROW_OPERATOR */</span></span>
+  _Self<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">++</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+    <span class="token keyword keyword-this">this</span><span class="token operator">-&gt;</span><span class="token function">_M_incr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  _Self <span class="token keyword keyword-operator">operator</span><span class="token operator">++</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+    _Self __tmp <span class="token operator">=</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-this">this</span><span class="token operator">-&gt;</span><span class="token function">_M_incr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> __tmp<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  _Self<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">--</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+    <span class="token keyword keyword-this">this</span><span class="token operator">-&gt;</span><span class="token function">_M_decr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  _Self <span class="token keyword keyword-operator">operator</span><span class="token operator">--</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+    _Self __tmp <span class="token operator">=</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-this">this</span><span class="token operator">-&gt;</span><span class="token function">_M_decr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> __tmp<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>简单总结如下:</p>
+<ul>
+<li>关于++和--的重载,主要是迭代器在节点上的移动.</li>
+<li>*和-&gt;分别是取节点的数据值和成员存取.</li>
+<li>构造函数也主要是初始化基类.</li>
+</ul>
+<h4 id="c.list的构造与内存管理">c.List的构造与内存管理</h4>
+<p>关于构造函数的话,要在<code>List_base</code>中.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">_List_base</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    _M_node <span class="token operator">=</span> <span class="token function">_M_get_node</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    _M_node<span class="token operator">-&gt;</span>_M_next <span class="token operator">=</span> _M_node<span class="token punctuation">;</span>
+    _M_node<span class="token operator">-&gt;</span>_M_prev <span class="token operator">=</span> _M_node<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token operator">~</span><span class="token function">_List_base</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">_M_put_node</span><span class="token punctuation">(</span>_M_node<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>和一般我们在实现一个双向链表的初始化操作没什么两样.而对于<code>list</code>的构造函数</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">list</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span> __first<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span> __last<span class="token punctuation">,</span>
+       <span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span> __a <span class="token operator">=</span> <span class="token function">allocator_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token operator">:</span> <span class="token function">_Base</span><span class="token punctuation">(</span>__a<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span> <span class="token keyword keyword-this">this</span><span class="token operator">-&gt;</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> __first<span class="token punctuation">,</span> __last<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  <span class="token function">list</span><span class="token punctuation">(</span>const_iterator __first<span class="token punctuation">,</span> const_iterator __last<span class="token punctuation">,</span>
+       <span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span> __a <span class="token operator">=</span> <span class="token function">allocator_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token operator">:</span> <span class="token function">_Base</span><span class="token punctuation">(</span>__a<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span> <span class="token keyword keyword-this">this</span><span class="token operator">-&gt;</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> __first<span class="token punctuation">,</span> __last<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="d.list的主要操作">d.list的主要操作</h4>
+<p>其操作还是挺多的.</p>
 <h3 id="deque">3) deque</h3>
 
                 
