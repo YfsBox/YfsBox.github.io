@@ -507,40 +507,33 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="boot">1.boot</h2>
-<h3 id="总体概述">1) 总体概述</h3>
-<p>当机器加电之后,开始运行BIOS,自动处于0xffff0执行代码,之后的主要行为如下:</p>
+                <h2 id="1-boot"><a href="#1-boot" class="headerlink" title="1.boot"></a>1.boot</h2><h3 id="1-总体概述"><a href="#1-总体概述" class="headerlink" title="1) 总体概述"></a>1) 总体概述</h3><p>当机器加电之后,开始运行BIOS,自动处于0xffff0执行代码,之后的主要行为如下:</p>
 <ul>
 <li>做一些和系统相关的检测.</li>
 <li>在0x0处初始化中断向量表.</li>
 <li>将引导扇区读入到0x7c00,并跳转到此.</li>
 </ul>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2023%2014%2043%201655478883%201655478883928%20Rna36F%20image-20220617231443741%20.png" alt="image-20220617231443741"><figcaption aria-hidden="true">image-20220617231443741</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2023%2014%2043%201655478883%201655478883928%20Rna36F%20image-20220617231443741%20.png" alt="image-20220617231443741"></p>
 <p>之后其指令执行过程和代码移动过程如下:</p>
 <ul>
-<li>bootsect.s:
-<ul>
+<li>bootsect.s:<ul>
 <li>bootsect.s的代码被BIOS读入到0x7c00后,移动内存并跳转到0x9000.</li>
 <li>读入system模块和setup.s模块.</li>
-</ul></li>
-<li>setup:
-<ul>
+</ul>
+</li>
+<li>setup:<ul>
 <li>识别主机的一些特性以及VGA卡类型.</li>
 <li>移动system到内存0x0000处.</li>
 <li>进入保护模式并且跳转到0x0000处.</li>
-</ul></li>
-<li>head.s
-<ul>
-<li>..</li>
-</ul></li>
 </ul>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2023%2016%2024%201655478984%201655478984895%20YZuC3A%20image-20220617231624729%20.png" alt="image-20220617231624729"><figcaption aria-hidden="true">image-20220617231624729</figcaption>
-</figure>
-<h3 id="bootsect.s源码分析">2) bootsect.s源码分析</h3>
-<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">! 定义了4个基本的端地址,分别对应bootseg代码的初始和移动后地址,setup代码地址,系统内核地址,系统内核末尾地址
+</li>
+<li>head.s<ul>
+<li>..</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2023%2016%2024%201655478984%201655478984895%20YZuC3A%20image-20220617231624729%20.png" alt="image-20220617231624729"></p>
+<h3 id="2-bootsect-s源码分析"><a href="#2-bootsect-s源码分析" class="headerlink" title="2) bootsect.s源码分析"></a>2) bootsect.s源码分析</h3><pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">! 定义了4个基本的端地址,分别对应bootseg代码的初始和移动后地址,setup代码地址,系统内核地址,系统内核末尾地址
 SETUPLEN = 4		
 BOOTSEG  = 0x07c0	
 INITSEG  = 0x9000
@@ -569,6 +562,7 @@ go:	mov	ax,cs
 ! 设置栈地址:(0x9000|0xff00)
 	mov	ss,ax
 	mov	sp,#0xFF00		! arbitrary value &gt;&gt;512<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>首先这一段代码除了段寄存器设置,最重要的在于完成了代码的拷贝内存的移动,还有执行的跳转.跳转之后,对有关的段寄存器进行操作,还有对于栈的设置(后面会有关于栈的操作).</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">load_setup:
 	mov	dx,#0x0000		! drive 0, head 0
@@ -590,8 +584,9 @@ ok_load_setup:
 	mov	sectors,cx
 	mov	ax,#INITSEG
 	mov	es,ax<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这一部分主要与读取磁盘扇区有关,用于将setup程序读到内存中0x9200的位置.这里主要借助了0x13来对磁盘进行读取并加载到指定的内存中,这个时候我们就可以理解,为什么要在BIOS初始化一个中断向量表了.</p>
-<p><strong>int 0x13有关于参数的配置,是通过几个通用寄存器来完成的.</strong>更具体来说是这样的:</p>
+<p>**int 0x13有关于参数的配置,是通过几个通用寄存器来完成的.**更具体来说是这样的:</p>
 <ul>
 <li>ah=0x02,表示磁盘扇区到内存;al=需要读的扇区数量.</li>
 <li>ch=磁道号的低8位;cl=开始扇区和磁道号.</li>
@@ -615,6 +610,7 @@ ok_load_setup:
         .ascii "Loading system ..."
         .byte 13,10,13,10            ! 两对换行+回车
       !其中ascii占了18个字符,byte等换行回车占6个,总共24个<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>首先这个过程主要借助中断0x10来实现:</p>
 <ul>
 <li>第一个int 0x10.参数配置为:ah=0x03,表示的是读取光标号,也就是功能号.然后将bh设置为0,调用int 0x10返回的结果为主要在cx和dx(dh行号0x00,dl列号0x00)中.</li>
@@ -627,10 +623,9 @@ msg1:
 	.byte 13,10
 	.ascii "Yfsos is booting..."
 	.byte 13,10,13,10<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>输出结果如下:</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2001%2013%2056%201655486036%201655486036048%20ibkpYN%20image-20220618011355835%20.png" alt="image-20220618011355835"><figcaption aria-hidden="true">image-20220618011355835</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2001%2013%2056%201655486036%201655486036048%20ibkpYN%20image-20220618011355835%20.png" alt="image-20220618011355835"></p>
 <p>接下来要做的就是将system部分,加载到内存中.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">! ok, we've written the message, now
 ! we want to load the system (at 0x10000)
@@ -659,21 +654,19 @@ root_defined:
 	mov	root_dev,ax
 
 	jmpi	0,SETUPSEG<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>首先设置好段寄存器位0x1000,然后调用子程序(read_it)将system的部分拷贝到0x1000为起始的内存中,然后调用kill_motor关闭马达.接下来要检查要使用的根文件系统设备,至于检查根文件系统设备中的细节行为,我还没有搞明白.检查完之后,上述代码中最后一行,直接跳转到0x9020:0000,也也就意味着程序bootsect已经执行完了,即将进入下一个阶段,也就是setup的阶段.</p>
 <p>剩余的部分是两个子程序read_it和kill_motor,我没有深究太多.</p>
 <p>在此简要地梳理一下bootsect的行为:</p>
 <ul>
 <li><strong>这个阶段全程处于实模式</strong>,采用(段寄存器:偏移寄存器)的寻址方式.</li>
-<li><strong>内存程序段的加载与移动.</strong>关于加载和移动,这是两种不同的操作,一个在于将原本内存上的东西移动到另一段内存上,另一个在于将内存中原本不存在的东西从磁盘上载入到一段内存上.前者借助寄存器中的mov指令可以实现,后者需要借助中断(0x13).</li>
+<li>**内存程序段的加载与移动.**关于加载和移动,这是两种不同的操作,一个在于将原本内存上的东西移动到另一段内存上,另一个在于将内存中原本不存在的东西从磁盘上载入到一段内存上.前者借助寄存器中的mov指令可以实现,后者需要借助中断(0x13).</li>
 <li><strong>中断的使用</strong>.这里中断发挥了很重要的作用,一是int 0x13在磁盘访问中的作用.这时的中断是基于BIOS时期所设置的中断向量表完成的.这就是为什么我们在最初加载system时,没有从0x0000开始的原因,为了避免覆盖中断向量表.除此之外,此时中断有关参数的传递是基于修改几个通用寄存器来完成的.二是关于int 0x10对于屏幕输出的作用.</li>
 </ul>
-<h3 id="setup.s程序">3) setup.s程序</h3>
-<p>这个程序的主要作用在于利用BIOS中的中断将一些系统数据读取到内存0x90000开始的位置.这些参数将服务于后续内核中的一些工作.</p>
+<h3 id="3-setup-s程序"><a href="#3-setup-s程序" class="headerlink" title="3) setup.s程序"></a>3) setup.s程序</h3><p>这个程序的主要作用在于利用BIOS中的中断将一些系统数据读取到内存0x90000开始的位置.这些参数将服务于后续内核中的一些工作.</p>
 <p>除此之外将0x10000-0x8fffff整体向下移动到0x00000.之后准备进入保护模式(加载idt和gdt,开启A20总线,设置好CR0标志着保护模式的开启完成).</p>
 <p>最后跳转到system中的head.s代码中.最终内存中的变化,如下所示.</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2016%2054%2004%201655542444%201655542444133%20MF3aU1%20image-20220618165403937%20.png" alt="image-20220618165403937"><figcaption aria-hidden="true">image-20220618165403937</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2016%2054%2004%201655542444%201655542444133%20MF3aU1%20image-20220618165403937%20.png" alt="image-20220618165403937"></p>
 <p>之后结合代码进行分析.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">entry start
 start:
@@ -701,6 +694,7 @@ start:
 	mov	[8],ax
 	mov	[10],bx
 	mov	[12],cx<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>上述代码是,setup读取一些系统变量的部分,这一部分主要采用“参数配置+中断+内存拷贝”为主.以上分别对应的参数为:</p>
 <ul>
 <li>光标位置,0x90000,这个参数服务于后来内核在初始化时,需要初始化控制台(console).</li>
@@ -740,12 +734,14 @@ end_move:
 	mov	al,#0xDF		! A20 on
 	out	#0x60,al
 	call	empty_8042<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>首先我们需要进行的时,system段的代码移动,代码从一段内存移动到另一段内存采用了mov拷贝的方式.使用循环+mov来进行移动,在每一轮循环中,es:di是内存移动的目的地址,ds:di是源地址,es在ax+0x1000之前赋值,ds在ax+0x1000之后赋值,所以从而实现了目的和源之间地址的偏移,而ax只不过是一个用来保存临时变量的寄存器.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">end_move:
 	mov	ax,#SETUPSEG	! right, forgot this at first. didn't work :-)
 	mov	ds,ax
 	lidt	idt_48		! load idt with 0,0
 	lgdt	gdt_48		! load gdt with whatever appropriate<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>首先需要将idt和gdt的地址,加载到idt和gdt对应的寄存器中.但是我们结合前面的经验也可以总结出,如果只是单纯地 <code>lidt idt_48</code>这个时候,其实“idt_48”这个只能代表一个地址的偏移量,而此时采用的寻址方式就是(段:偏移量),所以说这种指令加载的地址其实就是“段:idt_48”,而此时对于段地址的设置,需要设置成SETUPSEG,所以前面需要设置好ds的值,从而表明,所加载的地址就是“0x9020:idt_48”所处的地址.</p>
 <p>而对于idt和gdt加载到寄存器中的地址所代表的数据结构,其实并不是“表”的本身.只是相当于“limit+base”这么一个数据结构.limit可以视为这个表的最大长度,后者可以视为这个表的基地址.在此称之为<strong>表描述符</strong>吧.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">gdt:
@@ -766,10 +762,12 @@ idt_48:
 gdt_48:
 	.word	0x800		! gdt limit=2048, 256 GDT entries
 	.word	512+gdt,0x9	! gdt base = 0X9xxxx<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在ucore中也是有类似的表示的.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">pseudodesc</span> idt_pd <span class="token operator">=</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>idt<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token class-name">uintptr_t</span><span class="token punctuation">)</span>idt
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
 <p>如果说,这两个表的描述符所处于的地址具体处于什么地方,可以确定的是,它处于setup程序所对应的内存段中,末尾的位置.</p>
 <p>这两个表用于顶替BIOS中断表(在system移动之后就已经牺牲了,但也是临时的,其可以发挥的作用后面再进行说明.</p>
 <p>之后的这段代码为开启实模式作准备,用于开启A20引脚,从而为后续全面开放机器的寻址能力做基础.</p>
@@ -780,18 +778,20 @@ call	empty_8042
 mov	al,#0xDF		! A20 on
 out	#0x60,al
 call	empty_8042<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这里主要体现为轮询设备,只有当输入缓冲器为空时,才可以对其执行写命令,当设备空闲时,对两个端口进行写.这两个端口分别代表什么呢?</p>
 <p>之后的一部分有关于对中断的重新编程,没有做太多的深究.之后的部分真正地进入保护模式.这个时候的寻址模式,就转化成了“段号+偏移”的模式,此时需要将段号8带入到gdt中,进而检索出base地址,检索出来的base就是0,所以之后跳转到了0x0000 0000地址处.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">mov	ax,#0x0001	! protected mode (PE) bit
 lmsw	ax		! This is it!
 jmpi	0,8		! jmp offset 0 of segment 8 (cs)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
 <p>将寄存器cr0设置为1即可,表示已经开启保护模式,随后跳转到cs段中的0偏移处.在这里使用了lmsw来对cr0寄存器进行赋值.就类似ucore中的:</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">movl %cr0, %eax
 orl $CR0_PE_ON, %eax
 movl %eax, %cr0<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
 <p>之后就可以说,正式进入保护模式了,接下来要进入的部分就是head.s的部分.</p>
-<h3 id="head.s">4)head.s</h3>
-<p>从运行head开始,这个时候已经完全处于保护模式之下,其地址处于绝对地址0x0000 0000作为开始.head的作用相对来说比较单一,简而言之如下:</p>
+<h3 id="4-head-s"><a href="#4-head-s" class="headerlink" title="4)head.s"></a>4)head.s</h3><p>从运行head开始,这个时候已经完全处于保护模式之下,其地址处于绝对地址0x0000 0000作为开始.head的作用相对来说比较单一,简而言之如下:</p>
 <ul>
 <li>加载段寄存器.</li>
 <li>重置中断描述符表idt和全局描述符表.</li>
@@ -810,6 +810,7 @@ startup_32:
 	mov %ax,%fs
 	mov %ax,%gs
 	lss stack_start,%esp<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在一开始,对应的位置也就是0x00000000的绝对地址这么一个地址,出现了pg_dir这也就是表示了0x0000 0000用来作为后来目录表的地址.当之后页目录表被加载之后,就见原本此处的程度代码给覆盖掉了.</p>
 <p>首先将0x10载入到%ds,%es,%fs,%gs中,此时0x10指的是在gdt中的偏移值,如果将gdt看作一个表的话,那么0x10就是表的索引.这因而也就是段寄存器的含义,段寄存器存储的就是对应某个段描述符在表中的索引.</p>
 <p>除此之外 <code>lss stack_start %esp</code>用于系统堆栈的设置.</p>
@@ -833,6 +834,7 @@ rp_sidt:
 	jne rp_sidt
 	lidt idt_descr
 	ret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中在对于idt的设置上:</p>
 <ul>
 <li>首先初始化一些变量.</li>
@@ -855,6 +857,7 @@ gdt:	.quad 0x0000000000000000	/* NULL descriptor */
 	.quad 0x00c0920000000fff	/* 16Mb */
 	.quad 0x0000000000000000	/* TEMPORARY - don't use */
 	.fill 252,8,0			/* space for LDT's and TSS's etc */<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>对应gdt的设置,在描述符上,还是采用了“limit+base”这种数据结构,此时的gdt内容如下:</p>
 <ul>
 <li>0,NULL.</li>
@@ -863,8 +866,9 @@ gdt:	.quad 0x0000000000000000	/* NULL descriptor */
 <li>3-这一段原本想作为系统调用的段,但是没有使用.</li>
 <li>后面为预留的252项,主要防止LDT和TSS.</li>
 </ul>
-<p>在这里gdt是直接配置好的.所以简单的概括一下,最初的`<code>GDT</code>的状况,也就是只设置好了<strong>内核代码段和内核数据段</strong>.又因为<code>GDT</code>决定了虚拟地址到线性地址的映射,所以从这个角度考虑的话,内核代码段和内核数据段的情况如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2000%2032%2008%201656261128%201656261128239%20Ie5acS%20image-20220627003207948%20.png" alt="image-20220627003207948" style="zoom:50%;"></p>
+<p>在这里gdt是直接配置好的.所以简单的概括一下,最初的```GDT<code>的状况,也就是只设置好了**内核代码段和内核数据段**.又因为</code>GDT``决定了虚拟地址到线性地址的映射,所以从这个角度考虑的话,内核代码段和内核数据段的情况如下:</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2000%2032%2008%201656261128%201656261128239%20Ie5acS%20image-20220627003207948%20.png" alt="image-20220627003207948" style="zoom:50%;">
+
 <p>也就是说,根据<code>head.s</code>中的对于GDT内容的定义,内核代码段和内核数据段的线性地址空间处于<code>0-16MB</code>范围内.占<code>4096</code>个物理页.</p>
 <p>关于A20的检查,我没有深究.</p>
 <p>下面分析一下,分页机制的开启.</p>
@@ -878,6 +882,7 @@ pg1:
 pg2:
 .org 0x4000
 pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>首先,我们可以从中知道预留出来的页表和页目录表的位置.我们可以简要的梳理出,偏移值,0x0000~0x0ffff是页目录表,之后紧接着是4个4KB大小的页表.每个页项占据4B,总体来说,一个页有1024个页表项.</p>
 <p>下面我们来具体看一下设置页表的子程序.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">setup_paging:
@@ -901,6 +906,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	orl $0x80000000,%eax
 	movl %eax,%cr0		/* set paging (PG) bit */
 	ret			/* this also flushes prefetch-queue */<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>简而言之,其过程可以概括为:</p>
 <ul>
 <li>将5页内存进行初始化,全部设置为0.</li>
@@ -909,22 +915,16 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 <li>设置r3寄存器,将页目录表载入也就是0x0000.</li>
 <li>开启分页机制,将cr0最高位设置为1.</li>
 </ul>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2019%2008%2033%201655550513%201655550513981%20dSVCVv%20image-20220618190833767%20.png" alt="image-20220618190833767"><figcaption aria-hidden="true">image-20220618190833767</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2019%2008%2033%201655550513%201655550513981%20dSVCVv%20image-20220618190833767%20.png" alt="image-20220618190833767"></p>
 <p>程序执行完之后的内存布局如下:</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2018%2043%2018%201655548998%201655548998184%20o7BZ8O%20image-20220618184317971%20.png" alt="image-20220618184317971"><figcaption aria-hidden="true">image-20220618184317971</figcaption>
-</figure>
-<h2 id="系统调用">2.系统调用</h2>
-<p>linux 0.11中有关于系统调用的文件集中在kernel中.kernel这个文件夹之下的代码有三类:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2018%2018%2043%2018%201655548998%201655548998184%20o7BZ8O%20image-20220618184317971%20.png" alt="image-20220618184317971"></p>
+<h2 id="2-系统调用"><a href="#2-系统调用" class="headerlink" title="2.系统调用"></a>2.系统调用</h2><p>linux 0.11中有关于系统调用的文件集中在kernel中.kernel这个文件夹之下的代码有三类:</p>
 <ul>
 <li>中断处理,比如trap.c等,</li>
 <li>系统调用服务程序.比如system_call.s等.</li>
 <li>有关于进程调度,比如sched.c;</li>
 </ul>
-<h3 id="中断处理">1)中断处理</h3>
-<p>中断是系统调用的基础,如果不能实现中断相关的处理,那么也就无法实现系统调用,所以在此先讲中断有关的代码进行分析.</p>
+<h3 id="1-中断处理"><a href="#1-中断处理" class="headerlink" title="1)中断处理"></a>1)中断处理</h3><p>中断是系统调用的基础,如果不能实现中断相关的处理,那么也就无法实现系统调用,所以在此先讲中断有关的代码进行分析.</p>
 <p>我们在init/main.c中就可以看到,其中有一个trap_init的调用,以此为切入点来进行分析.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">trap_init</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span>
 <span class="token punctuation">{</span>
@@ -954,6 +954,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	<span class="token function">outb</span><span class="token punctuation">(</span><span class="token function">inb_p</span><span class="token punctuation">(</span><span class="token number">0xA1</span><span class="token punctuation">)</span><span class="token operator">&amp;</span><span class="token number">0xdf</span><span class="token punctuation">,</span><span class="token number">0xA1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//开启8259A从芯片的IRQ13中断请求</span>
 	<span class="token function">set_trap_gate</span><span class="token punctuation">(</span><span class="token number">39</span><span class="token punctuation">,</span><span class="token operator">&amp;</span>parallel_interrupt<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>我们可以发现,这一部分代码以设置中断向量表的陷阱门为主,并且这些陷阱门很大一部分代表的是一些与故障有关的中断.其中的含义,标注在注释中.除此之外,还开启硬件的中断请求允许.</p>
 <p>这里和ucore对于中断的初始化方法基本上一致,ucore有关于中断的初始化集中于两个函数中.其中pic_init的作用类似于 <code>outb_p(inb_p(0x21)&amp;0xfb,0x21);outb(inb_p(0xA1)&amp;0xdf,0xA1);</code>作用在于激活8259A有关于中断的请求.除此之外ucore最后初始化中断向量表结束之后,还将中断向量表(描述符)地址加载到了相应的寄存器中(<code>lidt(&amp;idt_pd);</code>).我们再看linux 0.11的话,中断向量表配置好之后,我们没有在trap_init中看到加载的操作.,究竟是怎么做的?</p>
 <p>更具体看中断向量表的配置的话,这些set操作是几个宏定义,更底层是借助汇编实现的.</p>
@@ -965,8 +966,10 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">set_system_gate</span><span class="token expression"><span class="token punctuation">(</span>n<span class="token punctuation">,</span>addr<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 	<span class="token expression"><span class="token function">_set_gate</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>idt<span class="token punctuation">[</span>n<span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token number">15</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span>addr<span class="token punctuation">)</span></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这几项,分别对应的是:idt表中的地址,类型(陷阱,中断.....),特权级,处理程序的地址.而这里的这个idt,是head.s中就定义好的idt,其地址位于system模块中,位于0x7000偏移量的中断向量表,再回顾head.s中的行为,我们可以发现head中早就有使用 <code>lidt idt_descr</code>的指令,加载到CPU中的IDTR寄存器.从而使CPU明确了idt的位置.所以,至此上面所提到的关于idt加载的问题也就解决了.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2016%2046%2036%201655628396%201655628396096%20ijF22W%20image-20220619164635886%20.png" alt="image-20220619164635886" style="zoom:50%;"></p>
+
+<p>这几项,分别对应的是:idt表中的地址,类型(陷阱,中断…..),特权级,处理程序的地址.而这里的这个idt,是head.s中就定义好的idt,其地址位于system模块中,位于0x7000偏移量的中断向量表,再回顾head.s中的行为,我们可以发现head中早就有使用 <code>lidt idt_descr</code>的指令,加载到CPU中的IDTR寄存器.从而使CPU明确了idt的位置.所以,至此上面所提到的关于idt加载的问题也就解决了.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2016%2046%2036%201655628396%201655628396096%20ijF22W%20image-20220619164635886%20.png" alt="image-20220619164635886" style="zoom:50%;">
+
 <p>其中断描述符设置的细节和ucore区别不大,因为两者中断描述符的结构都是一样的.若真要说,有什么区别,就是是否使用了c语言的抽象,我认为linux 0.11中,直接使用了汇编写到了idt的内存中,实现了对idt项的设置.而ucore,则多了一层抽象,ucore借助了c语言的抽象,它将段描述符抽象成结构体,读idt项的设置体现为对该结构体项的赋值,而这些结构体也恰恰是对idt表中一个个中断描述符的抽象.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//ucore对于中断描述符的设置</span>
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">SETGATE</span><span class="token expression"><span class="token punctuation">(</span>gate<span class="token punctuation">,</span> istrap<span class="token punctuation">,</span> sel<span class="token punctuation">,</span> off<span class="token punctuation">,</span> dpl<span class="token punctuation">)</span> <span class="token punctuation">{</span>               </span><span class="token punctuation">\</span>
@@ -991,6 +994,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	<span class="token string">"o"</span> <span class="token expression"><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>gate_addr<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> </span><span class="token punctuation">\</span>
 	<span class="token string">"o"</span> <span class="token expression"><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token operator">+</span><span class="token punctuation">(</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>gate_addr<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> </span><span class="token punctuation">\</span>
 	<span class="token string">"d"</span> <span class="token expression"><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>addr<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span></span><span class="token string">"a"</span> <span class="token expression"><span class="token punctuation">(</span><span class="token number">0x00080000</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>所以,就在中断初始化方面,我认为两者在实现上的主要区别在于:</p>
 <ul>
 <li><strong>idt加载的时机不同</strong>.看ucore的boot就可以发现,其中没有关于idt的设置.而linux 0.11在head.s运行阶段,就做好了对idt的初始化,包括IDTR寄存器的载入.</li>
@@ -1003,7 +1007,8 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 <li>Irq13.</li>
 </ul>
 <p>首先压入一个要执行的函数的地址,这些地址在trap.c中有定义.然后执行 <code>no_error_code</code>,</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2017%2022%2006%201655630526%201655630526660%20gsB7FZ%20image-20220619172206398%20.png" alt="image-20220619172206398" style="zoom:50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2019%2017%2022%2006%201655630526%201655630526660%20gsB7FZ%20image-20220619172206398%20.png" alt="image-20220619172206398" style="zoom:50%;">
+
 <p>总体来说,这个过程中堆栈的状况是如图中所示的,不过图中的例子都是特权级发生转变的情况,如果是没有发生转变的情况,那么就不会有原ss和esp的压入,c函数地址前的寄存器都是硬件压入的.</p>
 <p>但仅仅把握住这些还是不够的,应该还结合代码进行更细致地分析.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">error_code:
@@ -1037,10 +1042,12 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	popl %ebx
 	popl %eax
 	iret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>结合代码分析,除了压栈和弹栈之外,最核心的操作在于借助交换指令,将错误码和处理函数地址保存到了%eax和%ebx中,所以后来执行 <code>call *%ebx</code>进行地址跳转,进入到中断处理函数,%eax保存了错误码,所执行的中断处理函数中是有用的,接着则是将栈弹出.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">do_divide_error</span><span class="token punctuation">(</span><span class="token keyword keyword-long">long</span> esp<span class="token punctuation">,</span> <span class="token keyword keyword-long">long</span> error_code<span class="token punctuation">)</span><span class="token punctuation">{</span>
 	<span class="token function">die</span><span class="token punctuation">(</span><span class="token string">"divide error"</span><span class="token punctuation">,</span>esp<span class="token punctuation">,</span>error_code<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token comment">//在具体的中断处理函数中,确实用到了%eax中保存的error_code.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
 <p>相比之下,ucore和linux 0.11在这个地方处理的最大不同,我认为仍然在于抽象的层次上.ucore将压栈过程中的这一系列寄存器(也包含中断向量号,错误码等)抽象成了一个 <code>trapframe</code>数据结构,并且定义了一个 <code>trap_dispatch</code>函数作为分发器,将之前所抽象的trapframe的指针作为媒介传递到这个“分发器”中,这个复用器会根据中断向量号分出不同的分支,进而也对应了不同的处理,执行完之后返回.而linux 0.11只是直接压入处理函数的地址,并且直接执行这个地址上的函数.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">//ucore中trapframe</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">trapframe</span> <span class="token punctuation">{</span>
@@ -1065,9 +1072,9 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
     <span class="token class-name">uint16_t</span> tf_ss<span class="token punctuation">;</span>
     <span class="token class-name">uint16_t</span> tf_padding5<span class="token punctuation">;</span>
 <span class="token punctuation">}</span> <span class="token keyword keyword-__attribute__">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span>packed<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="系统调用到中断处理之间的部分">2)系统调用到中断处理之间的部分</h3>
-<p>下面,我们主要关注system_call.s程序.</p>
-<p>首先,需要明白的是,用户调用通过使用中断调用 <code>int 0x80</code>和存放寄存器%eax中的功能号来使用内核提供的各种系统服务.用户并不是直接使用系统调用中断,而是通过libc中的接口调用.</p>
+
+<h3 id="2-系统调用到中断处理之间的部分"><a href="#2-系统调用到中断处理之间的部分" class="headerlink" title="2)系统调用到中断处理之间的部分"></a>2)系统调用到中断处理之间的部分</h3><p>下面,我们主要关注system_call.s程序.</p>
+<p>首先,需要明白的是,用户调用通过使用中断调用 <code>int 0x80 </code>和存放寄存器%eax中的功能号来使用内核提供的各种系统服务.用户并不是直接使用系统调用中断,而是通过libc中的接口调用.</p>
 <p>以 <code>unistd.h</code>函数库中的系统调用为例,这些系统调用都需要借助 <code>int 0x80</code>来进行处理,而这些需要使用 <code>int 0x80</code>的系统调用每个又都有不同的编号,进而区分为不同的事件.这些事件号在触发 <code>int 0x80</code>时被保存在%eax寄存器中.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name function">_syscall3</span><span class="token expression"><span class="token punctuation">(</span>type<span class="token punctuation">,</span>name<span class="token punctuation">,</span>atype<span class="token punctuation">,</span>a<span class="token punctuation">,</span>btype<span class="token punctuation">,</span>b<span class="token punctuation">,</span>ctype<span class="token punctuation">,</span>c<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
 <span class="token expression">type <span class="token function">name</span><span class="token punctuation">(</span>atype a<span class="token punctuation">,</span>btype b<span class="token punctuation">,</span>ctype c<span class="token punctuation">)</span> </span><span class="token punctuation">\</span>
@@ -1081,6 +1088,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 <span class="token expression">errno<span class="token operator">=</span><span class="token operator">-</span>__res<span class="token punctuation">;</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token keyword keyword-return">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token punctuation">}</span></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这个时候,有一个疑问,就在于我们当初在进行初始化idt的时候没有设置0x80所对应的的中断描述符,既然如此 <code>int 0x80</code>又是怎样执行的呢?</p>
 <p>这在linux 0.11中,我认为是比较奇怪的,它在sched.c中对0x80对应的中断描述符进行了设置.其实现代码如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">sched_init</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span>
@@ -1090,6 +1098,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	<span class="token comment">//code......</span>
 	<span class="token function">set_system_gate</span><span class="token punctuation">(</span><span class="token number">0x80</span><span class="token punctuation">,</span><span class="token operator">&amp;</span>system_call<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这个函数中设置了0x80和0x20.我们可以感觉出,idt表的配置并不是在idt_init一次性就完成的.所以我们在这里也可以确定,<code>int 0x80</code>的入口就是system_call,定义在system_call.s中.</p>
 <p>下面来复盘一下,以close为例,一个系统调用究竟发生了什么.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">__LIBRARY__</span></span>
@@ -1107,6 +1116,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
     errno <span class="token operator">=</span> <span class="token operator">-</span>__res<span class="token punctuation">;</span> 
     <span class="token keyword keyword-return">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span> 
 <span class="token punctuation">}</span><span class="token comment">//将事件号__NR_close存入%eax,将参数fd存入%edx后,触发int 0x80中断,注意参数要存在通用寄存器中,并且最多3个.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>之后进入 <code>system_call</code>进行处理,下面重点分析一下这个程序.</p>
 <pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">system_call:
 	cmpl $nr_system_calls-1,%eax
@@ -1129,6 +1139,7 @@ pg3:<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span
 	jne reschedule
 	cmpl $0,counter(%eax)		# counter
 	je reschedule<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其过程可以概括如下:</p>
 <ul>
 <li>比较事件号(%eax)是否合法,如果不合法就跳转到bad_sys_call处理.</li>
@@ -1150,6 +1161,7 @@ sys_lock<span class="token punctuation">,</span> sys_ioctl<span class="token pun
 sys_uname<span class="token punctuation">,</span> sys_umask<span class="token punctuation">,</span> sys_chroot<span class="token punctuation">,</span> sys_ustat<span class="token punctuation">,</span> sys_dup2<span class="token punctuation">,</span> sys_getppid<span class="token punctuation">,</span>
 sys_getpgrp<span class="token punctuation">,</span> sys_setsid<span class="token punctuation">,</span> sys_sigaction<span class="token punctuation">,</span> sys_sgetmask<span class="token punctuation">,</span> sys_ssetmask<span class="token punctuation">,</span>
 sys_setreuid<span class="token punctuation">,</span>sys_setregid <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <ul>
 <li>处理结束后,根据<strong>当前进程是否就绪</strong>和<strong>时间片是否为0</strong>来判断是否需要让出CPU,进入schedule.</li>
 </ul>
@@ -1181,9 +1193,9 @@ sys_setreuid<span class="token punctuation">,</span>sys_setregid <span class="to
 	pop %es
 	pop %ds
 	iret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>接下来是处理完后,返回的部分.<strong>暂鸽</strong>.</p>
-<h3 id="增加系统调用要干的事">3)增加系统调用要干的事</h3>
 
+<p>接下来是处理完后,返回的部分.<strong>暂鸽</strong>.</p>
+<h3 id="3-增加系统调用要干的事"><a href="#3-增加系统调用要干的事" class="headerlink" title="3)增加系统调用要干的事"></a>3)增加系统调用要干的事</h3>
                 
             </div>
             <hr/>
