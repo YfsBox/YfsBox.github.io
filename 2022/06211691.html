@@ -507,7 +507,9 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="1-进程管理的总体架构"><a href="#1-进程管理的总体架构" class="headerlink" title="1.进程管理的总体架构"></a>1.进程管理的总体架构</h2><p>我们从main.c的初始化部分出发,其中sched_init是和进程管理直接相关的初始化.所以从中切入.不过,在lunix 0.11中有个需要注意的地方,就是:在linux内核中,我们所说的进程被称为任务(task),而运行在用户空间的程序称为进程.</p>
+                <h2 id="进程管理的总体架构">1.进程管理的总体架构</h2>
+<p>我们从main.c的初始化部分出发,其中sched_init是和进程管理直接相关的初始化.所以从中切入.不过,在lunix
+0.11中有个需要注意的地方,就是:在linux内核中,我们所说的进程被称为任务(task),而运行在用户空间的程序称为进程.</p>
 <p>首先,我们来看一下关于task的数据结构的定义.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token punctuation">{</span>
 <span class="token comment">/* these are hardcoded - don't touch */</span>
@@ -540,8 +542,8 @@
 <span class="token comment">/* tss for this task */</span>
 	<span class="token keyword keyword-struct">struct</span> <span class="token class-name">tss_struct</span> tss<span class="token punctuation">;</span><span class="token comment">//进程的任务状态段信息结构</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>将其中每个字段的意义标注在了注释上.这个数据结构也就是课本上常见的PCB,linux 0.11内部相比ucore很少出现指针,ucore使用了很多指针,比如mm_struct,parent,cptr等来组织和此进程相关的数据结构.</p>
+<p>将其中每个字段的意义标注在了注释上.这个数据结构也就是课本上常见的PCB,linux
+0.11内部相比ucore很少出现指针,ucore使用了很多指针,比如mm_struct,parent,cptr等来组织和此进程相关的数据结构.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">proc_struct</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-enum">enum</span> <span class="token class-name">proc_state</span> state<span class="token punctuation">;</span>                      <span class="token comment">// Process state</span>
     <span class="token keyword keyword-int">int</span> pid<span class="token punctuation">;</span>                                    <span class="token comment">// Process ID</span>
@@ -569,9 +571,6 @@
     <span class="token keyword keyword-struct">struct</span> <span class="token class-name">files_struct</span> <span class="token operator">*</span>filesp<span class="token punctuation">;</span>                <span class="token comment">// the file related info(pwd, files_count, files_array, fs_semaphore) of process</span>
 <span class="token comment">//一般一个进程通过filesp来管理文件集合</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-
-
 <p>在分析sched_init之前,我们首先分析一下,内核中最核心的几个数据结构.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-union">union</span> task_union <span class="token punctuation">{</span>
 	<span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> task<span class="token punctuation">;</span>
@@ -583,7 +582,6 @@
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token operator">*</span>current <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token punctuation">(</span>init_task<span class="token punctuation">.</span>task<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token operator">*</span>last_task_used_math <span class="token operator">=</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token operator">*</span> task<span class="token punctuation">[</span>NR_TASKS<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token operator">&amp;</span><span class="token punctuation">(</span>init_task<span class="token punctuation">.</span>task<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中init_task是整个内核中第一个进程,由于这个数据结构基于一个union实现,况且根据INIT_TASK的定义,init_task也就是一个task_struct,这个数据结构的定义也就完成了,并且将init_task设置为数组中的第0项.当前进程也就是current指针最初被设置为指向init_task.</p>
 <p>其中关于INIT_TASK的定义如下.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">INIT_TASK</span> <span class="token punctuation">\</span>
@@ -608,7 +606,6 @@
 		<span class="token expression"><span class="token punctuation">{</span><span class="token punctuation">}</span> </span><span class="token punctuation">\</span>
 	<span class="token expression"><span class="token punctuation">}</span><span class="token punctuation">,</span> </span><span class="token punctuation">\</span>
 <span class="token expression"><span class="token punctuation">}</span></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>sched_init代码如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">sched_init</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
 	<span class="token keyword keyword-int">int</span> i<span class="token punctuation">;</span>
@@ -636,9 +633,13 @@
 	<span class="token function">outb</span><span class="token punctuation">(</span><span class="token function">inb_p</span><span class="token punctuation">(</span><span class="token number">0x21</span><span class="token punctuation">)</span><span class="token operator">&amp;</span><span class="token operator">~</span><span class="token number">0x01</span><span class="token punctuation">,</span><span class="token number">0x21</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 	<span class="token function">set_system_gate</span><span class="token punctuation">(</span><span class="token number">0x80</span><span class="token punctuation">,</span><span class="token operator">&amp;</span>system_call<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中,我们可以发现整个内核中对于task的管理采用了一个数组,而ucore则是采用了一个list.linux
+0.11中的task数组数量最多为64,所以相比ucore,linux
+0.11支持运行进程的数量很有限.而current的使用两者是一致的.除此之外再将task数组中的每一项都设置为NULL.</p>
+<h2 id="进程管理的核心系统调用">2.进程管理的核心系统调用</h2>
+<h2 id="调度器">3.调度器</h2>
+<h2 id="同步互斥">4.同步互斥</h2>
 
-<p>其中,我们可以发现整个内核中对于task的管理采用了一个数组,而ucore则是采用了一个list.linux 0.11中的task数组数量最多为64,所以相比ucore,linux 0.11支持运行进程的数量很有限.而current的使用两者是一致的.除此之外再将task数组中的每一项都设置为NULL.</p>
-<h2 id="2-进程管理的核心系统调用"><a href="#2-进程管理的核心系统调用" class="headerlink" title="2.进程管理的核心系统调用"></a>2.进程管理的核心系统调用</h2><h2 id="3-调度器"><a href="#3-调度器" class="headerlink" title="3.调度器"></a>3.调度器</h2><h2 id="4-同步互斥"><a href="#4-同步互斥" class="headerlink" title="4.同步互斥"></a>4.同步互斥</h2>
                 
             </div>
             <hr/>
