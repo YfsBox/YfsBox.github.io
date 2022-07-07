@@ -498,33 +498,23 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="stl概论与版本简介">1. STL概论与版本简介</h2>
-<p>首先是STL的六大基础组件:</p>
+                <h2 id="1-STL概论与版本简介"><a href="#1-STL概论与版本简介" class="headerlink" title="1. STL概论与版本简介"></a>1. STL概论与版本简介</h2><p>首先是STL的六大基础组件:</p>
 <ul>
-<li><strong>容器</strong>.简而言之就是各种数据结构:vector,deque,set,map等.实现上是一种
-<code>class template</code>.</li>
-<li><strong>算法</strong>,sort,search,copy,erase等.实现上是
-<code>function template</code>.</li>
+<li><strong>容器</strong>.简而言之就是各种数据结构:vector,deque,set,map等.实现上是一种 <code>class template</code>.</li>
+<li><strong>算法</strong>,sort,search,copy,erase等.实现上是 <code>function template</code>.</li>
 <li><strong>迭代器</strong>,算法和容器等粘合剂,是一种“范型指针”.</li>
-<li><strong>仿函数</strong>,可以看做是算法的某种策略.可看作重载了
-<code>operator()的class template</code>.</li>
+<li><strong>仿函数</strong>,可以看做是算法的某种策略.可看作重载了 <code>operator()的class template</code>.</li>
 <li><strong>配接器</strong>,一种用来修饰容器,仿函数,或者迭代器接口的东西.</li>
 <li><strong>分配器</strong>,负责空间的管理和配置.</li>
 </ul>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2025%2015%2041%2030%201656142890%201656142890568%20ZpulNa%20image-20220625154130365%20.png" alt="六大组件" style="zoom:50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2025%2015%2041%2030%201656142890%201656142890568%20ZpulNa%20image-20220625154130365%20.png" alt="六大组件" style="zoom:50%;">
+
 <p>简而言之,算法对于容器的操作借助迭代器实现,仿函数影响算法实现的策略,空间分配器是为容器管理内存的.</p>
-<p>其中GCC所采用的是
-<code>SGI STL</code>,也是后来我们重点学习的版本.</p>
-<h2 id="allocator">2.Allocator</h2>
-<p>allocator是容器实现的基础,但是allocator不一定是分配内存,也可以分配磁盘.</p>
-<p>分配器很多时候是一个
-<code>template class</code>,其中有一些主要的接口,这些接口主要有:<code>allocator,deallocator,constructor,destroy</code>等.</p>
-<h3 id="最简易的allocator实现.">1)最简易的allocator实现.</h3>
-<p>下面是一个简单的实现,我们来对其源代码进行分析.</p>
-<p>在一个简易的STL实现中,分配器文件的代码主要有两个部分:一个是模版类allocator,另一个是实现的模版函数(下面代码段中所示).而
-<code>allocator</code>中主要是将这些接口进行封装.而这些函数,最主要的是
-<code>allocator,deallocator,constructor,destroy</code>等,分别是对
-<code>new,delete,构造函数,析构函数</code>进行的封装.</p>
+<p>其中GCC所采用的是 <code>SGI STL</code>,也是后来我们重点学习的版本.</p>
+<h2 id="2-Allocator"><a href="#2-Allocator" class="headerlink" title="2.Allocator"></a>2.Allocator</h2><p>allocator是容器实现的基础,但是allocator不一定是分配内存,也可以分配磁盘.</p>
+<p>分配器很多时候是一个 <code>template class</code>,其中有一些主要的接口,这些接口主要有:<code>allocator,deallocator,constructor,destroy</code>等.</p>
+<h3 id="1-最简易的allocator实现"><a href="#1-最简易的allocator实现" class="headerlink" title="1)最简易的allocator实现."></a>1)最简易的allocator实现.</h3><p>下面是一个简单的实现,我们来对其源代码进行分析.</p>
+<p>在一个简易的STL实现中,分配器文件的代码主要有两个部分:一个是模版类allocator,另一个是实现的模版函数(下面代码段中所示).而 <code>allocator</code>中主要是将这些接口进行封装.而这些函数,最主要的是 <code>allocator,deallocator,constructor,destroy</code>等,分别是对 <code>new,delete,构造函数,析构函数</code>进行的封装.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
     <span class="token keyword keyword-inline">inline</span> T<span class="token operator">*</span> <span class="token function">_allocate</span><span class="token punctuation">(</span>ptrdiff_t size<span class="token punctuation">,</span> T<span class="token operator">*</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
         <span class="token function">set_new_handler</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -547,6 +537,7 @@
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">_destroy</span><span class="token punctuation">(</span>T<span class="token operator">*</span> ptr<span class="token punctuation">)</span> <span class="token punctuation">{</span>
         ptr<span class="token operator">-&gt;</span><span class="token operator">~</span><span class="token function">T</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//调用析构函数.</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>所以总体来看这些接口并不复杂,只是做了一层很薄的封装而已.</p>
 <p>下面是allocator的简易实现.可见,除了简单的调用了前面实现的函数接口.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
@@ -576,24 +567,16 @@
         <span class="token keyword keyword-return">return</span> <span class="token function">size_type</span><span class="token punctuation">(</span>UINT_MAX <span class="token operator">/</span> <span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="sgi-stl中allocator的实现">2) SGI STL中allocator的实现</h3>
-<p>其中分别介绍 <code>alocator和alloc</code>
-<code>allocator</code>只是多了层很薄的封装,实现的效率不高,也不是
-<code>SGI STL</code>中所使用的主流.而后者则是
-<code>SGI STL</code>中效率比较高,使用的主流,很多容器默认采用的分配器就是这个.但是它的实现相对比较复杂.</p>
+
+<h3 id="2-SGI-STL中allocator的实现"><a href="#2-SGI-STL中allocator的实现" class="headerlink" title="2) SGI STL中allocator的实现"></a>2) SGI STL中allocator的实现</h3><p>其中分别介绍 <code>alocator和alloc</code> <code>allocator</code>只是多了层很薄的封装,实现的效率不高,也不是 <code>SGI STL</code>中所使用的主流.而后者则是 <code>SGI STL</code>中效率比较高,使用的主流,很多容器默认采用的分配器就是这个.但是它的实现相对比较复杂.</p>
 <p>我们首先回顾一下,c++中 <code>new和delete</code>的过程:</p>
 <ul>
 <li><code>new</code>一个对象时,先调用分配内存在调用构造函数.</li>
 <li><code>delete</code>一个对象,先析构函数在释放内存.</li>
 </ul>
 <p>这两个动作都是<strong>两阶段</strong>的.</p>
-<p>在 <code>STL allocator</code>的实现中,将两个阶段分离.分为
-<code>allocator,deallocator,constructor,destroy</code>.因而在
-<code>&lt;memory&gt;</code>中,分别包含
-<code>&lt;stl_alloc.h&gt;</code>和 <code>&lt;stl_construct.h&gt;</code>
-.</p>
-<h4 id="construct和destroy的实现">construct和destroy的实现</h4>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">__cplusplus <span class="token operator">&gt;=</span> <span class="token number">201103L</span></span></span>
+<p>在 <code>STL allocator</code>的实现中,将两个阶段分离.分为 <code>allocator,deallocator,constructor,destroy</code>.因而在 <code>&lt;memory&gt;</code>中,分别包含 <code>&lt;stl_alloc.h&gt;</code>和 <code>&lt;stl_construct.h&gt;</code> .</p>
+<h4 id="construct和destroy的实现"><a href="#construct和destroy的实现" class="headerlink" title="construct和destroy的实现"></a>construct和destroy的实现</h4><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">if</span> <span class="token expression">__cplusplus <span class="token operator">&gt;=</span> <span class="token number">201103L</span></span></span>
   <span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">_T1</span><span class="token punctuation">,</span> <span class="token keyword keyword-typename">typename</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> _Args<span class="token operator">&gt;</span>
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span>
     <span class="token function">_Construct</span><span class="token punctuation">(</span>_T1<span class="token operator">*</span> __p<span class="token punctuation">,</span> _Args<span class="token operator">&amp;&amp;</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> __args<span class="token punctuation">)</span>
@@ -610,18 +593,15 @@
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span>
     <span class="token function">_Construct_novalue</span><span class="token punctuation">(</span>_T1<span class="token operator">*</span> __p<span class="token punctuation">)</span>
     <span class="token punctuation">{</span> <span class="token double-colon punctuation">::</span><span class="token keyword keyword-new">new</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-void">void</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>__p<span class="token punctuation">)</span><span class="token punctuation">)</span> _T1<span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>首先上面是 <code>constructor</code>实现,借助
-<code>placement new</code>实现.</p>
+
+<p>首先上面是 <code>constructor</code>实现,借助 <code>placement new</code>实现.</p>
 <blockquote>
-<p><code>placement new</code>指的是,相比一般的
-<code>new</code>,此操作用于在<strong>已经分配的内存</strong>上创建对象.</p>
+<p><code>placement new</code>指的是,相比一般的 <code>new</code>,此操作用于在<strong>已经分配的内存</strong>上创建对象.</p>
 <p>一般语法为:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">A <span class="token operator">*</span>p <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token punctuation">(</span>mem<span class="token punctuation">)</span> A<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 </blockquote>
-<p>而关于
-<code>destory</code>的实现则是比较复杂的.主要有两个版本,一个是<strong>直接基于一个指针</strong>,另一个是<strong>借助两个迭代器</strong>.</p>
-<p>下面这两个是
-<code>Destory</code>中最基础的部分,很多其他接口都是基于它们实现的.</p>
+<p>而关于 <code>destory</code>的实现则是比较复杂的.主要有两个版本,一个是<strong>直接基于一个指针</strong>,另一个是<strong>借助两个迭代器</strong>.</p>
+<p>下面这两个是 <code>Destory</code>中最基础的部分,很多其他接口都是基于它们实现的.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Tp</span><span class="token operator">&gt;</span>
    <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span>
    <span class="token function">_Destroy</span><span class="token punctuation">(</span>_Tp<span class="token operator">*</span> __pointer<span class="token punctuation">)</span><span class="token comment">//基于一个指针实现的,直接调用其析构函数即可.</span>
@@ -637,10 +617,9 @@
     std<span class="token double-colon punctuation">::</span><span class="token function">_Destroy</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">__addressof</span><span class="token punctuation">(</span><span class="token operator">*</span>__first<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//值得注意的是,迭代器之间的每一个都是调用的_Destory!!!!</span>
 <span class="token punctuation">}</span>
    <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>如果迭代器之间的范围很大.并且都是那种
-<code>trivial destroy</code>,那么将会造成效率的浪费.</p>
-<p>其解决方法为:<strong>首先借助 <code>value_type</code>判断是否为
-<code>trivial</code>,如果是,就什么也不做,否则就对每个对象调用第一类型的析构函数</strong></p>
+
+<p>如果迭代器之间的范围很大.并且都是那种 <code>trivial destroy</code>,那么将会造成效率的浪费.</p>
+<p>其解决方法为:<strong>首先借助 <code>value_type</code>判断是否为 <code>trivial</code>,如果是,就什么也不做,否则就对每个对象调用第一类型的析构函数</strong></p>
 <p>具体实现如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">  <span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">_ForwardIterator</span><span class="token operator">&gt;</span>
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span>
@@ -656,8 +635,8 @@
       std<span class="token double-colon punctuation">::</span><span class="token class-name">_Destroy_aux</span><span class="token operator">&lt;</span><span class="token function">__has_trivial_destructor</span><span class="token punctuation">(</span>_Value_type<span class="token punctuation">)</span><span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span>
 	<span class="token function">__destroy</span><span class="token punctuation">(</span>__first<span class="token punctuation">,</span> __last<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h4 id="stdalloc中的分配与释放">std::alloc中的分配与释放</h4>
-<p>主要见 <code>&lt;stl_alloc.h&gt;</code>,其中设计考虑到问题如下:</p>
+
+<h4 id="std-alloc中的分配与释放"><a href="#std-alloc中的分配与释放" class="headerlink" title="std::alloc中的分配与释放"></a>std::alloc中的分配与释放</h4><p>主要见 <code>&lt;stl_alloc.h&gt;</code>,其中设计考虑到问题如下:</p>
 <ul>
 <li>多线程</li>
 <li>分配在堆上.</li>
@@ -665,8 +644,7 @@
 <li>考虑内存碎皮问题.</li>
 </ul>
 <p>其中主要介绍一下,第一级分配器和第二级分配器.</p>
-<p>第一级分配器,也就是
-<code>__malloc_alloc_template</code>实现方式如下:</p>
+<p>第一级分配器,也就是 <code>__malloc_alloc_template</code>实现方式如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span> __inst<span class="token operator">&gt;</span>
 <span class="token keyword keyword-class">class</span> <span class="token class-name">__malloc_alloc_template</span> <span class="token punctuation">{</span>
 <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
@@ -699,17 +677,12 @@
     <span class="token keyword keyword-return">return</span><span class="token punctuation">(</span>__old<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其实现方式还是比较简单的,主要是对于 <code>malloc</code>和
-<code>free</code>的封装.对于分配失败的情况,也就是当调用
-<code>malloc</code>返回为0的时候,会调用 <code>_S_oom_malloc</code>或者
-<code>_S_oom_realloc</code>进行处理.这其实是一种类似于
-<code>new-handler</code>的机制.</p>
+
+<p>其实现方式还是比较简单的,主要是对于 <code>malloc</code>和 <code>free</code>的封装.对于分配失败的情况,也就是当调用 <code>malloc</code>返回为0的时候,会调用 <code>_S_oom_malloc</code>或者 <code>_S_oom_realloc</code>进行处理.这其实是一种类似于 <code>new-handler</code>的机制.</p>
 <blockquote>
 <p><code>new-handler</code>是一种当内存分配时,如果无法满足,就会调用一个我们所指定的处理函数(handler).</p>
 </blockquote>
-<p>之所以不使用
-<code>operator new + new-handler</code>的原因除了历史原因,还因为C++中没有关于
-<code>realloc</code>的支持.</p>
+<p>之所以不使用 <code>operator new + new-handler</code>的原因除了历史原因,还因为C++中没有关于 <code>realloc</code>的支持.</p>
 <p>而对于它们的处理方式,实现方式如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span> __inst<span class="token operator">&gt;</span>
 <span class="token keyword keyword-void">void</span><span class="token operator">*</span>
@@ -725,11 +698,10 @@
         <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>__result<span class="token punctuation">)</span> <span class="token keyword keyword-return">return</span><span class="token punctuation">(</span>__result<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//知道满足要求时,返回.</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>简而言之,这个内存不足所触发的处理函数,处于一个无限循环中,每一寸循环反复地调用“内存不足处理例程”,执行完之后就再次尝试分配内存,知道成功时返回,如果没有设置相应的“内存不足处理例程”,就直接抛出异常.</p>
-<p>而关于
-<code>__default_alloc_template</code>的实现方式,相对而言要复杂得多.</p>
-<p>由于在堆上分配内存时,都要留一个
-<code>cookie</code>,这是一种内存的额外开销,尤其对于较小的内存块,导致空间利用率比较低.除此以外还要考虑内存空间碎片的问题.所以第二级分配器做法如下:</p>
+<p>而关于 <code>__default_alloc_template</code>的实现方式,相对而言要复杂得多.</p>
+<p>由于在堆上分配内存时,都要留一个 <code>cookie</code>,这是一种内存的额外开销,尤其对于较小的内存块,导致空间利用率比较低.除此以外还要考虑内存空间碎片的问题.所以第二级分配器做法如下:</p>
 <ul>
 <li>大于128B的交给 <code>__malloc_alloc_template</code>.</li>
 <li>否则,交给内存池管理.</li>
@@ -747,10 +719,9 @@
 <span class="token macro property"><span class="token directive-hash">#</span> <span class="token directive keyword">else</span></span>
     <span class="token keyword keyword-static">static</span> _Obj<span class="token operator">*</span> __STL_VOLATILE _S_free_list<span class="token punctuation">[</span>_NFREELISTS<span class="token punctuation">]</span><span class="token punctuation">;</span> 
 <span class="token macro property"><span class="token directive-hash">#</span> <span class="token directive keyword">endif</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>上面的代码是关于 <code>free-list</code>的部分,其中
-<code>_Obj</code>定义了节点,节点采用了联合的方式,这助于节省内存空间.既可以视为一个指向下一节点的指针,也可以视为保存着内容的内存块.</p>
-<p>一般采用的是链表的数组,也就是
-<code>_NFREELISTS</code>(16)个.对应着不同大小.</p>
+
+<p>上面的代码是关于 <code>free-list</code>的部分,其中 <code>_Obj</code>定义了节点,节点采用了联合的方式,这助于节省内存空间.既可以视为一个指向下一节点的指针,也可以视为保存着内容的内存块.</p>
+<p>一般采用的是链表的数组,也就是 <code>_NFREELISTS</code>(16)个.对应着不同大小.</p>
 <p>其中主要的函数接口和第一级一样,只不过增加了其他用于内存管理的数据结构及其操作.所以下面首先还是从几个基本的函数接口说起.</p>
 <p>首先是 <code>allocate</code>的实现.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"> <span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span><span class="token operator">*</span> <span class="token function">allocate</span><span class="token punctuation">(</span>size_t __n<span class="token punctuation">)</span>
@@ -779,11 +750,8 @@
     <span class="token punctuation">}</span>
     <span class="token keyword keyword-return">return</span> __ret<span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>简而言之,首先根据其大小,检索出在 <code>free-list</code>中对应索引的
-<code>list</code>,然后在尝试直接从这个链表中拿出空闲块,如果失败,就调用
-<code>_S_refill</code>进行处理,如果成功,就将该内存块取走,并且调整
-<code>free-list</code>.至于
-<code>_S_refill</code>的作用会在后面进行说明.</p>
+
+<p>简而言之,首先根据其大小,检索出在 <code>free-list</code>中对应索引的 <code>list</code>,然后在尝试直接从这个链表中拿出空闲块,如果失败,就调用 <code>_S_refill</code>进行处理,如果成功,就将该内存块取走,并且调整 <code>free-list</code>.至于 <code>_S_refill</code>的作用会在后面进行说明.</p>
 <p>然后是 <code>deallocate</code>的实现:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span> <span class="token function">deallocate</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token operator">*</span> __p<span class="token punctuation">,</span> size_t __n<span class="token punctuation">)</span><span class="token punctuation">{</span>
     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>__n <span class="token operator">&gt;</span> <span class="token punctuation">(</span>size_t<span class="token punctuation">)</span> _MAX_BYTES<span class="token punctuation">)</span>
@@ -802,19 +770,12 @@
       <span class="token comment">// lock is released here</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这个过程是比较简单的,简而言之,就是先根据大小索引出对应的链表,然后将要释放的内存块的转型为
-<code>_Obj</code>,将此内存块的下一节指向对应链表,并且将链表的头部移动到新加入的内存块上.</p>
+
+<p>这个过程是比较简单的,简而言之,就是先根据大小索引出对应的链表,然后将要释放的内存块的转型为 <code>_Obj</code>,将此内存块的下一节指向对应链表,并且将链表的头部移动到新加入的内存块上.</p>
 <p>剩余的一些关于 <code>allocator</code>的细节,暂鸽</p>
-<h2 id="iterator">3.iterator</h2>
-<p>在设计STL时,有一种重要的思想就是将容器和算法分离,最后以一种粘合剂将两者联系起来.这就是迭代器的地位.</p>
-<p>首先我们可以说迭代器是一种<strong>smart
-pointer</strong>,首先我们考虑一下指针的操作中,最重要的是
-<code>dereference</code>和 <code>access</code>,也就是说
-<code>operator *</code>和
-<code>operator -&gt;</code>的重要性.比如说,我们可以在
-<code>auto_ptr</code>发现这种方法的实现.</p>
-<p><code>auto_ptr</code>几乎就是对一个指针的一层封装,其中重点需要我们关注的地方就在于它提供了对于
-<code>operator *</code>和 <code>operator -&gt;</code>的重载.</p>
+<h2 id="3-iterator"><a href="#3-iterator" class="headerlink" title="3.iterator"></a>3.iterator</h2><p>在设计STL时,有一种重要的思想就是将容器和算法分离,最后以一种粘合剂将两者联系起来.这就是迭代器的地位.</p>
+<p>首先我们可以说迭代器是一种<strong>smart pointer</strong>,首先我们考虑一下指针的操作中,最重要的是 <code>dereference</code>和 <code>access</code>,也就是说 <code>operator *</code>和 <code>operator -&gt;</code>的重要性.比如说,我们可以在 <code>auto_ptr</code>发现这种方法的实现.</p>
+<p><code>auto_ptr</code>几乎就是对一个指针的一层封装,其中重点需要我们关注的地方就在于它提供了对于 <code>operator *</code>和 <code>operator -&gt;</code>的重载.</p>
 <p>类似于下面的这种实现方式.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-class">class</span> <span class="token class-name">ListIterator</span> <span class="token punctuation">{</span>
@@ -824,10 +785,8 @@ pointer</strong>,首先我们考虑一下指针的操作中,最重要的是
     T<span class="token operator">*</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">-&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> m_ptr<span class="token punctuation">;</span><span class="token punctuation">}</span> <span class="token comment">//成员访问，即member access</span>
     <span class="token comment">//...</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>如果我们想要为一个链表设计一个迭代器,应该怎么设计呢?相比
-<code>auto_ptr</code>而言,不仅仅是 <code>operator *</code>和
-<code>operator -&gt;</code>和重载,还有
-<code>operator ++</code>的重载,这对于链表来说,相当于节点指针的移动.</p>
+
+<p>如果我们想要为一个链表设计一个迭代器,应该怎么设计呢?相比 <code>auto_ptr</code>而言,不仅仅是 <code>operator *</code>和 <code>operator -&gt;</code>和重载,还有 <code>operator ++</code>的重载,这对于链表来说,相当于节点指针的移动.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">Item</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">ListIter</span> <span class="token punctuation">{</span>
     Item <span class="token operator">*</span>ptr<span class="token punctuation">;</span> <span class="token comment">// 保持与容器的联系</span>
@@ -854,26 +813,19 @@ pointer</strong>,首先我们考虑一下指针的操作中,最重要的是
         <span class="token keyword keyword-return">return</span> ptr <span class="token operator">!=</span> i<span class="token punctuation">.</span>ptr<span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>下面我们简单地看一下 <code>find</code>是怎么借助迭代器实现的.由于
-<code>find</code>函数内部需要借助"!="来检验每个元素是否与目标的value相吻合,因此还需要对“!=”进行重载.</p>
-<p>如果想要设计出 <code>list</code>的迭代器需要对
-<code>list</code>的很多实现的细节有所了解,很多STL都提供自己专属的迭代器.</p>
-<h3 id="迭代器-associated-types">1)迭代器 associated types</h3>
-<p>我们也时常将<strong>迭代器所指对象的类型,称为
-<code>value type</code></strong>.</p>
+
+<p>下面我们简单地看一下 <code>find</code>是怎么借助迭代器实现的.由于 <code>find</code>函数内部需要借助”!=”来检验每个元素是否与目标的value相吻合,因此还需要对“!=”进行重载.</p>
+<p>如果想要设计出 <code>list</code>的迭代器需要对 <code>list</code>的很多实现的细节有所了解,很多STL都提供自己专属的迭代器.</p>
+<h3 id="1-迭代器-associated-types"><a href="#1-迭代器-associated-types" class="headerlink" title="1)迭代器 associated types"></a>1)迭代器 associated types</h3><p>我们也时常将<strong>迭代器所指对象的类型,称为 <code>value type</code></strong>.</p>
 <p>除此之外 <code>associated types</code>总共有5种:</p>
 <ul>
 <li><code>value type</code>,迭代器所指对象的类型.</li>
 <li><code>difference type</code>.两个迭代器之间的距离,可以用来表示一个容器的最大容量.</li>
-<li><code>reference type</code>,主要分为 <code>const</code>和
-<code>non-const</code>,也就是说,迭代器所指对象是否可以改变.</li>
+<li><code>reference type</code>,主要分为 <code>const</code>和 <code>non-const</code>,也就是说,迭代器所指对象是否可以改变.</li>
 <li><code>pointer type</code>.</li>
 <li><code>iterator type</code>,迭代器种类,这个是比较复杂的问题.在后面细说.</li>
 </ul>
-<h3 id="template-参数推导">2) template 参数推导</h3>
-<p>我们在此介绍的参数推导的方式主要是借助
-<code>function template</code>来进行参数推导.就一下面这串代码为例,当带入
-<code>func</code>的时候,会根据第二个参数不同类型往下进入不同的重载版本.</p>
+<h3 id="2-template-参数推导"><a href="#2-template-参数推导" class="headerlink" title="2) template 参数推导"></a>2) template 参数推导</h3><p>我们在此介绍的参数推导的方式主要是借助 <code>function template</code>来进行参数推导.就一下面这串代码为例,当带入 <code>func</code>的时候,会根据第二个参数不同类型往下进入不同的重载版本.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">I</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">func</span><span class="token punctuation">(</span>I iter<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token function">func_imp</span><span class="token punctuation">(</span>iter<span class="token punctuation">,</span> <span class="token operator">*</span>iter<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 传入 iter 和 iter 所指的值，class 自动推导</span>
@@ -892,11 +844,9 @@ pointer</strong>,首先我们考虑一下指针的操作中,最重要的是
     <span class="token function">func</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> <span class="token function">D1</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">func</span><span class="token punctuation">(</span>p<span class="token punctuation">,</span> <span class="token function">D2</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>就像上面,我们可以在不同的
-<code>func_imp</code>中有不同类型的返回值,但是用户直接调用的往往是
-<code>func</code>.</p>
-<h3 id="声明内嵌型别">3)声明内嵌型别</h3>
-<p>可以考虑加上内嵌型别:<strong>为指定的对象类型定义一个别名,然后可以将此别名直接获取.</strong>实现方式如下:</p>
+
+<p>就像上面,我们可以在不同的 <code>func_imp</code>中有不同类型的返回值,但是用户直接调用的往往是 <code>func</code>.</p>
+<h3 id="3-声明内嵌型别"><a href="#3-声明内嵌型别" class="headerlink" title="3)声明内嵌型别"></a>3)声明内嵌型别</h3><p>可以考虑加上内嵌型别:**为指定的对象类型定义一个别名,然后可以将此别名直接获取.**实现方式如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-class">class</span> <span class="token class-name">MyIter</span> <span class="token punctuation">{</span>
 <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
@@ -916,19 +866,13 @@ pointer</strong>,首先我们考虑一下指针的操作中,最重要的是
     MyIter<span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span> <span class="token function">iter</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">(</span><span class="token number">666</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     std<span class="token double-colon punctuation">::</span>cout<span class="token operator">&lt;&lt;</span><span class="token function">Func</span><span class="token punctuation">(</span>iter<span class="token punctuation">)</span><span class="token operator">&lt;&lt;</span>std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>  <span class="token comment">//print=&gt; 666</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>就像上面这样,可以实现一个能够返回迭代器
-<code>value type</code>类型的对象.但是这种做法还是存在一定的问题的:<strong>我们当前的迭代器是一个以
-<code>class type</code>的方式实现的,倘若我们的迭代器只是一个原生的指针,就难以嵌入一个
-<code>value_type</code>.</strong></p>
-<p>再次强调,内嵌型别只适合一般情况,<strong>也就是迭代器是以
-<code>class type</code>实现的情况.</strong></p>
-<h3 id="partial-specialization">4) Partial Specialization</h3>
-<p>这种方法用来解决上面所提到的问题.</p>
+
+<p>就像上面这样,可以实现一个能够返回迭代器 <code>value type</code>类型的对象.但是这种做法还是存在一定的问题的:<strong>我们当前的迭代器是一个以 <code>class type</code>的方式实现的,倘若我们的迭代器只是一个原生的指针,就难以嵌入一个 <code>value_type</code>.</strong></p>
+<p>再次强调,内嵌型别只适合一般情况,<strong>也就是迭代器是以 <code>class type</code>实现的情况.</strong></p>
+<h3 id="4-Partial-Specialization"><a href="#4-Partial-Specialization" class="headerlink" title="4) Partial Specialization"></a>4) Partial Specialization</h3><p>这种方法用来解决上面所提到的问题.</p>
 <blockquote>
-<p><code>Partial Specialization</code>指的是,如果我们的
-<code>class template</code>拥有一个以上的参数,那么我们可以对其中的某个参数进行特化工作.</p>
-<p>可以理解为,为某一种特化的情况,提供另一种
-<code>template</code>定义.</p>
+<p><code>Partial Specialization</code>指的是,如果我们的 <code>class template</code>拥有一个以上的参数,那么我们可以对其中的某个参数进行特化工作.</p>
+<p>可以理解为,为某一种特化的情况,提供另一种 <code>template</code>定义.</p>
 </blockquote>
 <p>比如说.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span><span class="token comment">//一般的范化版本</span>
@@ -936,12 +880,9 @@ pointer</strong>,首先我们考虑一下指针的操作中,最重要的是
 <span class="token comment">//特化版本,适用于T为原生指针的情况.</span>
 <span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-class">class</span> <span class="token class-name">C</span><span class="token operator">&lt;</span>T <span class="token operator">*</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="萃取机的应用与实现">5) 萃取机的应用与实现</h3>
-<p>下面我们可以介绍一下"<strong>参数推导机制+内嵌型别机制获取型别+Partial
-Specialization</strong>"在STL中的应用方式了.</p>
-<p>因此STL中引入中间一层机制,作为<strong>萃取机</strong>,萃取机能够根据带入的迭代器类型,进而“推导”出相应的
-<code>associaed type</code>然后可以直接获取
-<code>associaed type</code>.实现方式如下:</p>
+
+<h3 id="5-萃取机的应用与实现"><a href="#5-萃取机的应用与实现" class="headerlink" title="5) 萃取机的应用与实现"></a>5) 萃取机的应用与实现</h3><p>下面我们可以介绍一下”<strong>参数推导机制+内嵌型别机制获取型别+Partial Specialization</strong>“在STL中的应用方式了.</p>
+<p>因此STL中引入中间一层机制,作为<strong>萃取机</strong>,萃取机能够根据带入的迭代器类型,进而“推导”出相应的 <code>associaed type</code>然后可以直接获取 <code>associaed type</code>.实现方式如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Iterator</span><span class="token operator">&gt;</span><span class="token comment">//一般的泛化模式</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">iterator_traits</span> <span class="token punctuation">{</span>
   <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>iterator_category iterator_category<span class="token punctuation">;</span>
@@ -950,6 +891,7 @@ Specialization</strong>"在STL中的应用方式了.</p>
   <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>pointer           pointer<span class="token punctuation">;</span>
   <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">_Iterator</span><span class="token double-colon punctuation">::</span>reference         reference<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在引入 <code>traits</code>之后,其应用方式有如下的变化.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">Iterator</span><span class="token operator">&gt;</span> <span class="token comment">//引入萃取机之前</span>
 <span class="token keyword keyword-typename">typename</span> <span class="token class-name">Iterator</span><span class="token double-colon punctuation">::</span>value_type  <span class="token function">func</span><span class="token punctuation">(</span>Iterator iter<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -959,8 +901,8 @@ Specialization</strong>"在STL中的应用方式了.</p>
 <span class="token keyword keyword-typename">typename</span> <span class="token class-name">iterator_traits</span><span class="token operator">&lt;</span>Iterator<span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span>value_type  <span class="token function">func</span><span class="token punctuation">(</span>Iterator iter<span class="token punctuation">)</span> <span class="token punctuation">{</span> 
     <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>iter<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>除此之外,对于原生指针的情况,会使用
-<code>partial specialization</code>的方式来实现.下面是对于一种偏特化的实现方式,支持原生指针.</p>
+
+<p>除此之外,对于原生指针的情况,会使用 <code>partial specialization</code>的方式来实现.下面是对于一种偏特化的实现方式,支持原生指针.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">iterator_traits</span><span class="token operator">&lt;</span>_Tp<span class="token operator">*</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
   <span class="token keyword keyword-typedef">typedef</span> random_access_iterator_tag iterator_category<span class="token punctuation">;</span>
@@ -969,8 +911,8 @@ Specialization</strong>"在STL中的应用方式了.</p>
   <span class="token keyword keyword-typedef">typedef</span> _Tp<span class="token operator">*</span>                        pointer<span class="token punctuation">;</span>
   <span class="token keyword keyword-typedef">typedef</span> _Tp<span class="token operator">&amp;</span>                        reference<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>除了原生指针之外,还有对于指向常量的指针也会采用
-<code>partial specialization</code>.</p>
+
+<p>除了原生指针之外,还有对于指向常量的指针也会采用 <code>partial specialization</code>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">iterator_traits</span><span class="token operator">&lt;</span><span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span><span class="token operator">&gt;</span> <span class="token punctuation">{</span>
   <span class="token keyword keyword-typedef">typedef</span> random_access_iterator_tag iterator_category<span class="token punctuation">;</span>
@@ -979,47 +921,41 @@ Specialization</strong>"在STL中的应用方式了.</p>
   <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span>                  pointer<span class="token punctuation">;</span>
   <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">&amp;</span>                  reference<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>所以直到这里,关于
-<code>traits</code>的方法也就讲得差不多了,<strong>主要是借助增加一个中间的
-<code>template class</code>,这个类可以获取迭代器的
-<code>associated type</code>,对于一般的
-<code>class type</code>的迭代器借助了其内嵌型别,对于一些特殊情况(原生指针,pointer-to-const)等,采用了
-<code>partial specialization</code>的方法.</strong></p>
+
+<p>所以直到这里,关于 <code>traits</code>的方法也就讲得差不多了,<strong>主要是借助增加一个中间的 <code>template class</code>,这个类可以获取迭代器的 <code>associated type</code>,对于一般的 <code>class type</code>的迭代器借助了其内嵌型别,对于一些特殊情况(原生指针,pointer-to-const)等,采用了 <code>partial specialization</code>的方法.</strong></p>
 <p>最终,对于一个函数 <code>func</code>我们可以实现一种固定的方式.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">I</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-typename">typename</span> <span class="token class-name">my_iterator_traits</span><span class="token operator">&lt;</span>I<span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span>value_type <span class="token function">Func</span><span class="token punctuation">(</span>I ite<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> <span class="token string">"normal version"</span> <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>ite<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>复盘一下,如果一个算法或者函数,需要知道迭代器的
-<code>associated type</code>,会发生什么?</p>
+
+<p>复盘一下,如果一个算法或者函数,需要知道迭代器的 <code>associated type</code>,会发生什么?</p>
 <ul>
 <li>询问 <code>iterator_traits</code>.</li>
-<li>如果是 <code>class type</code>,其结果来自于其嵌入的
-<code>type</code>.</li>
-<li>如果是原生指针或者 <code>pointer-to-const</code>,则需要从偏特化的
-<code>iterator_traits</code>得出答案.</li>
+<li>如果是 <code>class type</code>,其结果来自于其嵌入的 <code>type</code>.</li>
+<li>如果是原生指针或者 <code>pointer-to-const</code>,则需要从偏特化的 <code>iterator_traits</code>得出答案.</li>
 </ul>
-<h3 id="迭代器的种类">6) 迭代器的种类</h3>
-<p>迭代器分类方式的依据在于:<strong>读写和访问方式</strong></p>
+<h3 id="6-迭代器的种类"><a href="#6-迭代器的种类" class="headerlink" title="6) 迭代器的种类"></a>6) 迭代器的种类</h3><p>迭代器分类方式的依据在于:<strong>读写和访问方式</strong></p>
 <p>分为如下几种:</p>
 <ul>
-<li><code>input iterator</code>.只写.</li>
-<li><code>output iterator</code>,只读.</li>
-<li><code>forward iterator</code>,读写单向移动.</li>
+<li><code> input iterator</code>.只写.</li>
+<li><code> output iterator</code>,只读.</li>
+<li><code> forward iterator</code>,读写单向移动.</li>
 <li><code>bidirectional iterator</code>,读写双向移动.</li>
 <li><code>random access iterator</code>,读写随机访问.</li>
 </ul>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2026%2019%2026%2042%201656242802%201656242802825%20gwTNTp%20image-20220626192642614%20.png" alt="类别与关系" style="zoom: 50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2026%2019%2026%2042%201656242802%201656242802825%20gwTNTp%20image-20220626192642614%20.png" alt="类别与关系" style="zoom: 50%;">
+
 <p>之所以划分成不同的迭代器种类,主要考虑的原因就在于:<strong>能够根据不同的类别,相应的算法能够采取不同的处理方式,进而达到效率最大化</strong>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">input_iterator_tag</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">output_iterator_tag</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">forward_iterator_tag</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">input_iterator_tag</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">bidirectional_iterator_tag</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">forward_iterator_tag</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">random_access_iterator_tag</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">bidirectional_iterator_tag</span></span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>然后如果以<code>input_iterator</code>为例的话,其内部的第一个<code>typedef</code>也就是迭代器类型,就是关于<code>input_iterator_tag</code>这种结构体.</p>
-<p>下面主要是 <code>advance()</code>和
-<code>distance()</code>对于不同种类迭代器的不同处理方式.</p>
+<p>下面主要是 <code>advance()</code>和 <code>distance()</code>对于不同种类迭代器的不同处理方式.</p>
 <p>在<code>advance</code>中,不同类型的迭代器实现方式不同.下图分别为<code>InputIter,BidirectionalIterator,_RandomAccessIterator</code>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_InputIter</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Distance</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">__advance</span><span class="token punctuation">(</span>_InputIter<span class="token operator">&amp;</span> __i<span class="token punctuation">,</span> _Distance __n<span class="token punctuation">,</span> input_iterator_tag<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -1042,14 +978,14 @@ Specialization</strong>"在STL中的应用方式了.</p>
   <span class="token function">__STL_REQUIRES</span><span class="token punctuation">(</span>_RandomAccessIterator<span class="token punctuation">,</span> _RandomAccessIterator<span class="token punctuation">)</span><span class="token punctuation">;</span>
   __i <span class="token operator">+=</span> __n<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>所以,最后总结,之所以要区分<code>iterator item</code>的方式是大大不同的.所以需要迭代器种类,进而做出最合适的算法.</p>
-<h2 id="sequential-containers">4.Sequential Containers</h2>
-<p>常见的数据机构有:<code>list,tree,stack,queue,hash table, set,map</code></p>
+<h2 id="4-Sequential-Containers"><a href="#4-Sequential-Containers" class="headerlink" title="4.Sequential Containers"></a>4.Sequential Containers</h2><p>常见的数据机构有:<code>list,tree,stack,queue,hash table, set,map</code></p>
 <p>其中根据<strong>数据在容器中的排列</strong>特性,分为<strong>序列式</strong>和<strong>关联式</strong>.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2021%2001%2002%201656334862%201656334862172%201n9b29%20image-20220627210101863%20.png" alt="Containers" style="zoom:50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2021%2001%2002%201656334862%201656334862172%201n9b29%20image-20220627210101863%20.png" alt="Containers" style="zoom:50%;">
+
 <p>这里提到的衍生关系,主要指的是内含.比如说<code>heap</code>中内含有<code>vector</code>,<code>stack,queue</code>等都含有<code>deque</code>.</p>
-<h3 id="vector">1) vector</h3>
-<p>我们在使用<code>vector</code>往往会加上头文件<code>&lt;vector&gt;</code>.其更底层的实现是<code>&lt;stl_vector.h&gt;</code>.下面将会从迭代器,数据结构,分配器还有相关算法上进行分析.</p>
+<h3 id="1-vector"><a href="#1-vector" class="headerlink" title="1) vector"></a>1) vector</h3><p>我们在使用<code>vector</code>往往会加上头文件<code>&lt;vector&gt;</code>.其更底层的实现是<code>&lt;stl_vector.h&gt;</code>.下面将会从迭代器,数据结构,分配器还有相关算法上进行分析.</p>
 <p>从总体上来说,对于<code>vector</code>的实现,是由一个<code>vector</code>类继承了一个<code>_Vector_Base</code>类组成的.</p>
 <p>其中关于<code>_Vector_base</code>的定义如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span> 
@@ -1077,6 +1013,7 @@ Specialization</strong>"在STL中的应用方式了.</p>
   <span class="token keyword keyword-void">void</span> <span class="token function">_M_deallocate</span><span class="token punctuation">(</span>_Tp<span class="token operator">*</span> __p<span class="token punctuation">,</span> size_t __n<span class="token punctuation">)</span> 
     <span class="token punctuation">{</span> _M_data_allocator<span class="token double-colon punctuation">::</span><span class="token function">deallocate</span><span class="token punctuation">(</span>__p<span class="token punctuation">,</span> __n<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>简而言之,其内容无非围绕这几个方面:</p>
 <ul>
 <li>allocator以及和分配有关的接口.</li>
@@ -1086,9 +1023,9 @@ Specialization</strong>"在STL中的应用方式了.</p>
 <p>而关于<code>vector</code>其代码组成比较复杂,但是仍然是:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span> <span class="token operator">=</span> <span class="token function">__STL_DEFAULT_ALLOCATOR</span><span class="token punctuation">(</span>_Tp<span class="token punctuation">)</span> <span class="token operator">&gt;</span>
 <span class="token keyword keyword-class">class</span> <span class="token class-name">vector</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">_Vector_base</span><span class="token operator">&lt;</span><span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span></span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 <p>所以说,我们对于分配器也是可以自己进行重定义的.</p>
-<h4 id="a.iterator">a.iterator</h4>
-<p>我们可以将<code>vector</code>视为一个可变长数组,因此普通指针就可以作为迭代器,并且我们需要向数组一样支持随机存储,因此其迭代器的种类就是<code>Random Access Iterators</code>.</p>
+<h4 id="a-iterator"><a href="#a-iterator" class="headerlink" title="a.iterator"></a>a.iterator</h4><p>我们可以将<code>vector</code>视为一个可变长数组,因此普通指针就可以作为迭代器,并且我们需要向数组一样支持随机存储,因此其迭代器的种类就是<code>Random Access Iterators</code>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-typedef">typedef</span> _Tp value_type<span class="token punctuation">;</span>
 <span class="token keyword keyword-typedef">typedef</span> value_type<span class="token operator">*</span> pointer<span class="token punctuation">;</span>
 <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-const">const</span> value_type<span class="token operator">*</span> const_pointer<span class="token punctuation">;</span>
@@ -1098,9 +1035,9 @@ Specialization</strong>"在STL中的应用方式了.</p>
 <span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-const">const</span> value_type<span class="token operator">&amp;</span> const_reference<span class="token punctuation">;</span>
 <span class="token keyword keyword-typedef">typedef</span> size_t size_type<span class="token punctuation">;</span>
 <span class="token keyword keyword-typedef">typedef</span> ptrdiff_t difference_type<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>以上代码出现在<code>vector</code>的定义中,可见其迭代器只是普通的指针,更具体地说,是和该容器所存储的数据类型相同的指针.</p>
-<h4 id="b.数据结构">b.数据结构</h4>
-<p>在前面说了,<code>vector</code>继承了一个<code>_Vector_base</code>,而核心的数据结构的定义,就在<code>_Vector_base</code>中,代码如下.</p>
+<h4 id="b-数据结构"><a href="#b-数据结构" class="headerlink" title="b.数据结构"></a>b.数据结构</h4><p>在前面说了,<code>vector</code>继承了一个<code>_Vector_base</code>,而核心的数据结构的定义,就在<code>_Vector_base</code>中,代码如下.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span> 
 <span class="token keyword keyword-class">class</span> <span class="token class-name">_Vector_base</span> <span class="token punctuation">{</span>
 <span class="token comment">//.............</span>
@@ -1109,6 +1046,7 @@ Specialization</strong>"在STL中的应用方式了.</p>
   _Tp<span class="token operator">*</span> _M_finish<span class="token punctuation">;</span>
   _Tp<span class="token operator">*</span> _M_end_of_storage<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其核心的数据结构就是三个指针,<code>vector</code>像数组一样维护一片连续的内存空间,而<code>_M_start</code>和<code>_M_finish</code>分别指向这片内存空间中目前已经被使用的范围,而<code>_M_end_of_storage</code>则指向的是这片内存的末尾.需要明确的是,<code>_M_finish</code>未必总是等于<code>_M_end_of_storage</code>因为<code>vector</code>会留有备用空间.<strong>内存容量永远大于等于其使用的大小</strong>.</p>
 <p>下面举几个例子,来看一下怎样借助这几个指针表达出一些操作,比如<code>begin(),end(),size(),empty()</code>.这些定义是来源于<code>vector</code>类内部的.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">iterator <span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> _M_start<span class="token punctuation">;</span> <span class="token punctuation">}</span>
@@ -1118,9 +1056,9 @@ const_iterator <span class="token function">end</span><span class="token punctua
 reference <span class="token keyword keyword-operator">operator</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span>size_type __n<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> __n<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
 const_reference <span class="token keyword keyword-operator">operator</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span>size_type __n<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> __n<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">}</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>以上这几个操作,都是可以只借助这几个指针表达出来的.而对于其他操作<code>insert,push_back</code>等则比较复杂,不仅仅需要使用指针,还需要涉及到内存分配,构造等操作.</p>
-<h4 id="c.vector的构造与allocator">c.vector的构造与allocator</h4>
-<p>这一部分是非常复杂的.</p>
+<h4 id="c-vector的构造与allocator"><a href="#c-vector的构造与allocator" class="headerlink" title="c.vector的构造与allocator"></a>c.vector的构造与allocator</h4><p>这一部分是非常复杂的.</p>
 <p>由于<code>vector</code>是具由<code>_Vector_base</code>继承而来的,所以我们分析其构造函数应该分为两个部分.首先来看一下<code>_Vector_base</code>部分.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">_Vector_base</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Alloc<span class="token operator">&amp;</span><span class="token punctuation">)</span>
   <span class="token operator">:</span> <span class="token function">_M_start</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">_M_finish</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">_M_end_of_storage</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
@@ -1135,11 +1073,13 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
 <span class="token comment">// 释放空间</span>
 <span class="token operator">~</span><span class="token function">_Vector_base</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token function">_M_deallocate</span><span class="token punctuation">(</span>_M_start<span class="token punctuation">,</span> _M_end_of_storage <span class="token operator">-</span> _M_start<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">}</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>除了对于三个指针进行初始化之外,构造函数还会调用<code>_M_allocate</code>分配内存空间,而<code>_M_deallocate</code>用于析构函数.对于这两个函数的定义,也被封装在了<code>_Vector_base</code>之中,并且只是对<code>allocator</code>中分配和释放的简单的一层封装而已.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">_Tp<span class="token operator">*</span> <span class="token function">_M_allocate</span><span class="token punctuation">(</span>size_t __n<span class="token punctuation">)</span>
    <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> _M_data_allocator<span class="token double-colon punctuation">::</span><span class="token function">allocate</span><span class="token punctuation">(</span>__n<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
  <span class="token keyword keyword-void">void</span> <span class="token function">_M_deallocate</span><span class="token punctuation">(</span>_Tp<span class="token operator">*</span> __p<span class="token punctuation">,</span> size_t __n<span class="token punctuation">)</span> 
    <span class="token punctuation">{</span> _M_data_allocator<span class="token double-colon punctuation">::</span><span class="token function">deallocate</span><span class="token punctuation">(</span>__p<span class="token punctuation">,</span> __n<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>而对于<code>vector</code>,这个数据结构对于基类而说并没有扩展额外的数据成员.</p>
 <p>其构造函数主要如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-explicit">explicit</span> <span class="token function">vector</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span> __a <span class="token operator">=</span> <span class="token function">allocator_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
@@ -1156,14 +1096,17 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token function">vector</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> vector<span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span> _Alloc<span class="token operator">&gt;</span><span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> 
     <span class="token operator">:</span> <span class="token function">_Base</span><span class="token punctuation">(</span>__x<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> __x<span class="token punctuation">.</span><span class="token function">get_allocator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token punctuation">{</span> _M_finish <span class="token operator">=</span> <span class="token function">uninitialized_copy</span><span class="token punctuation">(</span>__x<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> __x<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> _M_start<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>除了对于基类的初始化之外,还多了对于<code>uninitialized_fill_n</code>和<code>uninitialized_copy</code>的调用.关于<code>uninitialized_fill_n</code>,其底层实现使用<code>traits</code>来判别类型,并且决定使用<code>fill_n()</code>算法或者反复调用<code>construct()</code>来完成任务.主要起到填充内存段内内容的作用.填充为参数<code>__value</code>.</p>
 <p>而对于其析构函数</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token operator">~</span><span class="token function">vector</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token function">destroy</span><span class="token punctuation">(</span>_M_start<span class="token punctuation">,</span> _M_finish<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
 <p>主要是调用了<code>destroy</code>来释放内存空间.</p>
 <p>关于<code>vector</code>中所使用的分配器,在默认情况下是<code>alloc</code>其机制,在之前分析过.</p>
 <p>其中最重要的部分就在于内存动态增长的方式.涉及到此机制的操作主要有<code>push_back(),resize(),reserve()</code>等.首先来分析一下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">_M_insert_aux</span><span class="token punctuation">(</span>iterator __position<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-void">void</span> <span class="token function">_M_insert_aux</span><span class="token punctuation">(</span>iterator __position<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 <p>其具体实现如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-void">void</span> 
@@ -1196,6 +1139,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     _M_end_of_storage <span class="token operator">=</span> __new_start <span class="token operator">+</span> __len<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>上面展示的这个函数主要被<code>push_back()</code>所调用.当<code>push_back()</code>备用空间不够时,就会调用这个函数,简而言之,当发生内存不足时:</p>
 <ul>
 <li>如果没有元素,那么就扩充为1,否则是原来的2倍.</li>
@@ -1204,8 +1148,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
 <li>旧的的内存空间析构并释放内存.</li>
 <li>设置好新的<code>_M_start</code>,<code>_M_finish</code>,<code>_M_end_of_storage</code>.</li>
 </ul>
-<h4 id="d.vector的主要操作">d.vector的主要操作</h4>
-<p>关于<code>push_back()</code>的实现.需要注意的是<code>_M_finish</code>和`<code>_M_end_of_storage</code>,前者指向的是<strong>指向已使用空间的末端位置+1</strong>,后者是<strong>指向所分配数组的末尾位置+1</strong>.</p>
+<h4 id="d-vector的主要操作"><a href="#d-vector的主要操作" class="headerlink" title="d.vector的主要操作"></a>d.vector的主要操作</h4><p>关于<code>push_back()</code>的实现.需要注意的是<code>_M_finish</code>和``_M_end_of_storage`,前者指向的是<strong>指向已使用空间的末端位置+1</strong>,后者是<strong>指向所分配数组的末尾位置+1</strong>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">push_back</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Tp<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>_M_finish <span class="token operator">!=</span> _M_end_of_storage<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 有备用空间</span>
       <span class="token function">construct</span><span class="token punctuation">(</span>_M_finish<span class="token punctuation">,</span> __x<span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment">// 全局函数,将 __x 构造到 _M_finish 指针所指的空间上</span>
@@ -1214,11 +1157,13 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token keyword keyword-else">else</span>
       <span class="token function">_M_insert_aux</span><span class="token punctuation">(</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> __x<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 无备用空间，从新分配再插入</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>关于<code>pop_back()</code></p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token operator">--</span>_M_finish<span class="token punctuation">;</span>
     <span class="token function">destroy</span><span class="token punctuation">(</span>_M_finish<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>实现地比较简单,主要是移动<code>_M_finish</code>,并且析构末尾的元素.为什么不释放相应的内存呢?因为<strong>预留空间总是大于等于已用空间</strong>,所以预留空间的内存是不能随便释放的.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">iterator <span class="token function">erase</span><span class="token punctuation">(</span>iterator __position<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//返回值是迭代器,也就是一个指针.</span>
     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>__position <span class="token operator">+</span> <span class="token number">1</span> <span class="token operator">!=</span> <span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
@@ -1227,6 +1172,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token function">destroy</span><span class="token punctuation">(</span>_M_finish<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> __position<span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>如果是最后一个,就不会执行<code>if</code>分支中的内容,因此就和<code>pop_back()</code>一样了,只不过多了一个拷贝内存的函数,和一般的数组进行<code>erase()</code>区别不大.<code>clear()</code>的实现非常简单,只是一个封装了的<code>erase()</code>,以迭代器为参数的版本.</p>
 <p>而关于<code>resize()</code>则是基于<code>erase()</code>和<code>insert()</code>(以迭代器为参数的版本)实现的.</p>
 <p>关于<code>insert()</code>的实现是比较复杂的.</p>
@@ -1240,11 +1186,10 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
       <span class="token function">_M_insert_aux</span><span class="token punctuation">(</span>__position<span class="token punctuation">,</span> __x<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> <span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> __n<span class="token punctuation">;</span><span class="token comment">//返回的也是指针,指向所插入元素的地址.</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>最后,总体来说,<code>vector</code>就是一种封装了的,可以动态增长空间的高级数组,需要注意的是<strong>每次需要动态扩容时,扩容前后的所使用的内存空间往往不是同一块</strong>.这种现象容易带来的陷阱就是<strong>是已获取的迭代器失效</strong>,因为发生扩容之后,旧的内存空间已经释放,此时迭代器可能指向旧的内存地址,所以就是无效的.</p>
-<h3 id="list">2) list</h3>
-<p><code>list</code>简而言之是一种链表.</p>
-<h4 id="a.list的数据结构">a.list的数据结构</h4>
-<p>首先我们来看一下,链表节点的实现方式:</p>
+<h3 id="2-list"><a href="#2-list" class="headerlink" title="2) list"></a>2) list</h3><p><code>list</code>简而言之是一种链表.</p>
+<h4 id="a-list的数据结构"><a href="#a-list的数据结构" class="headerlink" title="a.list的数据结构"></a>a.list的数据结构</h4><p>首先我们来看一下,链表节点的实现方式:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">_List_node_base</span> <span class="token punctuation">{</span>
   _List_node_base<span class="token operator">*</span> _M_next<span class="token punctuation">;</span>
   _List_node_base<span class="token operator">*</span> _M_prev<span class="token punctuation">;</span>
@@ -1253,6 +1198,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">_List_node</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">_List_node_base</span></span> <span class="token punctuation">{</span>
   _Tp _M_data<span class="token punctuation">;</span> 
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>一个节点主要分为两个部分,一个数据部分是我们所指定的类型,还有一个部分就是指针部分,指针部分的类型是固定的,始终就是<code>_List_node_base</code>.并且是一个双向链表.</p>
 <p>在<code>SGI</code>中是一种<strong>环状双向链表</strong>.首先分析的是<code>_List_base</code>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span>
@@ -1267,10 +1213,11 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
 <span class="token keyword keyword-protected">protected</span><span class="token operator">:</span>
   _List_node<span class="token operator">&lt;</span>_Tp<span class="token operator">&gt;</span><span class="token operator">*</span> _M_node<span class="token punctuation">;</span>  <span class="token comment">// 只要一个指针，便可表示整个环状双向链表，空白节点</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2023%2059%2047%201656345587%201656345587372%20fGI29B%20image-20220627235947060%20.png" alt="List" style="zoom:50%;"></p>
-<p>之后还有一个继承了<code>_List_base</code>的类<code>list</code>,也就是用户直接接触的<code>list</code>.这一部分除了继承了<code>_List_base</code>之外没有什么涉及到核心数据结构的东西.</p>
-<h4 id="b.list-iterator">b.List Iterator</h4>
-<p>这里迭代器的实现方式,也是采用了一个基类在加派生类的方式实现的,其中迭代器的基类中也说明了一个迭代器的类型.</p>
+
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2027%2023%2059%2047%201656345587%201656345587372%20fGI29B%20image-20220627235947060%20.png" alt="List" style="zoom:50%;">
+
+<p>之后还有一个继承了<code>_List_base </code>的类<code>list</code>,也就是用户直接接触的<code>list</code>.这一部分除了继承了<code>_List_base</code>之外没有什么涉及到核心数据结构的东西.</p>
+<h4 id="b-List-Iterator"><a href="#b-List-Iterator" class="headerlink" title="b.List Iterator"></a>b.List Iterator</h4><p>这里迭代器的实现方式,也是采用了一个基类在加派生类的方式实现的,其中迭代器的基类中也说明了一个迭代器的类型.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">_List_iterator_base</span> <span class="token punctuation">{</span>
   <span class="token keyword keyword-typedef">typedef</span> size_t                     size_type<span class="token punctuation">;</span>
   <span class="token keyword keyword-typedef">typedef</span> ptrdiff_t                  difference_type<span class="token punctuation">;</span>
@@ -1288,6 +1235,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token keyword keyword-return">return</span> _M_node <span class="token operator">!=</span> __x<span class="token punctuation">.</span>_M_node<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span>  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中说明了迭代器是一种双向迭代器,并且核心在于一个<code>_List_node_base *</code>,也就是说是一个指向节点指针部分的指针.</p>
 <p>其迭代器相比<code>vector</code>有一个重要的特征,<code>vector</code>会因为扩容导致的内存空间变化而导致迭代器失效,但是<code>list</code>的迭代器往往除了被删除的节点之外,都不会面临这种问题.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ref</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ptr</span><span class="token operator">&gt;</span>
@@ -1325,14 +1273,14 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token keyword keyword-return">return</span> __tmp<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>简单总结如下:</p>
 <ul>
-<li>关于++和--的重载,主要是迭代器在节点上的移动.</li>
+<li>关于++和–的重载,主要是迭代器在节点上的移动.</li>
 <li>*和-&gt;分别是取节点的数据值和成员存取.</li>
 <li>构造函数也主要是初始化基类.</li>
 </ul>
-<h4 id="c.list的构造与内存管理">c.List的构造与内存管理</h4>
-<p>关于构造函数的话,要在<code>List_base</code>中.</p>
+<h4 id="c-List的构造与内存管理"><a href="#c-List的构造与内存管理" class="headerlink" title="c.List的构造与内存管理"></a>c.List的构造与内存管理</h4><p>关于构造函数的话,要在<code>List_base</code>中.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">_List_base</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     _M_node <span class="token operator">=</span> <span class="token function">_M_get_node</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     _M_node<span class="token operator">-&gt;</span>_M_next <span class="token operator">=</span> _M_node<span class="token punctuation">;</span>
@@ -1342,6 +1290,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">_M_put_node</span><span class="token punctuation">(</span>_M_node<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>和一般我们在实现一个双向链表的初始化操作没什么两样.而对于<code>list</code>的构造函数</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">list</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span> __first<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span> __last<span class="token punctuation">,</span>
        <span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span> __a <span class="token operator">=</span> <span class="token function">allocator_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
@@ -1351,12 +1300,10 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
        <span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span> __a <span class="token operator">=</span> <span class="token function">allocator_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
     <span class="token operator">:</span> <span class="token function">_Base</span><span class="token punctuation">(</span>__a<span class="token punctuation">)</span>
     <span class="token punctuation">{</span> <span class="token keyword keyword-this">this</span><span class="token operator">-&gt;</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> __first<span class="token punctuation">,</span> __last<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h4 id="d.list的主要操作">d.list的主要操作</h4>
-<p>其操作还是挺多的.</p>
-<h3 id="deque">3) deque</h3>
-<p>首先来看一些<code>deque</code>相关的文件组成:<code>deque----&gt;deque.h----&gt;stl_deque.h</code>,将重点放在对于<code>stl_deque.h</code>的分析上.</p>
-<h4 id="a.数据结构">a.数据结构</h4>
-<p><code>deque</code>即为双向队列,适合需要频繁地从首部和尾部取出或者增加元素的场景.</p>
+
+<h4 id="d-list的主要操作"><a href="#d-list的主要操作" class="headerlink" title="d.list的主要操作"></a>d.list的主要操作</h4><p>其操作还是挺多的.</p>
+<h3 id="3-deque"><a href="#3-deque" class="headerlink" title="3) deque"></a>3) deque</h3><p>首先来看一些<code>deque</code>相关的文件组成:<code>deque----&gt;deque.h----&gt;stl_deque.h</code>,将重点放在对于<code>stl_deque.h</code>的分析上.</p>
+<h4 id="a-数据结构"><a href="#a-数据结构" class="headerlink" title="a.数据结构"></a>a.数据结构</h4><p><code>deque</code>即为双向队列,适合需要频繁地从首部和尾部取出或者增加元素的场景.</p>
 <p><code>deque</code>所使用的内存空间和<code>vector</code>一样,都是<strong>线性</strong>的.不过相比<code>vector</code>,并没有容量和保留的概念,其内存空间是<strong>以分段连续内存空间组合</strong>而成的,随时可以有新的内存空间拼接起来.</p>
 <p>和其他容器一样,其数据结构的基本实现体现在<code>base</code>类里,此容器仍然分了两层类去实现.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span>
@@ -1370,13 +1317,15 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   iterator _M_finish<span class="token punctuation">;</span><span class="token comment">//指向尾部元素</span>
 <span class="token comment">//......</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中<code>_M_start</code>和<code>_M_finish</code>都是迭代器类型的,而<code>duque</code>迭代器的相关如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-typedef">typedef</span> _Deque_iterator<span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span>_Tp<span class="token operator">&amp;</span><span class="token punctuation">,</span>_Tp<span class="token operator">*</span><span class="token operator">&gt;</span>    iterator<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
 <p>至于迭代器的实现的细节,在后面会说,但是简而言之,这里的<code>_M_start</code>和<code>_M_finish</code>是指向<code>_M_map</code>上元素的指针,也就是指向指针的指针.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2006%2016%2000%2015%201657094415%201657094415149%20RHk1Wx%20image-20220706160015068%20.png" alt="image-20220706160015068" style="zoom:50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2006%2016%2000%2015%201657094415%201657094415149%20RHk1Wx%20image-20220706160015068%20.png" alt="image-20220706160015068" style="zoom:50%;">
+
 <p>所以至此,我们发现虽然说<code>deque</code>是连续的,但也只是分段连续而已.</p>
-<h4 id="b.迭代器">B.迭代器</h4>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ref</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ptr</span><span class="token operator">&gt;</span>
+<h4 id="B-迭代器"><a href="#B-迭代器" class="headerlink" title="B.迭代器"></a>B.迭代器</h4><pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ref</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ptr</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">_Deque_iterator</span> <span class="token punctuation">{</span>
   <span class="token keyword keyword-typedef">typedef</span> _Deque_iterator<span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span> _Tp<span class="token operator">&amp;</span><span class="token punctuation">,</span> _Tp<span class="token operator">*</span><span class="token operator">&gt;</span>             iterator<span class="token punctuation">;</span><span class="token comment">//迭代器</span>
   <span class="token keyword keyword-typedef">typedef</span> _Deque_iterator<span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">&amp;</span><span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> _Tp<span class="token operator">*</span><span class="token operator">&gt;</span> const_iterator<span class="token punctuation">;</span>
@@ -1396,6 +1345,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   _Tp<span class="token operator">*</span> _M_first<span class="token punctuation">;</span>
   _Tp<span class="token operator">*</span> _M_last<span class="token punctuation">;</span>
   _Map_pointer _M_node<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这一部分是支撑起整个迭代器发挥作用的几个指针,其中<code>_M_cur,_M_first,_M_last</code>此三者都是直接指向某个元素的,这三者都是局限于同一个缓冲区中的,而<code>_M_node</code>则是一个指向指针的指针,指向某个缓冲区.</p>
 <p>由于之前了解到,<code>deque</code>实质上只是分段连续的容器,而不想<code>vector</code>是整一个数组都是连续的.所以在指针移动时,有一个问题就在于如何维护这种整体连续的假象,尤其是当到达了某个缓冲区的边界的时候,怎样移动才能移动到其他缓冲区,从而得出正确的位置?这主要取决于迭代器中关于<code>++,--</code>等运算符重载的实现.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">_Self<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">++</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -1424,15 +1374,18 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token operator">--</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> __tmp<span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>简而言之,相比全连续容器单纯地<code>++或者--</code>,<code>deque</code>则多了特判,主要作用在于判断是否已经达到缓冲区边界了.关于缓冲区的边界,需要关注<code>_M_last</code>和<code>_M_first</code>.也就是当前所处缓冲区的边界两个指针.当到达边界时,移动<code>_M_map</code>并且设置<code>_M_cur</code>在此缓冲区的位置,一般是开头或者末尾.其中<code>_M_set_node</code>实现的细节如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">_M_set_node</span><span class="token punctuation">(</span>_Map_pointer __new_node<span class="token punctuation">)</span> <span class="token punctuation">{</span>
    _M_node <span class="token operator">=</span> __new_node<span class="token punctuation">;</span>
    _M_first <span class="token operator">=</span> <span class="token operator">*</span>__new_node<span class="token punctuation">;</span>
    _M_last <span class="token operator">=</span> _M_first <span class="token operator">+</span> <span class="token function">difference_type</span><span class="token punctuation">(</span><span class="token function">_S_buffer_size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这个函数的主要作用在于<strong>当cur移动到其他缓冲区时,对相应的<code>_M_node,_M_first,_M_last</code>进行调整.</strong>,其参数为cur所移动到的缓冲区的指针.</p>
-<p>主要用于改变`<code>_M_node(所处的缓冲区),_M_first和_M_last</code>.进而可以适应所处缓冲区的变化.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2006%2016%2053%2020%201657097600%201657097600247%2093vwyk%20image-20220706165320138%20.png" alt="image-20220706165320138" style="zoom:50%;"></p>
+<p>主要用于改变```_M_node(所处的缓冲区),_M_first和_M_last``.进而可以适应所处缓冲区的变化.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2006%2016%2053%2020%201657097600%201657097600247%2093vwyk%20image-20220706165320138%20.png" alt="image-20220706165320138" style="zoom:50%;">
+
 <p>除此之外,为了支持内存的随机访问,考虑这几个迭代器中的实现.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">_Self<span class="token operator">&amp;</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">+=</span><span class="token punctuation">(</span>difference_type __n<span class="token punctuation">)</span>
 <span class="token punctuation">{</span>
@@ -1449,6 +1402,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token punctuation">}</span>
   <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p><code>+=</code>的重载对于其他运算符比如<code>+,-,[]</code>都具有重要的意义,也可以说这些运算符重载的实现一定程度上都是基于<code>+=</code>实现的.简单地说,<code>+=</code>的意义在于直接跳跃几个元素.其在实现时根据是否出现缓冲区的跨越来分为不同的分支.</p>
 <p>关于<code>+,[],-</code>等都是基于<code>+=</code>实现的一层封装,</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">_Self <span class="token keyword keyword-operator">operator</span><span class="token operator">+</span><span class="token punctuation">(</span>difference_type __n<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> 
@@ -1463,6 +1417,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token keyword keyword-return">return</span> __tmp <span class="token operator">-=</span> __n<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
   reference <span class="token keyword keyword-operator">operator</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">(</span>difference_type __n<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span> <span class="token operator">+</span> __n<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在关于比较的几个运算的重载,主要是比较迭代器中指针的地址,如果在同一个缓冲区就比较<code>_M_cur</code>,否则就只比较缓冲区的地址.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">==</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Self<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> _M_cur <span class="token operator">==</span> __x<span class="token punctuation">.</span>_M_cur<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token comment">//只比较cur即可</span>
  <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">!=</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Self<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">!</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span> <span class="token operator">==</span> __x<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
@@ -1473,6 +1428,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
  <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Self<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span>  <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> __x <span class="token operator">&lt;</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token comment">//根据&lt;变换而来</span>
  <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">&lt;=</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Self<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">!</span><span class="token punctuation">(</span>__x <span class="token operator">&lt;</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
  <span class="token keyword keyword-bool">bool</span> <span class="token keyword keyword-operator">operator</span><span class="token operator">&gt;=</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> _Self<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">!</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span> <span class="token operator">&lt;</span> __x<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>所以,迭代器中有关于运算符重载的实现上有这几类:</p>
 <ul>
 <li><code>++,--</code>的实现.</li>
@@ -1481,8 +1437,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
 </ul>
 <p>总的来说,<code>deque</code>的迭代器是四个指针组成的,其中有一个指向缓冲区的指针,还有三个指针表示该缓冲区的首尾边界,以及指向当前处于的位置.对于运算符重载方面,其中和<code>vector</code>最大的不同在于,需要特判是否到达该缓冲区的边界,并且需要把握好各重载运算符之间的关系,其中<code>++,--,+=</code>等运算符是最基础的.记住,这些操作的实现总是围绕着:<strong><code>deque</code>的内存利用是分段式的连续</strong>.</p>
 <p>所以我们可以发现,当我们需要访问需要跨越比较长的一段内存空间时,可能需要跨越map的多个段,其开销将会比较显著.</p>
-<h4 id="c.deque的构造与内存管理">c.deque的构造与内存管理</h4>
-<p>在这里,与构造和内存管理息息相关的是<code>push_back,push_front</code>,以及<code>deque</code>的构造函数等.</p>
+<h4 id="c-deque的构造与内存管理"><a href="#c-deque的构造与内存管理" class="headerlink" title="c.deque的构造与内存管理"></a>c.deque的构造与内存管理</h4><p>在这里,与构造和内存管理息息相关的是<code>push_back,push_front</code>,以及<code>deque</code>的构造函数等.</p>
 <p>关于<code>deque</code>中的分配器,主要有两个部分,一个是用于分配元素(node)的,另一个用于分配缓冲区指针(map)的.</p>
 <p>在<code>_Deque_base</code>中的定义如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span>
@@ -1503,6 +1458,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token punctuation">{</span> _Map_alloc_type<span class="token double-colon punctuation">::</span><span class="token function">deallocate</span><span class="token punctuation">(</span>__p<span class="token punctuation">,</span> __n<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
 <span class="token comment">//......</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这里,这几个函数可以说是对分配器<code>allocate</code>和<code>deallocate</code>最直接的封装,这些函数往往会被调用于其他的构造或创建的操作中,如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-void">void</span> <span class="token class-name">_Deque_base</span><span class="token operator">&lt;</span>_Tp<span class="token punctuation">,</span>_Alloc<span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span><span class="token function">_M_create_nodes</span><span class="token punctuation">(</span>_Tp<span class="token operator">*</span><span class="token operator">*</span> __nstart<span class="token punctuation">,</span> _Tp<span class="token operator">*</span><span class="token operator">*</span> __nfinish<span class="token punctuation">)</span>
@@ -1521,6 +1477,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>_Tp<span class="token operator">*</span><span class="token operator">*</span> __n <span class="token operator">=</span> __nstart<span class="token punctuation">;</span> __n <span class="token operator">&lt;</span> __nfinish<span class="token punctuation">;</span> <span class="token operator">++</span>__n<span class="token punctuation">)</span><span class="token comment">//逐个释放</span>
     <span class="token function">_M_deallocate_node</span><span class="token punctuation">(</span><span class="token operator">*</span>__n<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中关于<code>_M_create_nodes</code>中主要借助for循环,由于<code>+=,++</code>重载的作用,每一步都是+1的,所以才从<code>__nstart到__nfinish</code>的访问,在外界看来适合一个完全连续的线性表一样.</p>
 <p>而对于<code>_M_initialize_map</code>一般用于<code>_Deque_Base</code>部分的构造函数,初始化map和节点,一般是先创建<code>map</code>再创建nodes.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"> <span class="token function">_Deque_base</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> allocator_type<span class="token operator">&amp;</span><span class="token punctuation">,</span> size_t __num_elements<span class="token punctuation">)</span>
@@ -1549,6 +1506,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   _M_finish<span class="token punctuation">.</span>_M_cur <span class="token operator">=</span> _M_finish<span class="token punctuation">.</span>_M_first <span class="token operator">+</span>
                __num_elements <span class="token operator">%</span> <span class="token function">__deque_buf_size</span><span class="token punctuation">(</span><span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>_Tp<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>下面来分析一下<code>push_back,push_front</code>的内部实现.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">push_back</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> value_type<span class="token operator">&amp;</span> __t<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//这里列举有参数的版本了.</span>
     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>_M_finish<span class="token punctuation">.</span>_M_cur <span class="token operator">!=</span> _M_finish<span class="token punctuation">.</span>_M_last <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//这个时候是不要扩容的情况</span>
@@ -1566,6 +1524,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token keyword keyword-else">else</span>
       <span class="token function">_M_push_front_aux</span><span class="token punctuation">(</span>__t<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>下面来分析<code>_M_push_front_aux,_M_push_front</code>,分析一下其内存扩容的机制.</p>
 <p>在这里以<code>_M_push_front</code>为例:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Alloc</span><span class="token operator">&gt;</span>
@@ -1581,6 +1540,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token punctuation">}</span>
   <span class="token function">__STL_UNWIND</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token operator">++</span>_M_start<span class="token punctuation">,</span> <span class="token function">_M_deallocate_node</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token punctuation">(</span>_M_start<span class="token punctuation">.</span>_M_node <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这里可以发现,对于首部所扩充出的内存空间,这块空间在使用时并不是从“start”开始使用的,而是从“last”开始使用,内存使用的方向是反方向的.而相比之下,在末尾的操作是从start开始的.</p>
 <p>而新的缓冲区是怎么扩充来的呢?主要看<code>_M_reserve_map_at_back,_M_reserve_map_at_front</code>.其实现如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">_M_reserve_map_at_back</span> <span class="token punctuation">(</span>size_type __nodes_to_add <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">//关于参数,一般在调用时都是用的默认的1.</span>
@@ -1591,6 +1551,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>__nodes_to_add <span class="token operator">&gt;</span> <span class="token function">size_type</span><span class="token punctuation">(</span>_M_start<span class="token punctuation">.</span>_M_node <span class="token operator">-</span> _M_map<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token comment">//头部空间不足.</span>
     <span class="token function">_M_reallocate_map</span><span class="token punctuation">(</span>__nodes_to_add<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>简单来说,当出现map的重新分配时,会讲旧的map内容拷贝,原有的map释放.在这个过程中,会有<code>Map</code>地址的转换,而相应的<code>start,finish</code>也会有相应的调整.</p>
 <p>在最后,梳理一下内存管理与构造相关的模块:</p>
 <ul>
@@ -1600,8 +1561,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
 <li><code>push_back和push_front</code>在关于内存的使用和扩充上是反方向的.其中在需要内存扩充时,调用<code>_M_push_back_aux,_M_push_front_aux</code>,这两个函数先预留出在首部或者尾部的map,然后调整指针,构造新元素.</li>
 <li>关于<code>map</code>相关的内容扩容,体现在<code>_M_reserve_map_at_back,_M_reserve_map_at_front</code>中,需要将旧的map拷贝,然后释放.</li>
 </ul>
-<h4 id="d.元素操作的实现">d.元素操作的实现</h4>
-<p>在这里以<code>pop_back,pop_front,clear,erase,insert</code>等为例.</p>
+<h4 id="d-元素操作的实现"><a href="#d-元素操作的实现" class="headerlink" title="d.元素操作的实现"></a>d.元素操作的实现</h4><p>在这里以<code>pop_back,pop_front,clear,erase,insert</code>等为例.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">pop_front</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>_M_start<span class="token punctuation">.</span>_M_cur <span class="token operator">!=</span> _M_start<span class="token punctuation">.</span>_M_last <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
      <span class="token function">destroy</span><span class="token punctuation">(</span>_M_start<span class="token punctuation">.</span>_M_cur<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -1618,9 +1578,10 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
    <span class="token keyword keyword-else">else</span>
      <span class="token function">_M_pop_back_aux</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这里,再次体现了操作的对称性,其中<code>_M_pop_back_aux</code>和<code>_M_pop_front_aux</code>也是需要重点关注的.</p>
-<h4 id="e.与stack和queue的关系">e.与stack和queue的关系</h4>
-<p>可以说<code>stack,queue</code>是基于<code>deque</code>实现的,<strong>它们是只提供了一部分接口的<code>deque</code>.</strong></p>
+<p><strong>暂鸽</strong></p>
+<h4 id="e-与stack和queue的关系"><a href="#e-与stack和queue的关系" class="headerlink" title="e.与stack和queue的关系"></a>e.与stack和queue的关系</h4><p>可以说<code>stack,queue</code>是基于<code>deque</code>实现的,<strong>它们是只提供了一部分接口的<code>deque</code>.</strong></p>
 <p><code>queue</code>等效于隐藏了接口<code>push_front</code>和<code>pop_back</code>的<code>deque</code>,而<code>stack</code>等效于隐藏了接口<code>push_front</code>和<code>pop_front</code>的<code>deque</code>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Tp</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Sequence</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-class">class</span> <span class="token class-name">queue</span> <span class="token punctuation">{</span>
@@ -1640,25 +1601,20 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token keyword keyword-void">void</span> <span class="token function">push</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> value_type<span class="token operator">&amp;</span> __x<span class="token punctuation">)</span> <span class="token punctuation">{</span> c<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>__x<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
   <span class="token keyword keyword-void">void</span> <span class="token function">pop</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> c<span class="token punctuation">.</span><span class="token function">pop_front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>从中可见,很多接口其实在底层是调用了<code>deque</code>的接口.</p>
-<h2 id="associative-containers">5.Associative Containers</h2>
-<p>总体而言,有<code>set</code>和<code>map</code>两类.这些容器的底层实现都是以<code>RB-tree</code>实现的.这有利于获得良好的查询效率.</p>
+<h2 id="5-Associative-Containers"><a href="#5-Associative-Containers" class="headerlink" title="5.Associative Containers"></a>5.Associative Containers</h2><p>总体而言,有<code>set</code>和<code>map</code>两类.这些容器的底层实现都是以<code>RB-tree</code>实现的.这有利于获得良好的查询效率.</p>
 <p>关联式容器每个数据都有<code>key</code>和<code>value</code>.容器的内部根据键值的某种特定规则<strong>放在适当位置</strong>.</p>
-<h3 id="rb-tree">1) RB-tree</h3>
-<p>一些关于树的基础知识就不在这里开展叙述.直接从平衡二叉搜索树开始.</p>
+<h3 id="1-RB-tree"><a href="#1-RB-tree" class="headerlink" title="1) RB-tree"></a>1) RB-tree</h3><p>一些关于树的基础知识就不在这里开展叙述.直接从平衡二叉搜索树开始.</p>
 <p>平衡二叉搜索树防止的是:<strong>有时输入的节点会比较特殊,或者经过插入或者删除后,导致二叉搜索树不够平衡,查询效率会逐渐退化成线性</strong>.</p>
 <p>关于<code>AVL</code>其核心定义在于:<strong>任何节点的左右子树高度相差为1</strong>.因此,当有节点变化后,如果违反定义,就会采取一些方法处理,分为<strong>单旋和双旋</strong>.</p>
 <p>下面简要地说明一些<code>RB-tree</code>的原理,并且分析在<code>SGI STL</code>中的实现.</p>
 <p>但无论怎样,都不要忘了,它始终是<strong>二叉搜索树</strong>!</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2028%2021%2022%2031%201656422551%201656422551903%204W5odB%20image-20220628212231609%20.png" alt="image-20220628212231609">
-<figcaption aria-hidden="true">image-20220628212231609</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2028%2021%2022%2031%201656422551%201656422551903%204W5odB%20image-20220628212231609%20.png" alt="image-20220628212231609"></p>
 <p>当违背了规定时,仍然需要旋转的方法实现调整.</p>
 <p>其中规则3是重点,也是维护操作的重点所在.</p>
-<h4 id="a.插入节点">a.插入节点</h4>
-<p>有一个前提需要强调,也就是<strong>新插入的节点为红色</strong>.</p>
-<p>首先,可以思考到的是,<strong>如果新插入一个新的节点时,P本身就是黑的,那么这次操作就不要调整.</strong>所以下面这几个情况,有一个共同特征,<strong>就是P都是红色</strong>.</p>
+<h4 id="a-插入节点"><a href="#a-插入节点" class="headerlink" title="a.插入节点"></a>a.插入节点</h4><p>有一个前提需要强调,也就是<strong>新插入的节点为红色</strong>.</p>
+<p>首先,可以思考到的是,**如果新插入一个新的节点时,P本身就是黑的,那么这次操作就不要调整.**所以下面这几个情况,有一个共同特征,<strong>就是P都是红色</strong>.</p>
 <p>当有一个新的节点插入时,主要考虑4种情况:</p>
 <ul>
 <li>S为黑且X为外侧输入,对此情况先对P,G做单旋,在更改P,G颜色.</li>
@@ -1670,10 +1626,10 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
 <p>由于情况四,如果一直向上递归,就会造成低效,所以使用一种<code>top-down procedure</code>的方法进行改良.</p>
 <p>这种方法就是:当有一个新的节点插入时,将<code>root</code>到此新节点的路径上,如果一个节点的两个子节点为红色,就将两个子节点改为黑色,它自己为红.</p>
 <p>也就是说,尽可能避免这种情况:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2028%2022%2017%2004%201656425824%201656425824578%200midgk%20image-20220628221704342%20.png" alt="image-20220628221704342" style="zoom:50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2028%2022%2017%2004%201656425824%201656425824578%200midgk%20image-20220628221704342%20.png" alt="image-20220628221704342" style="zoom:50%;">
+
 <p>这种情况,也就是上面列举的3和4容易发生的情况.</p>
-<h4 id="b.数据结构实现">b.数据结构实现</h4>
-<p>节点和前面设计的很多数据结构一样,是分为两层的,一层为<code>_Rb_tree_node_base</code>,另一层为<code>_Rb_tree_node</code>,后者继承了前者.</p>
+<h4 id="b-数据结构实现"><a href="#b-数据结构实现" class="headerlink" title="b.数据结构实现"></a>b.数据结构实现</h4><p>节点和前面设计的很多数据结构一样,是分为两层的,一层为<code>_Rb_tree_node_base</code>,另一层为<code>_Rb_tree_node</code>,后者继承了前者.</p>
 <p>首先下面是<code>_Rb_tree_node_base</code>.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">_Rb_tree_node_base</span>
 <span class="token punctuation">{</span>
@@ -1695,6 +1651,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token keyword keyword-return">return</span> __x<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其代码还是比较简单的.总结而言,<code>base</code>部分和<code>list_node</code>的<code>base</code>部分有类似之处,它们都包含了节点的指针部分.</p>
 <p>而对于<code>_Rb_tree_node</code>的部分.如下定义.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Value</span><span class="token operator">&gt;</span>
@@ -1703,8 +1660,9 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token keyword keyword-typedef">typedef</span> _Rb_tree_node<span class="token operator">&lt;</span>_Value<span class="token operator">&gt;</span><span class="token operator">*</span> _Link_type<span class="token punctuation">;</span>
   _Value _M_value_field<span class="token punctuation">;</span>  <span class="token comment">// 节点值</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这一部分对于<code>base</code>之外的部分,只有一个值域,也就是该节点的值.</p>
-<p>下面介绍关于<code>RB-tree</code>的定义,也是分为两层的,首先是<code>_Rb_tree_base</code>,这一部分的内容可以分为:</p>
+<p>下面介绍关于<code>RB-tree</code>的定义,也是分为两层的,首先是<code> _Rb_tree_base</code>,这一部分的内容可以分为:</p>
 <ul>
 <li>核心的数据成员:<code>_Rb_tree_node&lt;_Tp&gt;* _M_header</code>.一个指向节点的指针,代表着树的根节点.</li>
 <li>基本的构造与析构函数.这一部分是基于分配器实现的,与此类中分配相关的定义有紧密的联系.</li>
@@ -1728,10 +1686,10 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token keyword keyword-void">void</span> <span class="token function">_M_put_node</span><span class="token punctuation">(</span>_Rb_tree_node<span class="token operator">&lt;</span>_Tp<span class="token operator">&gt;</span><span class="token operator">*</span> __p<span class="token punctuation">)</span><span class="token comment">//调用allocator,释放其中的内存.</span>
     <span class="token punctuation">{</span> _Alloc_type<span class="token double-colon punctuation">::</span><span class="token function">deallocate</span><span class="token punctuation">(</span>__p<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>所以总体来看,与分配有关的操作,主要是简单地对于<code>allocate</code>和<code>deallocate</code>进行的简单的封装,并且提供给构造函数和析构函数调用,这里的构造函数,会讲分配分配内存空间的指针返回给<code>_M_header</code>.</p>
-<p>而对于<code>_Rb_tree</code>这一部分,其代码实现比较复杂,代码很长.所以只摘取核心的部分进行分析.</p>
-<h4 id="c.rb-tree-iterator">c.RB-tree iterator</h4>
-<p>提到迭代器,其类型为双向迭代器,其成员访问与操作与<code>list</code>是非常相似的.</p>
+<p>而对于<code> _Rb_tree</code>这一部分,其代码实现比较复杂,代码很长.所以只摘取核心的部分进行分析.</p>
+<h4 id="c-RB-tree-iterator"><a href="#c-RB-tree-iterator" class="headerlink" title="c.RB-tree iterator"></a>c.RB-tree iterator</h4><p>提到迭代器,其类型为双向迭代器,其成员访问与操作与<code>list</code>是非常相似的.</p>
 <p>其实现方式上,仍然是两层结构.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">_Rb_tree_base_iterator</span>
 <span class="token punctuation">{</span>
@@ -1744,6 +1702,7 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
   <span class="token comment">// 供 operator--() 调用</span>
   <span class="token keyword keyword-void">void</span> <span class="token function">_M_decrement</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中定义主要是,定义好<code>iterator_category</code>和<code>difference_type</code>.提供了两个函数,供后来的<code>++</code>和<code>--</code>使用.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">_M_increment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token comment">//移动到右子树节点的最左叶.或者</span>
   <span class="token punctuation">{</span>
@@ -1783,10 +1742,11 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
       _M_node <span class="token operator">=</span> __y<span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>关于<code>_M_increment</code>,如果有右节点,就向右走并且一直递归到左子树,如果没有右子节点,就从父节点向上遍历,如果找到一个本身是一个右子节点就一直递归.</p>
 <p>关于<code>_M_decrement</code>.<strong>暂鸽</strong>.</p>
 <p>为什么要将这两个函数定义为这个呢?有什么用呢?</p>
-<p>在<code>_Rb_tree_iterator</code>中,</p>
+<p>在<code> _Rb_tree_iterator</code>中,</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"> <span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">_Value</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ref</span><span class="token punctuation">,</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">_Ptr</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">_Rb_tree_iterator</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">_Rb_tree_base_iterator</span></span>
 <span class="token punctuation">{</span>
@@ -1821,15 +1781,13 @@ const_reference <span class="token keyword keyword-operator">operator</span><spa
     <span class="token keyword keyword-return">return</span> __tmp<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>虽然这些代码看起来挺长的,但是实际上没有太多难以理解的东西,所以也就不说太多了.</p>
 <p>最终我们可以概括,迭代器和节点的关系是这样的·.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2028%2023%2013%2054%201656429234%201656429234586%208LDLez%20image-20220628231354322%20.png" alt="node and iterator" style="zoom: 50%;"></p>
-<p>总体来说,其迭代器主要是一个指向节点基类的指针,然后围绕着指针展开重载<code>++,--,*,-&gt;</code>等运算符.其中还有最基本的构造函数.</p>
-<h4 id="d.内存管理与构造">d.内存管理与构造</h4>
-<h4 id="e.元素操作">e.元素操作</h4>
-<h3 id="set">2) set</h3>
-<h3 id="map">3) map</h3>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2028%2023%2013%2054%201656429234%201656429234586%208LDLez%20image-20220628231354322%20.png" alt="node and iterator" style="zoom: 50%;">
 
+<p>总体来说,其迭代器主要是一个指向节点基类的指针,然后围绕着指针展开重载<code>++,--,*,-&gt;</code>等运算符.其中还有最基本的构造函数.</p>
+<h4 id="d-内存管理与构造"><a href="#d-内存管理与构造" class="headerlink" title="d.内存管理与构造"></a>d.内存管理与构造</h4><h4 id="e-元素操作"><a href="#e-元素操作" class="headerlink" title="e.元素操作"></a>e.元素操作</h4><h3 id="2-set"><a href="#2-set" class="headerlink" title="2) set"></a>2) set</h3><h3 id="3-map"><a href="#3-map" class="headerlink" title="3) map"></a>3) map</h3>
                 
             </div>
             <hr/>
