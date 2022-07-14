@@ -473,7 +473,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.2k
+                    1.3k
                 </div>
                 
 
@@ -553,6 +553,11 @@ list::remove,如果容器是一个标准关联容器,则使用它的 erase 成�
 <p>除此之外,在<code>item 7</code>中,提醒对于容器中含有<code>new</code>对应的指针的情况,不能忘记<code>delete</code>,或者推荐使用智能指针.在<code>item 8</code>指出了当使用<code>auto_ptr</code>会导致指针无效的问题,所以不推荐使用<code>auto_ptr</code>.在<code>item 12</code>中,提醒我们当一个容器作为多线程程序的共享数据时,需要程序员做互斥控制,比如说上锁等.</p>
 <h2 id="vectorstring">vector,string</h2>
 <h3 id="使用reserve避免不必要的重新分配">14.使用reserve避免不必要的重新分配</h3>
+<p><code>reserver</code>会因为<code>vector</code>的size超过容量而出发动态扩容.其过程如下:</p>
+<ul>
+<li></li>
+</ul>
+<h3 id="小心string实现的多样性">15.小心string实现的多样性</h3>
 <h3 id="将vector和string传入遗留api">16.将vector和string传入遗留API</h3>
 <h3 id="使用swap技巧修整过剩容量">17.使用swap技巧修整过剩容量</h3>
 <p>在C++ 11中,提供了<code>shrink_to_fit()</code>.</p>
@@ -562,6 +567,8 @@ std<span class="token double-colon punctuation">::</span><span class="token gene
 <span class="token comment">//c++ 11后可以直接使用shrink_to_fit</span>
 contestants<span class="token punctuation">.</span><span class="token function">shrink_to_fit</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>需要注意的是,当发生交换之后,迭代器也被交换,原先的迭代器可以说是迁移到另一个迭代器中了.</p>
+<h3 id="其他">其他</h3>
+<p>条款13建议我们尽可能使用<code>vector</code>和<code>string</code>代替动态数组,除了STL提供动态管理的便捷性,还有有一些便于使用的API(STL算法).</p>
 
                 
             </div>
