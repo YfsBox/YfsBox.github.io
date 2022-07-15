@@ -469,7 +469,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    45
+                    438
                 </div>
                 
 
@@ -498,6 +498,54 @@
 <pre class="line-numbers language-go" data-language="go"><code class="language-go">ff <span class="token operator">:=</span> <span class="token keyword keyword-func">func</span><span class="token punctuation">(</span>r <span class="token builtin">rune</span><span class="token punctuation">)</span> <span class="token builtin">bool</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">!</span>unicode<span class="token punctuation">.</span><span class="token function">IsLetter</span><span class="token punctuation">(</span>r<span class="token punctuation">)</span> <span class="token punctuation">}</span>
 words <span class="token operator">:=</span> strings<span class="token punctuation">.</span><span class="token function">FieldsFunc</span><span class="token punctuation">(</span>contents<span class="token punctuation">,</span> ff<span class="token punctuation">)</span> <span class="token comment">//FieldsFunc用于分割字符串</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>在上述代码中,主要用到了<code>strings.FieldsFunc()</code>.</p>
+<h2 id="list">2.List</h2>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-import">import</span> <span class="token string">"container/list"</span> <span class="token comment">//头文件</span>
+
+<span class="token comment">//两种常见的初始化方式</span>
+tmpList1 <span class="token operator">:=</span> list<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment">//New返回的是list指针</span>
+<span class="token keyword keyword-var">var</span> tmpList2 list<span class="token punctuation">.</span>List  <span class="token comment">//这个则是一种结构体</span>
+
+<span class="token comment">//一些常规的操作.</span>
+tmpList1<span class="token punctuation">.</span><span class="token function">PushBack</span><span class="token punctuation">(</span><span class="token string">"Yfs"</span><span class="token punctuation">)</span>
+tmpList1<span class="token punctuation">.</span><span class="token function">PushFront</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span>
+<span class="token builtin">len</span> <span class="token operator">:=</span> tmpList1<span class="token punctuation">.</span><span class="token function">Len</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+Element <span class="token operator">:=</span> tmp1List<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">//注意返回的是指针</span>
+tmpList1<span class="token punctuation">.</span><span class="token function">InsertAfter</span><span class="token punctuation">(</span><span class="token string">"high"</span><span class="token punctuation">,</span>Element<span class="token punctuation">)</span>
+tmpList1<span class="token punctuation">.</span><span class="token function">Remove</span><span class="token punctuation">(</span>Element<span class="token punctuation">)</span>
+
+<span class="token comment">//有关于遍历的操作,按照下面的模式就好</span>
+<span class="token keyword keyword-for">for</span> node <span class="token operator">:=</span> c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> node <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">;</span> node <span class="token operator">=</span> node<span class="token punctuation">.</span><span class="token function">Next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+			<span class="token keyword keyword-if">if</span> node<span class="token punctuation">.</span>Value <span class="token operator">==</span> tid <span class="token punctuation">{</span>
+						flag <span class="token operator">=</span> <span class="token boolean">true</span> 
+			<span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>还有很多其他的API,不少API的参数都是指针类型的,这个有点像C++的STL中有关于迭代器的操作.</p>
+<h2 id="判断map的某个key对应是否有效">3.判断Map的某个key对应是否有效</h2>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token boolean">_</span><span class="token punctuation">,</span> ishave <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">[</span>tid<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>如果ishave是<code>true</code>,说明存在,否则说明不存在.</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token function">delete</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">,</span> key<span class="token punctuation">)</span><span class="token comment">//用于将某个key值对应的移除</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>有关于Map的初始化一般是这样操作的.</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">c<span class="token punctuation">.</span>mapWorker <span class="token operator">=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword keyword-map">map</span><span class="token punctuation">[</span><span class="token builtin">int</span><span class="token punctuation">]</span>workerState<span class="token punctuation">,</span> c<span class="token punctuation">.</span>nReduce<span class="token operator">+</span>c<span class="token punctuation">.</span>nMap<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="time.sleep">4.time.Sleep</h2>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">timeout <span class="token operator">:=</span> <span class="token number">10</span>
+time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Duration</span><span class="token punctuation">(</span>timeout<span class="token punctuation">)</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>上述代码中,是以秒为单位进入休眠的.</p>
+<p>除此之外,说一下几个有关于系统时间判断的API.</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">current <span class="token operator">:=</span> <span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Unix</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">//获取当前时间.注意其类型为int64</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h2 id="利用regexp解析字符串">5.利用regexp解析字符串</h2>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">re <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">"[0-9]+"</span><span class="token punctuation">)</span> <span class="token comment">//定义正则表达式,在这里用来匹配数字</span>
+findstrs <span class="token operator">:=</span> re<span class="token punctuation">.</span><span class="token function">FindAllString</span><span class="token punctuation">(</span>filename<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token comment">//返回所找结果的集合</span>
+<span class="token comment">//findstrs是[]string类型的</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<h2 id="常见的enum替代写法">6.常见的enum替代写法</h2>
+<p>golang中是没有<code>enum</code>的,常见的替代方式就是使用常量.如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-const">const</span> <span class="token punctuation">(</span> <span class="token comment">//表示状态机的状态</span>
+	IdleState     <span class="token operator">=</span> <span class="token number">0</span>
+	MapState      <span class="token operator">=</span> <span class="token number">1</span>
+	ReduceState   <span class="token operator">=</span> <span class="token number">2</span>
+	FinishedState <span class="token operator">=</span> <span class="token number">3</span>
+	EndState      <span class="token operator">=</span> <span class="token number">4</span>
+<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>注意大小写问题.</p>
 
                 
             </div>
