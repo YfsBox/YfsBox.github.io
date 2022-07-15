@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.5k
+                    3.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    6 Min
+                    13 Min
                 </div>
                 
 
@@ -501,11 +501,11 @@
                 <h2 id="前言">0.前言</h2>
 <p>久仰mit
 6.824的威名,上个学期的时候我就一直想抽空学一学,但是一直没有抽出太多时间.假期打算好好做做.</p>
-<p>至于做这个实验的语言基础方面,我在大二下学期只接触过一点点go语言,没有写过太多,在lab中我把中途遇到的一些问题写到了另一篇博客中.</p>
-<p>也算是接近0的基础吧.除此之外,在多线程/进程编程和网络方面,当时做计网编程作业时也遇到过类似的,当时x老师布置了一个实现基于分布式系统的ipv6
+<p>至于做这个实验的语言基础方面,我在大二下学期只接触过一点点go语言,没有写过太多,在lab中我把中途遇到的一些问题写到了另一篇博客中,也算是0的基础吧.</p>
+<p>除此之外,在多线程/进程编程和网络方面,当时做计网编程作业时也遇到过类似的,当时x老师布置了一个实现基于分布式系统的ipv6
 DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是一些设计的想法感觉在这里的lab
 1还是可以用上的.而且最近也在学习用c++写一个webserver程序(被死锁折磨qaq......)感觉也是有不少东西是相通的.</p>
-<p>在真正动手编程之前,读了一下<code>MapReduce</code>的论文,只读了一半,至于对做这个实验来说,感觉足够了.</p>
+<p>在真正动手编程之前,读了一下<code>MapReduce</code>的论文,只读了前一半,至于对做这个实验来说,感觉足够了.</p>
 <h2 id="基本框架和思路">1.基本框架和思路</h2>
 <p>其框架结构图基本上是遵循论文中的架构的.</p>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2022%2058%2050%201657810730%201657810730893%20hI0nGA%20image-20220714225850817%20.png" alt="image-20220714225850817" style="zoom: 33%;"></p>
@@ -532,7 +532,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	mutex      sync<span class="token punctuation">.</span>Mutex <span class="token comment">//锁</span>
 	wg         sync<span class="token punctuation">.</span>WaitGroup
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>最初我在考虑记录任务完成的情况,只是考虑使用一个表示完成数量的变量,但现在之所以考虑使用<code>map</code>是与我所设计的容错机制有关的,会在后面再详细说明.关于<code>worker</code>状态,则有相应的数据结构进行描述:</p>
+<p>最初我在考虑记录任务完成的情况,只是考虑使用一个表示完成数量的变量,但现在之所以考虑使用<code>map</code>是与我所设计的容错机制有关的,会在后面再详细说明.其中这里map的key是每个<code>worker</code>的编号,这个编号是每个<code>worker</code>进程的pid,关于<code>worker</code>状态,则有相应的数据结构进行描述:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> workerState <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
 	tasktype <span class="token builtin">int</span> <span class="token comment">//记录最近一次所处理任务的类型，只在任务分配时更新</span>
 	tid      <span class="token builtin">int</span> <span class="token comment">//最近处理任务类型的编号</span>
@@ -548,7 +548,6 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	wid <span class="token operator">:=</span> args<span class="token punctuation">.</span>Wid
 	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 	nfinishMap <span class="token operator">:=</span> <span class="token function">len</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">)</span>
-	nfinishReduce <span class="token operator">:=</span> <span class="token function">len</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapfinishR<span class="token punctuation">)</span>
 	allocatedMap <span class="token operator">:=</span> c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">Len</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 	allocatedReduce <span class="token operator">:=</span> c<span class="token punctuation">.</span>reducelist<span class="token punctuation">.</span><span class="token function">Len</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 	reply<span class="token punctuation">.</span>Nreduce <span class="token operator">=</span> c<span class="token punctuation">.</span>nReduce
@@ -587,16 +586,13 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 
 		c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span> <span class="token operator">=</span> tmp
 
-	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> nfinishMap <span class="token operator">==</span> c<span class="token punctuation">.</span>nMap <span class="token operator">&amp;&amp;</span> nfinishReduce <span class="token operator">==</span> c<span class="token punctuation">.</span>nReduce <span class="token punctuation">{</span> <span class="token comment">//已经完成,相当于分配的空任务</span>
-		reply<span class="token punctuation">.</span>Tid <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span>
-		reply<span class="token punctuation">.</span>TaskType <span class="token operator">=</span> NoTask
 	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
 		reply<span class="token punctuation">.</span>Tid <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span>
 		reply<span class="token punctuation">.</span>TaskType <span class="token operator">=</span> IdleTask
 	<span class="token punctuation">}</span>
 	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>首先来看一下这个rpc参数和返回值的数据结构:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> AskTaskArgs <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
 	Wid <span class="token builtin">int</span> <span class="token comment">//该worker的编号</span>
@@ -612,9 +608,207 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 <ul>
 <li>Map任务还没有分配完,应该分配Map任务.</li>
 <li>Map做完了,应该分配Reduce了,所以分配Reduce任务.</li>
-<li>所有任务完成或者其他情况,都是不分配任务的.(代码中对应的地方可能有些冗余啊).</li>
+<li>所有任务完成或者其他情况,都是不分配任务的.</li>
 </ul>
+<p>当有任务分配给一个<code>worker</code>时,首先从待分配队列中摘出一个任务,这个任务就是分配给这个<code>worker</code>的任务,根据这个任务的<code>tid</code>来确定相应的处理文件,进而设置好reply,然后更新此<code>worker</code>的任务状态(tid,tasktype).</p>
+<p>下面是关于接收到finish的处理.</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">GetFinishSig</span><span class="token punctuation">(</span>args <span class="token operator">*</span>Task<span class="token punctuation">,</span> reply <span class="token operator">*</span>FinishReply<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
+	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword keyword-defer">defer</span> c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword keyword-if">if</span> args<span class="token punctuation">.</span>TaskType <span class="token operator">==</span> MapTask <span class="token punctuation">{</span>
+		<span class="token boolean">_</span><span class="token punctuation">,</span> isfinish <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">[</span>args<span class="token punctuation">.</span>Tid<span class="token punctuation">]</span>
+		<span class="token keyword keyword-if">if</span> isfinish <span class="token punctuation">{</span>
+			<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
+		<span class="token punctuation">}</span>
+		c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">[</span>args<span class="token punctuation">.</span>Tid<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">1</span>
+		c<span class="token punctuation">.</span>interFiles <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>interFiles<span class="token punctuation">,</span> args<span class="token punctuation">.</span>FilesTask<span class="token operator">...</span><span class="token punctuation">)</span>
+		<span class="token keyword keyword-if">if</span> <span class="token function">len</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">)</span> <span class="token operator">==</span> c<span class="token punctuation">.</span>nMap <span class="token punctuation">{</span> <span class="token comment">//表示所有map已完成</span>
+			fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"The Map is finished\n"</span><span class="token punctuation">)</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> args<span class="token punctuation">.</span>TaskType <span class="token operator">==</span> ReduceTask <span class="token punctuation">{</span>
+		<span class="token boolean">_</span><span class="token punctuation">,</span> isfinish <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapfinishR<span class="token punctuation">[</span>args<span class="token punctuation">.</span>Tid<span class="token punctuation">]</span>
+		<span class="token keyword keyword-if">if</span> isfinish <span class="token punctuation">{</span>
+			<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
+		<span class="token punctuation">}</span>
+		c<span class="token punctuation">.</span>mapfinishR<span class="token punctuation">[</span>args<span class="token punctuation">.</span>Tid<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">1</span>
+		<span class="token keyword keyword-if">if</span> <span class="token function">len</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapfinishR<span class="token punctuation">)</span> <span class="token operator">==</span> c<span class="token punctuation">.</span>nReduce <span class="token punctuation">{</span>
+			fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"The Reduce is finished\n"</span><span class="token punctuation">)</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>主要分为两种不同的任务,也就是<code>Map</code>和<code>Reduce</code>两种情况,首先检查此任务之前是否已经完成,如果之前就已经完成则将不继续处理,否则就设置该任务的finishmap为1,如果是<code>Map</code>就将生成的文件追加到<code>interFiles</code>中.对于<code>FinishReply</code>,其实并没有派上什么用场.</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">BeatReponse</span><span class="token punctuation">(</span>args <span class="token operator">*</span>BeatArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>BeatReply<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
+	<span class="token comment">//fmt.Println("A worker ping the coordinator......")</span>
+	wid <span class="token operator">:=</span> args<span class="token punctuation">.</span>WorkerId
+	tmpargs <span class="token operator">:=</span> workerState<span class="token punctuation">{</span><span class="token punctuation">}</span>
+	tmpargs<span class="token punctuation">.</span>deadtime <span class="token operator">=</span> args<span class="token punctuation">.</span>DeadLine <span class="token operator">+</span> <span class="token number">3</span>
+	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword keyword-defer">defer</span> c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	tmpargs<span class="token punctuation">.</span>tid <span class="token operator">=</span> c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span><span class="token punctuation">.</span>tid
+	tmpargs<span class="token punctuation">.</span>tasktype <span class="token operator">=</span> c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span><span class="token punctuation">.</span>tasktype
+	c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span> <span class="token operator">=</span> tmpargs <span class="token comment">//相当于只有deadtime变了</span>
+	<span class="token comment">//fmt.Printf("the worker %v deadtime is %v\n", wid, tmpargs.deadtime)</span>
+	<span class="token keyword keyword-if">if</span> <span class="token function">len</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapfinishR<span class="token punctuation">)</span> <span class="token operator">==</span> c<span class="token punctuation">.</span>nReduce <span class="token punctuation">{</span>
+		c<span class="token punctuation">.</span>isShut <span class="token operator">=</span> <span class="token boolean">true</span>
+		reply<span class="token punctuation">.</span>IsShut <span class="token operator">=</span> <span class="token boolean">true</span>
+		fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"The master shut\n"</span><span class="token punctuation">)</span>
+	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+		c<span class="token punctuation">.</span>isShut <span class="token operator">=</span> <span class="token boolean">false</span>
+		reply<span class="token punctuation">.</span>IsShut <span class="token operator">=</span> <span class="token boolean">false</span> <span class="token comment">//无需关机</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在这里核心在于更新<code>worker</code>状态中的时间,不过我把总任务终止的判断也写在这里了,这看上去不太好,似乎把这一部分放到<code>GetFinishSig</code>中是更符合人直觉的,但是我认为放到<code>BeatReponse</code>有一个优点就在于,每个在线的<code>worker</code>都会通过心跳包来和<code>master</code>交互,因而每个<code>worker</code>都可以通过心跳包的响应得出退出的信号.如果在<code>GetFinishSig</code>中实现的话,只有当时完成任务的<code>worker</code>才可以得知<code>master</code>shut的信号,就难以做到通知所有<code>worker</code>了.此外还有一个问题,就是<code>master</code>应当等待其他<code>worker</code>退出后,自己再退出,在这里的实现上,我做的方式比较笨,我是通过<code>sleep</code>等待来实现的,让<code>master</code>sleep的时间长一些,这样一般就能保证其他的<code>worker</code>已经都退出了.如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">bool</span> <span class="token punctuation">{</span>
+	ret <span class="token operator">:=</span> <span class="token boolean">false</span>
+	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	ret <span class="token operator">=</span> c<span class="token punctuation">.</span>isShut
+	<span class="token comment">// Your code here.</span>
+	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword keyword-if">if</span> ret <span class="token operator">==</span> <span class="token boolean">true</span> <span class="token punctuation">{</span>
+		time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Duration</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-return">return</span> ret
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>之后是关于<code>crash</code>的判断,这一部分并不是一个rpc请求,而是分出一个单独的线程运行.</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">CheckCrash</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
+	<span class="token keyword keyword-for">for</span> <span class="token punctuation">{</span>
+		current <span class="token operator">:=</span> <span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Unix</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+		<span class="token comment">//fmt.Printf("The current time is %v\n", current)</span>
+		c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token keyword keyword-for">for</span> key<span class="token punctuation">,</span> value <span class="token operator">:=</span> <span class="token keyword keyword-range">range</span> c<span class="token punctuation">.</span>mapWorker <span class="token punctuation">{</span>
+			<span class="token keyword keyword-if">if</span> current <span class="token operator">&gt;</span> value<span class="token punctuation">.</span>deadtime <span class="token punctuation">{</span> <span class="token comment">//只要出现一个crash的,直接从头remake</span>
+				tid <span class="token operator">:=</span> value<span class="token punctuation">.</span>tid
+				flag <span class="token operator">:=</span> <span class="token boolean">false</span> <span class="token comment">//加入</span>
+				<span class="token keyword keyword-if">if</span> value<span class="token punctuation">.</span>tasktype <span class="token operator">==</span> MapTask <span class="token punctuation">{</span>
+					<span class="token keyword keyword-for">for</span> node <span class="token operator">:=</span> c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> node <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">;</span> node <span class="token operator">=</span> node<span class="token punctuation">.</span><span class="token function">Next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+						<span class="token keyword keyword-if">if</span> node<span class="token punctuation">.</span>Value <span class="token operator">==</span> tid <span class="token punctuation">{</span>
+							flag <span class="token operator">=</span> <span class="token boolean">true</span> <span class="token comment">//分配队列中如果已经有了</span>
+						<span class="token punctuation">}</span>
+						<span class="token comment">//fmt.Printf("the node in maplist is %v\n", node.Value)</span>
+					<span class="token punctuation">}</span>
+					<span class="token boolean">_</span><span class="token punctuation">,</span> isfinish <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">[</span>tid<span class="token punctuation">]</span>
+					flag <span class="token operator">=</span> flag <span class="token operator">||</span> isfinish
+					<span class="token keyword keyword-if">if</span> flag <span class="token operator">==</span> <span class="token boolean">false</span> <span class="token punctuation">{</span>
+						c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">PushBack</span><span class="token punctuation">(</span>tid<span class="token punctuation">)</span>
+					<span class="token punctuation">}</span>
+				<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+					<span class="token keyword keyword-for">for</span> node <span class="token operator">:=</span> c<span class="token punctuation">.</span>reducelist<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> node <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">;</span> node <span class="token operator">=</span> node<span class="token punctuation">.</span><span class="token function">Next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+						<span class="token keyword keyword-if">if</span> node<span class="token punctuation">.</span>Value <span class="token operator">==</span> tid <span class="token punctuation">{</span>
+							flag <span class="token operator">=</span> <span class="token boolean">true</span>
+						<span class="token punctuation">}</span>
+						<span class="token comment">//fmt.Printf("the node in maplist is %v\n", node.Value)</span>
+					<span class="token punctuation">}</span>
+					<span class="token boolean">_</span><span class="token punctuation">,</span> isfinish <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapfinishR<span class="token punctuation">[</span>tid<span class="token punctuation">]</span>
+					flag <span class="token operator">=</span> flag <span class="token operator">||</span> isfinish
+					<span class="token keyword keyword-if">if</span> flag <span class="token operator">==</span> <span class="token boolean">false</span> <span class="token punctuation">{</span>
+						c<span class="token punctuation">.</span>reducelist<span class="token punctuation">.</span><span class="token function">PushBack</span><span class="token punctuation">(</span>tid<span class="token punctuation">)</span>
+					<span class="token punctuation">}</span>
+				<span class="token punctuation">}</span>
+				<span class="token comment">//fmt.Printf("The crash......\n")</span>
+				<span class="token function">delete</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">,</span> key<span class="token punctuation">)</span> <span class="token comment">//移除,将其持有的任务放入list中</span>
+				<span class="token comment">//c.isCrash = true</span>
+			<span class="token punctuation">}</span>
+		<span class="token punctuation">}</span>
+		<span class="token keyword keyword-if">if</span> c<span class="token punctuation">.</span>isShut <span class="token operator">==</span> <span class="token boolean">true</span> <span class="token punctuation">{</span>
+			c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+			fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"The check thread exit\n"</span><span class="token punctuation">)</span>
+			<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
+		<span class="token punctuation">}</span>
+		c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Duration</span><span class="token punctuation">(</span><span class="token number">5</span><span class="token punctuation">)</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这一部分的设计,简而言之就是周期性地检查<code>mapWorker</code>.如果其中某个节点的已经过期了,就判断为此<code>worker</code>宕机,所以这个时候就跟绝<code>workerState</code>中记录的其所处理的<code>task</code>的状态,其中这个任务记录的是这个<code>worker</code>最近一次处理的任务类型和tid,所以这个任务有可能早已运行完了,也可能正在运行.所以对于这个响应的任务,首先判断<code>待分配任务队列</code>里有没有,这个队列里的任务一定是还没有完成的,需要分配的.除此之外,还需要判断这个任务有没有完成,如果已经完成所以就免了.最后如果符合“(待分配队列中没有&amp;&amp;未完成)”的任务,才会加入到<code>待分配队列</code>中.最后,对于这个<code>worker</code>再`<code>mapWorker</code>中对应的项,也将会被移除.</p>
+<p>由于这是一个单独的线程,所以对于其退出的判断也需要点讲究,所以每次还会检查<code>isShut</code>是否为真,否则就会返回.</p>
+<p>至此,关于<code>master</code>的主干部分就说完了.</p>
 <h3 id="worker">2) worker</h3>
+<p><code>worker</code>的实现相对比较复杂.</p>
+<p><code>worker</code>相比<code>master</code>来说,只需要记录与自己有关的数据和信息就行了.对于一个<code>worker</code>来说,其全局性的信息如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-const">const</span> <span class="token punctuation">(</span> <span class="token comment">//表示状态机的状态</span>
+	IdleState     <span class="token operator">=</span> <span class="token number">0</span>
+	MapState      <span class="token operator">=</span> <span class="token number">1</span>
+	ReduceState   <span class="token operator">=</span> <span class="token number">2</span>
+	FinishedState <span class="token operator">=</span> <span class="token number">3</span>
+	EndState      <span class="token operator">=</span> <span class="token number">4</span>
+<span class="token punctuation">)</span>
+<span class="token keyword keyword-type">type</span> worker <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
+	state      <span class="token builtin">int</span> <span class="token comment">//状态,用于状态机的表示</span>
+	wid        <span class="token builtin">int</span> <span class="token comment">//这个worker的编号</span>
+	taskDoing  Task <span class="token comment">//正在做的任务</span>
+	taskFinish Task <span class="token comment">//已经完成的任务</span>
+	funcM      <span class="token keyword keyword-func">func</span><span class="token punctuation">(</span><span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>KeyValue <span class="token comment">//Map对应的处理函数</span>
+	funcR      <span class="token keyword keyword-func">func</span><span class="token punctuation">(</span><span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token builtin">string</span> <span class="token comment">//Reduce对应的处理函数</span>
+	mutex      sync<span class="token punctuation">.</span>Mutex <span class="token comment">//锁</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>为了便于实现,我对于<code>worker</code>采用了状态机的模式来进行处理,不过也不算非常规范的状态机.其中</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2013%2050%2043%201657864243%201657864243457%20ZJqHqi%20image-20220715135043336%20.png" alt="image-20220715135043336" style="zoom:33%;"></p>
+<p>对于各个状态:</p>
+<ul>
+<li>IdleState,就是初始状态,出于此状态时发送任务请求,如果没有任务仍然保持在Idle否则,进入Mapping或者Reducing.</li>
+<li>Mapping,Reducing,调用相应的处理函数,处理完就进入<code>Complated</code>状态.</li>
+<li>Completed,向<code>master</code>发送完成信号,之后进入Idle状态.</li>
+<li>End状态,可以看做是一个由外部事件触发的(也就是在心跳包中如果收到<code>isShut</code>为true).</li>
+</ul>
+<p>其状态机相关实现如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>w <span class="token operator">*</span>worker<span class="token punctuation">)</span> <span class="token function">doMachine</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	w<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword keyword-defer">defer</span> w<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword keyword-switch">switch</span> w<span class="token punctuation">.</span>state <span class="token punctuation">{</span>
+	<span class="token keyword keyword-case">case</span> IdleState<span class="token punctuation">:</span> <span class="token comment">//这个时候的任务在于发送请求</span>
+		task <span class="token operator">:=</span> w<span class="token punctuation">.</span><span class="token function">AskForTask</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token keyword keyword-if">if</span> task<span class="token punctuation">.</span>TaskType <span class="token operator">==</span> MapTask <span class="token punctuation">{</span> <span class="token comment">//根据所分配的任务变化状态</span>
+			w<span class="token punctuation">.</span>state <span class="token operator">=</span> MapState
+			w<span class="token punctuation">.</span>taskDoing <span class="token operator">=</span> task
+		<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> task<span class="token punctuation">.</span>TaskType <span class="token operator">==</span> ReduceTask <span class="token punctuation">{</span>
+			w<span class="token punctuation">.</span>state <span class="token operator">=</span> ReduceState
+			w<span class="token punctuation">.</span>taskDoing <span class="token operator">=</span> task
+		<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> task<span class="token punctuation">.</span>TaskType <span class="token operator">==</span> IdleTask <span class="token punctuation">{</span>
+			w<span class="token punctuation">.</span>state <span class="token operator">=</span> IdleState
+		<span class="token punctuation">}</span>
+		<span class="token keyword keyword-break">break</span>
+	<span class="token keyword keyword-case">case</span> MapState<span class="token punctuation">:</span>
+		w<span class="token punctuation">.</span><span class="token function">doMap</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		w<span class="token punctuation">.</span>state <span class="token operator">=</span> FinishedState
+		<span class="token keyword keyword-break">break</span>
+	<span class="token keyword keyword-case">case</span> ReduceState<span class="token punctuation">:</span>
+		w<span class="token punctuation">.</span><span class="token function">doReduce</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		w<span class="token punctuation">.</span>state <span class="token operator">=</span> FinishedState
+		<span class="token keyword keyword-break">break</span>
+	<span class="token keyword keyword-case">case</span> FinishedState<span class="token punctuation">:</span>
+		w<span class="token punctuation">.</span><span class="token function">SignalFinish</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		w<span class="token punctuation">.</span>taskDoing <span class="token operator">=</span> Task<span class="token punctuation">{</span><span class="token punctuation">}</span> <span class="token comment">//清空</span>
+		w<span class="token punctuation">.</span>taskFinish <span class="token operator">=</span> Task<span class="token punctuation">{</span><span class="token punctuation">}</span>
+		w<span class="token punctuation">.</span>state <span class="token operator">=</span> IdleState
+		<span class="token keyword keyword-break">break</span>
+	<span class="token keyword keyword-case">case</span> EndState<span class="token punctuation">:</span>
+		<span class="token keyword keyword-break">break</span>
+	<span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>此外<code>running</code>是一个状态机的主线程,如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>w <span class="token operator">*</span>worker<span class="token punctuation">)</span> <span class="token function">running</span><span class="token punctuation">(</span>wg <span class="token operator">*</span>sync<span class="token punctuation">.</span>WaitGroup<span class="token punctuation">)</span> <span class="token builtin">bool</span> <span class="token punctuation">{</span>
+	<span class="token keyword keyword-defer">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token keyword keyword-for">for</span> <span class="token punctuation">{</span>
+		w<span class="token punctuation">.</span><span class="token function">doMachine</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token comment">//第一次一般就是申请任务的动作.</span>
+		w<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token keyword keyword-if">if</span> w<span class="token punctuation">.</span>state <span class="token operator">==</span> EndState <span class="token punctuation">{</span>
+			<span class="token comment">//return true //终止</span>
+			fmt<span class="token punctuation">.</span><span class="token function">Printf</span><span class="token punctuation">(</span><span class="token string">"the state is end\n"</span><span class="token punctuation">)</span>
+			w<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+			<span class="token keyword keyword-return">return</span> <span class="token boolean">true</span>
+		<span class="token punctuation">}</span>
+		flag <span class="token operator">:=</span> <span class="token punctuation">(</span>w<span class="token punctuation">.</span>state <span class="token operator">==</span> IdleState<span class="token punctuation">)</span>
+		w<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token keyword keyword-if">if</span> flag <span class="token punctuation">{</span>
+			time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Duration</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span> <span class="token comment">//状态机采用轮询的方式</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-return">return</span> <span class="token boolean">false</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在这里之所以对于IdleState状态时,进行sleep处理,是为了防止空闲状态出现过多无用的任务请求和响应包.当处于<code>EndState</code>状态时,这个线程就会终止.</p>
 <h3 id="心跳与容错">3) 心跳与容错</h3>
 <h3 id="退出处理">4) 退出处理</h3>
 <h2 id="测试">3.测试</h2>
