@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="mit 6.824:lab 1, Yfs&#39;s Box">
+    <meta name="keywords" content="The Google File System 论文阅读笔记, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>mit 6.824:lab 1 | Yfs&#39;s Box</title>
+    <title>The Google File System 论文阅读笔记 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2022%2043%2056%201657809836%201657809836063%20K2zf8q%20image-20220714224355957%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">mit 6.824:lab 1</h1>
+                    <h1 class="description center-align post-title">The Google File System 论文阅读笔记</h1>
                 </div>
             </div>
         </div>
@@ -448,8 +448,8 @@
                                 <span class="chip bg-color">分布式系统</span>
                             </a>
                         
-                            <a href="/tags/mit-6-824/">
-                                <span class="chip bg-color">mit 6.824</span>
+                            <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">存储系统</span>
                             </a>
                         
                     </div>
@@ -464,7 +464,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-07-14
+                    2022-07-15
                 </div>
                 
 
@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.5k
+                    1.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    6 Min
+                    5 Min
                 </div>
                 
 
@@ -498,127 +498,89 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="前言">0.前言</h2>
-<p>久仰mit
-6.824的威名,上个学期的时候我就一直想抽空学一学,但是一直没有抽出太多时间.假期打算好好做做.</p>
-<p>至于做这个实验的语言基础方面,我在大二下学期只接触过一点点go语言,没有写过太多,在lab中我把中途遇到的一些问题写到了另一篇博客中.</p>
-<p>也算是接近0的基础吧.除此之外,在多线程/进程编程和网络方面,当时做计网编程作业时也遇到过类似的,当时x老师布置了一个实现基于分布式系统的ipv6
-DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是一些设计的想法感觉在这里的lab
-1还是可以用上的.而且最近也在学习用c++写一个webserver程序(被死锁折磨qaq......)感觉也是有不少东西是相通的.</p>
-<p>在真正动手编程之前,读了一下<code>MapReduce</code>的论文,只读了一半,至于对做这个实验来说,感觉足够了.</p>
-<h2 id="基本框架和思路">1.基本框架和思路</h2>
-<p>其框架结构图基本上是遵循论文中的架构的.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2022%2058%2050%201657810730%201657810730893%20hI0nGA%20image-20220714225850817%20.png" alt="image-20220714225850817" style="zoom: 33%;"></p>
-<p>但是若论实现,不同的人肯定还是有不同的实现方式吧,往细节处追究还是会有不小的差别的.</p>
-<h2 id="具体实现">2.具体实现</h2>
-<h3 id="mastercoordinator">1) master(coordinator)</h3>
-<p>从总体上看的话,master相当于一个接收处理rpc请求的服务器,这些请求也正是来自于那些<code>worker</code>.所以说其主要部分就是实现一些rpc函数.</p>
-<p>但是master还有个重要的任务在于,追踪在线的<code>worker</code>,并且记录整个<code>MapReduce</code>任务的状态.所以说还需要一些数据结构,来保存这些信息,并且这些信息还应该在处理rpc的过程中改变.</p>
-<p>就像论文中所说:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2023%2009%2052%201657811392%201657811392330%20LmWIQi%20image-20220714230952253%20.png" alt="论文片段" style="zoom:33%;"></p>
-<p>其实我的在实现时,和它还是有一些区别的.我在记录状态时,不仅仅记录了非空闲<code>worker</code>的状态.·<code>master</code>的总体数据结构如下:</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> Coordinator <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
-	<span class="token comment">// Your definitions here.</span>
-	isShut     <span class="token builtin">bool</span>
-	nMap       <span class="token builtin">int</span> <span class="token comment">//map任务的总数</span>
-	nReduce    <span class="token builtin">int</span> <span class="token comment">//reduce任务的总数</span>
-	mapfinishM <span class="token keyword keyword-map">map</span><span class="token punctuation">[</span><span class="token builtin">int</span><span class="token punctuation">]</span><span class="token builtin">int</span> <span class="token comment">//已经完成的map任务</span>
-	mapfinishR <span class="token keyword keyword-map">map</span><span class="token punctuation">[</span><span class="token builtin">int</span><span class="token punctuation">]</span><span class="token builtin">int</span> <span class="token comment">//已经完成的reduce任务</span>
-	maplist    list<span class="token punctuation">.</span>List <span class="token comment">//待分配的map任务</span>
-	reducelist list<span class="token punctuation">.</span>List <span class="token comment">//待分配的reduce任务</span>
-	inputFiles <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span> <span class="token comment">//输入map任务的文件路径</span>
-	interFiles <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span> <span class="token comment">//输入reduce任务的文件路径,也是由map任务所产生的</span>
-	mapWorker  <span class="token keyword keyword-map">map</span><span class="token punctuation">[</span><span class="token builtin">int</span><span class="token punctuation">]</span>workerState <span class="token comment">//worker的状态记录</span>
-	mutex      sync<span class="token punctuation">.</span>Mutex <span class="token comment">//锁</span>
-	wg         sync<span class="token punctuation">.</span>WaitGroup
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>最初我在考虑记录任务完成的情况,只是考虑使用一个表示完成数量的变量,但现在之所以考虑使用<code>map</code>是与我所设计的容错机制有关的,会在后面再详细说明.关于<code>worker</code>状态,则有相应的数据结构进行描述:</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> workerState <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
-	tasktype <span class="token builtin">int</span> <span class="token comment">//记录最近一次所处理任务的类型，只在任务分配时更新</span>
-	tid      <span class="token builtin">int</span> <span class="token comment">//最近处理任务类型的编号</span>
-	deadtime <span class="token builtin">int64</span> <span class="token comment">//倒计时,当过期时判定该worker为crash</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>为什么要考虑使用<code>tasktype</code>和<code>tid</code>这一对变量呢?这用于,当检查到某个<code>worker</code>宕机的时候,可以因此确定其最近所处理的任务类型和任务编号,然后再根据<code>mapfinishM</code>或者<code>mapfinishR</code>来判断这个宕机<code>worker</code>所处理的任务有没有完成,如果已经完成了,就此作罢,否则就将其重新加入到分配队列<code>maplist</code>或者<code>reducelist</code>,将该任务重新等待分配.</p>
-<p>说完这些,看一下RPC函数:</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">ReplyTask</span><span class="token punctuation">(</span>args <span class="token operator">*</span>AskTaskArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>Task<span class="token punctuation">)</span> <span class="token builtin">error</span>
-<span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">GetFinishSig</span><span class="token punctuation">(</span>args <span class="token operator">*</span>Task<span class="token punctuation">,</span> reply <span class="token operator">*</span>FinishReply<span class="token punctuation">)</span> <span class="token builtin">error</span>
-<span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">BeatReponse</span><span class="token punctuation">(</span>args <span class="token operator">*</span>BeatArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>BeatReply<span class="token punctuation">)</span> <span class="token builtin">error</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>其中<code>ReplyTask</code>用来为<code>worker</code>分配任务,<code>GetFinishSig</code>则用于接收完成任务的<code>worker</code>的通知,进而对相关的状态信息进行变化.</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">ReplyTask</span><span class="token punctuation">(</span>args <span class="token operator">*</span>AskTaskArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>Task<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
-	wid <span class="token operator">:=</span> args<span class="token punctuation">.</span>Wid
-	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-	nfinishMap <span class="token operator">:=</span> <span class="token function">len</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">)</span>
-	nfinishReduce <span class="token operator">:=</span> <span class="token function">len</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapfinishR<span class="token punctuation">)</span>
-	allocatedMap <span class="token operator">:=</span> c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">Len</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-	allocatedReduce <span class="token operator">:=</span> c<span class="token punctuation">.</span>reducelist<span class="token punctuation">.</span><span class="token function">Len</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-	reply<span class="token punctuation">.</span>Nreduce <span class="token operator">=</span> c<span class="token punctuation">.</span>nReduce
-	reply<span class="token punctuation">.</span>FilesTask <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">{</span><span class="token punctuation">}</span>
-	<span class="token keyword keyword-if">if</span> nfinishMap <span class="token operator">!=</span> c<span class="token punctuation">.</span>nMap <span class="token operator">&amp;&amp;</span> allocatedMap <span class="token operator">!=</span> <span class="token number">0</span> <span class="token punctuation">{</span> <span class="token comment">//分配一个map任务,在这里的nalloc和nmap的判断其实不对</span>
-		Front <span class="token operator">:=</span> c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-		reply<span class="token punctuation">.</span>Tid <span class="token operator">=</span> Front<span class="token punctuation">.</span>Value<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token builtin">int</span><span class="token punctuation">)</span>
-		c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">Remove</span><span class="token punctuation">(</span>Front<span class="token punctuation">)</span> <span class="token comment">//直接从front移除</span>
-
-		reply<span class="token punctuation">.</span>TaskType <span class="token operator">=</span> MapTask
-		reply<span class="token punctuation">.</span>FilesTask <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>reply<span class="token punctuation">.</span>FilesTask<span class="token punctuation">,</span> c<span class="token punctuation">.</span>inputFiles<span class="token punctuation">[</span>reply<span class="token punctuation">.</span>Tid<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token comment">//暂时先按照一个来算</span>
-		tmp <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span>
-		tmp<span class="token punctuation">.</span>tasktype <span class="token operator">=</span> MapTask
-		tmp<span class="token punctuation">.</span>tid <span class="token operator">=</span> reply<span class="token punctuation">.</span>Tid
-    
-		c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span> <span class="token operator">=</span> tmp
-
-	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> nfinishMap <span class="token operator">==</span> c<span class="token punctuation">.</span>nMap <span class="token operator">&amp;&amp;</span> allocatedReduce <span class="token operator">!=</span> <span class="token number">0</span> <span class="token punctuation">{</span>
-		Front <span class="token operator">:=</span> c<span class="token punctuation">.</span>reducelist<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-		reply<span class="token punctuation">.</span>Tid <span class="token operator">=</span> Front<span class="token punctuation">.</span>Value<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token builtin">int</span><span class="token punctuation">)</span>
-		c<span class="token punctuation">.</span>reducelist<span class="token punctuation">.</span><span class="token function">Remove</span><span class="token punctuation">(</span>Front<span class="token punctuation">)</span>
-
-		reply<span class="token punctuation">.</span>TaskType <span class="token operator">=</span> ReduceTask
-		re <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">"[0-9]+"</span><span class="token punctuation">)</span>
-		<span class="token comment">//fmt.Println(re.FindAllString("mr-intermadiate-0-4", -1))</span>
-		<span class="token keyword keyword-for">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> filename <span class="token operator">:=</span> <span class="token keyword keyword-range">range</span> c<span class="token punctuation">.</span>interFiles <span class="token punctuation">{</span>
-			findstrs <span class="token operator">:=</span> re<span class="token punctuation">.</span><span class="token function">FindAllString</span><span class="token punctuation">(</span>filename<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
-			number<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> strconv<span class="token punctuation">.</span><span class="token function">Atoi</span><span class="token punctuation">(</span>findstrs<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-			<span class="token keyword keyword-if">if</span> number <span class="token operator">==</span> reply<span class="token punctuation">.</span>Tid <span class="token punctuation">{</span> <span class="token comment">//对应的文件应该分配给worker</span>
-				reply<span class="token punctuation">.</span>FilesTask <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>reply<span class="token punctuation">.</span>FilesTask<span class="token punctuation">,</span> filename<span class="token punctuation">)</span>
-			<span class="token punctuation">}</span>
-		<span class="token punctuation">}</span>
-		tmp <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span>
-		tmp<span class="token punctuation">.</span>tasktype <span class="token operator">=</span> ReduceTask
-		tmp<span class="token punctuation">.</span>tid <span class="token operator">=</span> reply<span class="token punctuation">.</span>Tid
-
-		c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">[</span>wid<span class="token punctuation">]</span> <span class="token operator">=</span> tmp
-
-	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> nfinishMap <span class="token operator">==</span> c<span class="token punctuation">.</span>nMap <span class="token operator">&amp;&amp;</span> nfinishReduce <span class="token operator">==</span> c<span class="token punctuation">.</span>nReduce <span class="token punctuation">{</span> <span class="token comment">//已经完成,相当于分配的空任务</span>
-		reply<span class="token punctuation">.</span>Tid <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span>
-		reply<span class="token punctuation">.</span>TaskType <span class="token operator">=</span> NoTask
-	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
-		reply<span class="token punctuation">.</span>Tid <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span>
-		reply<span class="token punctuation">.</span>TaskType <span class="token operator">=</span> IdleTask
-	<span class="token punctuation">}</span>
-	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>首先来看一下这个rpc参数和返回值的数据结构:</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> AskTaskArgs <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
-	Wid <span class="token builtin">int</span> <span class="token comment">//该worker的编号</span>
-<span class="token punctuation">}</span>
-<span class="token keyword keyword-type">type</span> Task <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span> <span class="token comment">//这个将会作为reply返回,也可以用来作为已经完成的任务的信息</span>
-	Tid       <span class="token builtin">int</span> <span class="token comment">//任务号</span>
-	TaskType  <span class="token builtin">int</span> <span class="token comment">//任务类型</span>
-	Nreduce   <span class="token builtin">int</span> <span class="token comment">//任务数量</span>
-	FilesTask <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span> <span class="token comment">//任务对应的处理文件</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其中的<code>Wid</code>作用在于因为需要更新<code>worker</code>的状态,更新为最近处理的任务.而返回值,除了任务类型和任务编号,还有对应的文件.</p>
-<p>代码看上去有点长,但是大体上可以分为四个分支:</p>
+                <p>分布式系统的目标:性能,拓展性,容错等等.</p>
+<h2 id="所面临的基本问题">1.所面临的基本问题</h2>
+<p><strong>容错</strong>:一台机器的故障发生率也许不高,但是在成千甚至上万台机器的集群中,故障就成了必然事件.所以设计一些发现错误和故障,并且有一种自动化容错的机制非常重要.</p>
+<p><strong>更大,更多的文件</strong>:在这里达到几个GB的文件是常见的,如果管理十亿个几KB大小的文件将会给系统带来巨大的负担,所以对于IO操作以及文件分块的大小,也应该重新考虑.</p>
+<h2 id="设计总览">2.设计总览</h2>
+<p>首先说明一下,一些基本的前提:</p>
 <ul>
-<li>Map任务还没有分配完,应该分配Map任务.</li>
-<li>Map做完了,应该分配Reduce了,所以分配Reduce任务.</li>
-<li>所有任务完成或者其他情况,都是不分配任务的.(代码中对应的地方可能有些冗余啊).</li>
+<li>所用的设备不仅数据量大,而且廉价,故障率比较高,需要容错机制.</li>
+<li>文件大小适度,假设有几百万100MB设置更大的文件.</li>
+<li>工作负载分为,大型流式读和小型随机读.</li>
+<li>有关于写的操作,主要包括的是大型顺序写(在文件末尾追加的那种).</li>
+<li>系统需要对于客户有一致性的保证,因为以生产者消费者模型来说,当有写发生时,客户就相当于生产者,这个时候需要提供尽可能小的同步原子机制.</li>
 </ul>
-<h3 id="worker">2) worker</h3>
-<h3 id="心跳与容错">3) 心跳与容错</h3>
-<h3 id="退出处理">4) 退出处理</h3>
-<h2 id="测试">3.测试</h2>
-<h2 id="我的遗憾">4.我的遗憾</h2>
+<p>在总体结构上.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2010%2024%2057%201657851897%201657851897175%20H8GY7t%20image-20220715102457093%20.png" alt="image-20220715102457093">
+<figcaption aria-hidden="true">image-20220715102457093</figcaption>
+</figure>
+<h3 id="single-master">** Single Master**</h3>
+<p>对于<code>clients</code>来说,<code>master</code>根据其所请求的文件名和chunk
+id来返回其所访问的<code>chunkserver</code>.</p>
+<blockquote>
+<p>简单地说一下,读操作的实现:</p>
+<ol type="1">
+<li>client根据文件偏移计算出chunk id(毕竟chunk的大小固定).</li>
+<li>client向master发送(文件名和chunk id).</li>
+<li>master返回chunk handle以及replicas的位置.</li>
+<li>client向其中一个repicas发送请求,该请求指定块句柄和该块中的字节范围.</li>
+</ol>
+</blockquote>
+<h3 id="chunk-size"><strong>Chunk Size</strong></h3>
+<p>64MB,比一般的文件系统块要大不少.也是每个chunk replica的基本单位.</p>
+<blockquote>
+<p>其优点有哪些呢?</p>
+</blockquote>
+<h3 id="metadata"><strong>Metadata</strong></h3>
+<p>存储在master的内存中.有三类:<code>file and chunk namespaces,the mapping from files to chunks, the locations of each chunk replicas</code>.都会在内存中有存储,并且前两类会有log文件作为持久性存储,主要是为了在故障后快速恢复.后者只在内存中存储,<code>master</code>通过与<code>chunk server</code>交互(一般master开机和chunk
+server加入和离开时发生)即可获取并更新<code>the locations of each chunk replicas</code>.在log相关的操作中,主要包含了<code>metadata</code>变化的历史记录,如果log丢失,那么<code>master</code>的可靠性就几乎彻底失去了保证,因此对于log也需要做备份,一般在一个远程的机器上,并且当<code>master</code>与远程复制保持一致时才会相应一个client请求.</p>
+<p>之所以存储在内存有助与更快,高效的处理扫描操作.</p>
+<blockquote>
+<p>扫描操作有什么意义呢?</p>
+</blockquote>
+<h3 id="consistency-model"><strong>Consistency Model</strong></h3>
+<p>其一致性模型是弱一致性的,但是实现起来高效比较简单.</p>
+<p>在一致性方面的基本保证,首先说文件命名空间的变化是原子的,靠一个锁来实现.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2011%2028%2053%201657855733%201657855733365%20OVMZlt%20image-20220715112853284%20.png" alt="image-20220715112853284">
+<figcaption aria-hidden="true">image-20220715112853284</figcaption>
+</figure>
+<h2 id="系统交互">3.系统交互</h2>
+<p>接下来说明的是,在这个系统中<code>client,master,chunkservers</code>的交互方式进而实现数据修改,原子记录追加等.</p>
+<h3 id="leases-and-mutation-order"><strong>Leases and Mutation
+Order</strong></h3>
+<p><code>mutation</code>就是改变<code>metadata</code>或者chunk内容的操作,比如说write和append.每次修改应该作用于chunk的所有副本上,之所以采用了<code>lease</code>的机制,主要是为了在众副本上,有一个统一的<code>mutation</code>顺序.</p>
+<p>除此之外,这种设计还减小了<code>master</code>的开销.在<code>lease</code>中的<code>timeout</code>方面,初始值一般为60s,如果这个<code>primary</code>处理了一个<code>mutation</code>请求,就会增加相应的<code>timeout</code>,通常会被允许增加<code>timeout</code>,这些信息往往会被附加在<code>master</code>与<code>chunkservers</code>的心跳包中.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2011%2038%2056%201657856336%201657856336050%20g6wMXL%20image-20220715113855970%20.png" alt="image-20220715113855970" style="zoom: 50%;"></p>
+<p>当一个client要对某个chunk进行写操作时,其过程可以如下:</p>
+<ul>
+<li>client向<code>master</code>请求该chunk当前的<code>primary</code>机器.</li>
+<li>然后接收到<code>master</code>的相应.client将会缓存这个数据.</li>
+<li>client将这些数据发给所有副本,先存在缓存中.</li>
+<li>当所有副本收到数据后,client就会向<code>primary</code>发送一个write请求.这个请求标识了所有之前push副本的数据,<code>primary</code>会给其收到的所有修改指定序号.</li>
+<li><code>primary</code>把write请求传递给所有的<code>secondary</code>副本,每个<code>secondary</code>根据指定的序号修改应用,<code>primary</code>等待<code>secondary</code>回复.</li>
+<li><code>secondary</code>接收到<code>primary</code>指定的序列号后,处理操作,处理完后通知<code>primary</code>.</li>
+<li><code>primary</code>回复client,如果有错误也会反馈.失败时,client通常通过重试,来进行处理.</li>
+</ul>
+<p>当write单位的大小跨越多个chunk,通常会拆分成多个请求,转化为多个chunk的操作.</p>
+<h3 id="data-flow"><strong>Data Flow</strong></h3>
+<p>在上面的图中,我们可以发现数据流和控制流是解耦的.如何从数据流的角度上,充分利用网络带宽呢?</p>
+<p>在这里的数据流主要是,client向所有chunkserver
+push数据的过程,GFS中的实现并不是分布式地push,而是线性的.也就是先传递给A,然后A到B,B到C,最终遍历到所有chunkserver.</p>
+<p>每个机器在传递数据流的时候,选择其中最近的还没有收到的机器(包括client开始的第一跳).对于远近的判断,在GFS的部署中可以通过IP地址来大体地判断.</p>
+<h3 id="atomic-record-appends"><strong>Atomic Record
+Appends</strong></h3>
+<h2 id="master的行为">4. master的行为</h2>
+<p>简单地概括一下,<code>master</code>的操作:</p>
+<ul>
+<li>master记录chunks放置的位置.</li>
+<li>创建新的<code>chunks</code>和之后的副本.</li>
+<li>协调各种各样的系统范围内的活动,保持chunks完全拷贝.</li>
+<li>在chunkserver上做负载均衡.</li>
+<li>回收未使用的内存空间.</li>
+</ul>
 
                 
             </div>
@@ -645,7 +607,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/071462018.html">http://example.com/2022/071462018.html</a>
+                    <a href="http://example.com/2022/071534552.html">http://example.com/2022/071534552.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -687,8 +649,8 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
                                     <span class="chip bg-color">分布式系统</span>
                                 </a>
                             
-                                <a href="/tags/mit-6-824/">
-                                    <span class="chip bg-color">mit 6.824</span>
+                                <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">存储系统</span>
                                 </a>
                             
                         </div>
@@ -732,9 +694,10 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+                <i class="far fa-dot-circle"></i>&nbsp;Current
+            </div>
             <div class="card">
                 <a href="/2022/071534552.html">
                     <div class="card-image">
@@ -751,9 +714,9 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-15
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-15
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -762,6 +725,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
@@ -784,23 +748,23 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/070837932.html">
+                <a href="/2022/071462018.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2008%2020%2024%2050%201657283090%201657283090375%20OfzMcY%20image-20220708202450275%20.png" class="responsive-img" alt="关于go语言的一些事儿">
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2022%2043%2056%201657809836%201657809836063%20K2zf8q%20image-20220714224355957%20.png" class="responsive-img" alt="mit 6.824:lab 1">
                         
-                        <span class="card-title">关于go语言的一些事儿</span>
+                        <span class="card-title">mit 6.824:lab 1</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            关于golang这门语言,我很大程度上是边做边学的,并没有经过太系统的学习,所以我打算将我在做的过程中遇到的一些问题和一些思考记录下来.
+                            大名鼎鼎的神课,小试牛刀,花了4,5天写完了lab1,虽然小毛病不少,但还是基本可以通过测试样例了.
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-08
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-14
                             </span>
                         <span class="publish-author">
                             
@@ -813,8 +777,12 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/golang/">
-                        <span class="chip bg-color">golang</span>
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
+                    </a>
+                    
+                    <a href="/tags/mit-6-824/">
+                        <span class="chip bg-color">mit 6.824</span>
                     </a>
                     
                 </div>
