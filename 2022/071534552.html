@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.4k
+                    2.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    5 Min
+                    9 Min
                 </div>
                 
 
@@ -508,15 +508,23 @@
 <li>所用的设备不仅数据量大,而且廉价,故障率比较高,需要容错机制.</li>
 <li>文件大小适度,假设有几百万100MB设置更大的文件.</li>
 <li>工作负载分为,大型流式读和小型随机读.</li>
-<li>有关于写的操作,主要包括的是大型顺序写(在文件末尾追加的那种).</li>
-<li>系统需要对于客户有一致性的保证,因为以生产者消费者模型来说,当有写发生时,客户就相当于生产者,这个时候需要提供尽可能小的同步原子机制.</li>
+<li>有关于写的操作,<strong>GFS的应用场景中主要是append</strong>.</li>
+<li>读写会有相关的并发和原子操作的要求.</li>
 </ul>
+<p>不过GFS还没有实现完备的<code>POSIX</code>标准.</p>
 <p>在总体结构上.</p>
 <figure>
 <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2010%2024%2057%201657851897%201657851897175%20H8GY7t%20image-20220715102457093%20.png" alt="image-20220715102457093">
 <figcaption aria-hidden="true">image-20220715102457093</figcaption>
 </figure>
-<h3 id="single-master">** Single Master**</h3>
+<p>总体来说仍然是主从式的.</p>
+<blockquote>
+<p>不过需要注意的是,在这里的<code>master</code>,<code>chunkserver</code>并不是狭义地指某一个机器,可以是一个服务器上的一个进程.因而,一个机器其实既可以作为运行一个作为<code>client</code>的进程,也可以运行一个作为<code>chunkserver</code>的进程.</p>
+</blockquote>
+<h3 id="single-master">Single Master</h3>
+<p>简而言之,<code>master</code>是在一个GFS系统中唯一的全局性的管理者,自己不做具体的业务处理.</p>
+<p>想很多其他的设计一样,仍然通过心跳包和<code>chunkserver</code>通信,记录其状态.</p>
+<p>由于只有一个,设计和实现都简单了不少.不过当<code>master</code>本身出现宕机时,会带来更大的麻烦,所以<code>master</code>自己会维护一个<code>log</code>文件.这是属于<code>master</code>的容错机制.</p>
 <p>对于<code>clients</code>来说,<code>master</code>根据其所请求的文件名和chunk
 id来返回其所访问的<code>chunkserver</code>.</p>
 <blockquote>
@@ -528,30 +536,52 @@ id来返回其所访问的<code>chunkserver</code>.</p>
 <li>client向其中一个repicas发送请求,该请求指定块句柄和该块中的字节范围.</li>
 </ol>
 </blockquote>
+<p>在<code>master</code><strong>内存</strong>中有两个表,也就是matadata,其基本内容如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2016%2021%2051%2012%201657979472%201657979472811%20TWuflK%20image-20220716215112735%20.png" alt="image-20220716215112735" style="zoom: 50%;"></p>
+<p>前者比较适合使用hashmap实现,对于单个key的查询hashmap性能比较优越.而第二个表比较适合使用B-tree,B-tree更适合范围查询的情况,因为第二个table的key是chunk
+handle,相对而言,当访问一个跨越多个chunk的文件时,也就是多个连续的chunk
+handle,相当于范围查询了,B-tree效率比较高.</p>
+<p>在内存中存储<code>metadata</code>的优点,便于密度较大的<code>client</code>请求时,能够做出更快的响应,读取查询起来更快.</p>
+<p>不过也并非完全<code>nv</code>的,也会有一些持久化机制,后面会进行更具体地说明.</p>
 <h3 id="chunk-size"><strong>Chunk Size</strong></h3>
 <p>64MB,比一般的文件系统块要大不少.也是每个chunk replica的基本单位.</p>
 <blockquote>
-<p>其优点有哪些呢?</p>
+<p><strong>其优点有哪些呢?</strong></p>
+<p>1.大粒度的chunk有利于利用局部性的特点,进而一定程度上可以减少<code>client</code>与<code>master</code>以及<code>client</code>与<code>chunkserver</code>之间交互的数据开销.</p>
+<p>2.matadata的所占大小(毕竟数量相对较少了)减小,有利于其在内存上存储的特点.</p>
 </blockquote>
+<p>但是对于小文件较多的情况不利.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2016%2021%2040%2010%201657978810%201657978810184%20IMpNDY%20image-20220716214010081%20.png" alt="https://en.wikipedia.org/wiki/Google_File_System" style="zoom:33%;"></p>
+<p>除此之外,在<code>master</code>将文件<code>Chunk Mappings</code>的时候,会给每一个<code>chunk</code>划分出来一个全局唯一的标识符.</p>
 <h3 id="metadata"><strong>Metadata</strong></h3>
 <p>存储在master的内存中.有三类:<code>file and chunk namespaces,the mapping from files to chunks, the locations of each chunk replicas</code>.都会在内存中有存储,并且前两类会有log文件作为持久性存储,主要是为了在故障后快速恢复.后者只在内存中存储,<code>master</code>通过与<code>chunk server</code>交互(一般master开机和chunk
 server加入和离开时发生)即可获取并更新<code>the locations of each chunk replicas</code>.在log相关的操作中,主要包含了<code>metadata</code>变化的历史记录,如果log丢失,那么<code>master</code>的可靠性就几乎彻底失去了保证,因此对于log也需要做备份,一般在一个远程的机器上,并且当<code>master</code>与远程复制保持一致时才会相应一个client请求.</p>
-<p>之所以存储在内存有助与更快,高效的处理扫描操作.</p>
-<blockquote>
-<p>扫描操作有什么意义呢?</p>
-</blockquote>
+<h3 id="operation-log">Operation Log</h3>
+<p>非常重要,其内容主要是<code>metadata</code>修改的记录,是<code>metadata</code>
+的持久性机制.</p>
+<p>对于<code>metadata</code>一般除了在本机上存储,还会有多个远程的存储备份,一旦<code>Log</code>出现了问题,这个<code>master</code>的容错与恢复也就彻底失败了.对于<code>Log</code>的更新:<strong>本机和远程机上的Log的写入(磁盘)都是先于用户的请求处理的.</strong>,这体现了系统中写日志的一种套路,也就是先写日志,在写数据.</p>
+<p>再通过日志进行恢复时,<code>master</code>会遍历日志文件记录,逐个重做.</p>
+<p>如果无论如何都重新做一遍的话,将会是非常麻烦的,所以引入一种<code>checkpoint</code>机制.</p>
 <h3 id="consistency-model"><strong>Consistency Model</strong></h3>
 <p>其一致性模型是弱一致性的,但是实现起来高效比较简单.</p>
-<p>在一致性方面的基本保证,首先说文件命名空间的变化是原子的,靠一个锁来实现.</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2011%2028%2053%201657855733%201657855733365%20OVMZlt%20image-20220715112853284%20.png" alt="image-20220715112853284">
-<figcaption aria-hidden="true">image-20220715112853284</figcaption>
-</figure>
+<p>关于<code>metadata</code>中<code>namespace</code>的变化,<code>master</code>会使用个锁来进行控制原子性和并发.Mater
+节点的 operation log 定义了这些操作在系统中的全局顺序.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2011%2028%2053%201657855733%201657855733365%20OVMZlt%20image-20220715112853284%20.png" alt="image-20220715112853284" style="zoom: 50%;"></p>
+<p>关于这个表的话,首先解释以下几个关键的名词:</p>
+<ul>
+<li><code>consistent</code>,任何chunk server
+replicas所读取到的结果都是相同的.</li>
+<li><code>defined</code>,当发生文件的写操作后,所有<code>client</code>还是能够读取到<code>consistent</code>的结果,并且还是写数据生效后的结果.</li>
+<li><code>consistent but undefined</code>,能保持<code>consistent</code>,但是对于写数据的变化不能保证及时看到.</li>
+<li><code>inconsistent</code>.最差的情况,如果不能满足<code>consistent</code>那么<code>defined</code>一定不能满足.</li>
+</ul>
+<p>其中<code>defined</code>是最高级别的一致性.</p>
 <h2 id="系统交互">3.系统交互</h2>
 <p>接下来说明的是,在这个系统中<code>client,master,chunkservers</code>的交互方式进而实现数据修改,原子记录追加等.</p>
 <h3 id="leases-and-mutation-order"><strong>Leases and Mutation
 Order</strong></h3>
 <p><code>mutation</code>就是改变<code>metadata</code>或者chunk内容的操作,比如说write和append.每次修改应该作用于chunk的所有副本上,之所以采用了<code>lease</code>的机制,主要是为了在众副本上,有一个统一的<code>mutation</code>顺序.</p>
+<p>这种机制是为了<strong>保证各chunkserver写操作具有一致性的</strong>.</p>
 <p>除此之外,这种设计还减小了<code>master</code>的开销.在<code>lease</code>中的<code>timeout</code>方面,初始值一般为60s,如果这个<code>primary</code>处理了一个<code>mutation</code>请求,就会增加相应的<code>timeout</code>,通常会被允许增加<code>timeout</code>,这些信息往往会被附加在<code>master</code>与<code>chunkservers</code>的心跳包中.</p>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2011%2038%2056%201657856336%201657856336050%20g6wMXL%20image-20220715113855970%20.png" alt="image-20220715113855970" style="zoom: 50%;"></p>
 <p>当一个client要对某个chunk进行写操作时,其过程可以如下:</p>
@@ -572,6 +602,15 @@ push数据的过程,GFS中的实现并不是分布式地push,而是线性的.也
 <p>每个机器在传递数据流的时候,选择其中最近的还没有收到的机器(包括client开始的第一跳).对于远近的判断,在GFS的部署中可以通过IP地址来大体地判断.</p>
 <h3 id="atomic-record-appends"><strong>Atomic Record
 Appends</strong></h3>
+<p>传统的写入操作一般是指定文件+偏移量进行操作的,但是这在并发的条件下容易出现问题.</p>
+<p>在GFS中,<code>client</code>只需要指定要写入的数据,无需考虑所写入文件的偏移量,其偏移量由<code>chunkserver</code>决定.具体而言,其内部执行的逻辑如下(<code>record append</code>
+):</p>
+<ul>
+<li>Client 确定 file name 以及要写入的 byte data.</li>
+<li><code>client</code>向<code>master</code>发送请求,这时不需要加上<code>byte data</code>.</li>
+<li><code>master</code>接收到<code>file name</code>通过查询得出对应的<code>chunk servers</code>,并发送给<code>client</code>.</li>
+<li>之后的过程类似于前面所提到的.</li>
+</ul>
 <h2 id="master的行为">4. master的行为</h2>
 <p>简单地概括一下,<code>master</code>的操作:</p>
 <ul>
@@ -581,6 +620,19 @@ Appends</strong></h3>
 <li>在chunkserver上做负载均衡.</li>
 <li>回收未使用的内存空间.</li>
 </ul>
+<h3 id="namespcace-management-and-locking">namespcace management and
+locking</h3>
+<h3 id="replica-placement">Replica Placement</h3>
+<h3 id="creation-re-replication-rebalancing">Creation, Re-replication,
+Rebalancing</h3>
+<h3 id="garbage-collection">Garbage Collection</h3>
+<h3 id="stale-replica-detection">Stale Replica Detection</h3>
+<p><code>master</code>中对于每个<code>chunk</code>都会维护版本号,版本号会在每次<code>lease</code>时对相应的版本号进行自增(发生在<code>metadata</code>本地的),然后会将版本号告诉其他<code>replicas</code>.</p>
+<p>如果某个<code>replica</code>不可用,就收不到版本更新的消息,也就不会自增,当重新上线时,向<code>master</code>发送心跳包时(附带版本号),这个时候可以比对发现此<code>replica</code>的问题.如果<code>master</code>的版本比较低,将会更新为这个比较高的版本.</p>
+<p>对于出现版本过旧的<code>replica</code>会在<strong>定时</strong>地垃圾收集任务中删除有过期问题的<code>replicas</code>,如果<code>client</code>对过期的<code>chunk</code>发出请求,<code>master</code>会响应此<code>chunk</code>不存在.</p>
+<h2 id="容错和诊断">5.容错和诊断</h2>
+<h3 id="high-availability">High Availability</h3>
+<h3 id="data-integrity">Data Integrity</h3>
 
                 
             </div>
