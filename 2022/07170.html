@@ -465,14 +465,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.5k
+                    2.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    5 Min
+                    7 Min
                 </div>
                 
 
@@ -491,9 +491,7 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <hr>
-<p>title: raft协议 date: 2022-07-17 10:06:30 tags: - 分布式系统 -
-共识算法 summary: ......<br>
-<code>raft</code>是一种维护日志一致性的共识算法.</p>
+<p>title: raft协议<br>date: 2022-07-17 10:06:30<br>tags:<br>    - 分布式系统<br>    - 共识算法<br>summary:<br>    ……<br><code>raft</code>是一种维护日志一致性的共识算法.</p>
 <p>在此,为什么要维护日志的一致性呢?其所依据的结论是,对于起始状态和接受指令都相同的状态机,能够保持状态的一致,而“接受指令”则借助日志来记录.</p>
 <p>其所包含的关键环节是:</p>
 <ul>
@@ -501,8 +499,7 @@
 <li><code>log replication</code>.</li>
 <li><code>safety</code>.</li>
 </ul>
-<h2 id="introduction">Introduction</h2>
-<p>在此之前<code>Paxos</code>是主流的一致性算法,但是其实现和理解难度比较高.<code>raft</code>性能与之差别不大,但是实现和理解的难度比较低.</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>在此之前<code>Paxos</code>是主流的一致性算法,但是其实现和理解难度比较高.<code>raft</code>性能与之差别不大,但是实现和理解的难度比较低.</p>
 <p>其中的关键的环节有:<code>leader election</code>,<code>log replication</code>,<code>safety</code>,<code>state space reduction</code>.</p>
 <p>其中相比其他的共识算法,<code>raft</code>有几个独特的地方:</p>
 <ul>
@@ -510,10 +507,10 @@
 <li><code>Leader election</code>,在心跳机制上,使用随机计时器来实现的.</li>
 <li><code>Membership changes</code>.当集群中的配置(Membership)要进行变化时,使用一种机制能够保证在变化期间正常运行.</li>
 </ul>
-<h2 id="replicated-state-machines">Replicated state machines</h2>
-<p><code>replicated state machines</code>是这种共识算法应用的基本情景,其用于解决容错问题.</p>
+<h2 id="Replicated-state-machines"><a href="#Replicated-state-machines" class="headerlink" title="Replicated state machines"></a>Replicated state machines</h2><p><code>replicated state machines</code>是这种共识算法应用的基本情景,其用于解决容错问题.</p>
 <p>在这里,状态机也会有多个副本,并且在系统运行时,属于副本的状态机也会进行计算和更新.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2011%2036%2012%201658028972%201658028972925%2010hgda%20image-20220717113612839%20.png" alt="Replicated state machine" style="zoom: 50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2011%2036%2012%201658028972%201658028972925%2010hgda%20image-20220717113612839%20.png" alt="Replicated state machine" style="zoom: 50%;">
+
 <blockquote>
 <p>图中提到,日志中维护了状态机所接受过的指令,在初始状态相同的情况下,接收到相同的指令(按照顺序)就可以得到相同的输出,因此可以借助日志来恢复状态.</p>
 </blockquote>
@@ -526,21 +523,21 @@
 <li>不依赖于时间,时钟错误和高延迟只会导致可用性问题.</li>
 <li>在多数节点一致后就返回结果,不会受到个别慢节点的影响。</li>
 </ul>
-<h2 id="the-raft-consensus-algorithm">The Raft consensus algorithm</h2>
-<p>其实现共识的方式简而言之,首先选举出一个<code>leader</code>,这个<code>leader</code>具有管理日志副本的功能,并且接受来自<code>clients</code>的日志条目,将其复制到其他的<code>server</code>上.并且告诉他们<strong>服务器何时可以安全地将日志条目应用于其状态机</strong>.当一个<code>leader</code>宕机故障时,采用选举的方式替代之.</p>
+<h2 id="The-Raft-consensus-algorithm"><a href="#The-Raft-consensus-algorithm" class="headerlink" title="The Raft consensus algorithm"></a>The Raft consensus algorithm</h2><p>其实现共识的方式简而言之,首先选举出一个<code>leader</code>,这个<code>leader</code>具有管理日志副本的功能,并且接受来自<code>clients</code>的日志条目,将其复制到其他的<code>server</code>上.并且告诉他们<strong>服务器何时可以安全地将日志条目应用于其状态机</strong>.当一个<code>leader</code>宕机故障时,采用选举的方式替代之.</p>
 <p>进一步地,可以将共识问题分解为三个子问题:</p>
 <ul>
 <li><code>Leader election</code>,一般用于当前<code>leader</code>故障的时候.</li>
 <li><code>Log replication</code>,<code>leader</code>必须接收来自clients的日志条目,并且将其复制扩散到集群中.</li>
 <li><code>Safety</code>,如果某一个状态机对于某个日志已经接收到某一条,那么其他的所有<code>server</code>上的状态机都得对此日志处于同步(同一条记录)的.</li>
 </ul>
-<h3 id="raft-basics">1.Raft basics</h3>
-<p>总的来说,其设计要求系统能够容忍两种错误,<code>server</code>有三种状态:<code>leader,follower,candidate</code>,一般是一个<code>leader</code>其他都是<code>follower</code>.</p>
+<h3 id="1-Raft-basics"><a href="#1-Raft-basics" class="headerlink" title="1.Raft basics"></a>1.Raft basics</h3><p>总的来说,其设计要求系统能够容忍两种错误,<code>server</code>有三种状态:<code>leader,follower,candidate</code>,一般是一个<code>leader</code>其他都是<code>follower</code>.</p>
 <p>对于从者,来说只会对来自<code>leader,condidate</code>的请求作出响应(不处理client的请求).<code>leader</code>会处理所有<code>client</code>的请求.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2012%2048%2005%201658033285%201658033285416%20hh8JeO%20image-20220717124805339%20.png" alt="Server states" style="zoom:50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2012%2048%2005%201658033285%201658033285416%20hh8JeO%20image-20220717124805339%20.png" alt="Server states" style="zoom:50%;">
+
 <p><code>followers</code>会接受到来自<code>leader</code>的心跳包,则可以怀疑这个<code>leader</code>是否出现问题,如果一段时间没有接收到,就会变成<code>condidate</code>,并且发起竞选并参与竞选,票数占据集群较多的当选为新的<code>leader</code>.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2012%2055%2000%201658033700%201658033700464%20Cp2g5E%20image-20220717125500382%20.png" alt="image-20220717125500382" style="zoom:50%;"></p>
-<p>这可以看作是整个系统的逻辑时钟.将时间片划分成固定的份额,每一个时间片开始的时候都会开始一个选举的过程,如果出现选不出来的情况,就接着进入下一个时间片并判随着新一轮选举的开始.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2012%2055%2000%201658033700%201658033700464%20Cp2g5E%20image-20220717125500382%20.png" alt="image-20220717125500382" style="zoom:50%;">
+
+<p>这可以看作是整个系统的逻辑时钟.每一个term开始的时候都会开始一个选举的过程,如果出现选不出来的情况,就接着进入下一个term并判随着新一轮选举的开始.</p>
 <p>每个<code>server</code>都会保存当前的term,并随时间增长,这涉及到过期状态的判断:</p>
 <ul>
 <li>当<code>server</code>之间的服务器需要交换term,如果一个服务器的term比较小,就更新成大的.</li>
@@ -554,14 +551,28 @@
 <li><code>AppendEntries</code>,被<code>leader</code>发起用于向其他节点发送追加日志的请求,也用于心跳包的发送.</li>
 </ul>
 </blockquote>
-<h3 id="leader-election">2. Leader election</h3>
-<p><strong>心跳机制</strong>会触发选举.</p>
+<h3 id="2-Leader-election"><a href="#2-Leader-election" class="headerlink" title="2. Leader election"></a>2. Leader election</h3><p><strong>心跳机制</strong>会触发选举.</p>
 <p>一个<code>follower</code>只要及时接收合法的RPC,就会一直保持follower,否则就要成为竞选者了.</p>
 <p><code>leader</code>也是会周期性地向它的<code>follower</code>发送心跳包的(彰显作为领袖的权威).</p>
 <p>当要开始进行选举的时候,这个<code>follower</code>就会调用RequestVote,并进入<code>condidate</code>状态.要么当选为leader,要么没有赢家,要么没被选上.(一般情况下,赢得最多选票的<code>condidate</code>会当选).</p>
 <p>如果没有赢家,这些竞选者就会递增term,并调用RequestVote,发起新一轮选举.</p>
 <p>为了保证这种情况尽可能少发生,采用了<strong>随机选举超时机制,每一个condidate在发起选举后,都会随机化一个新的选举超时时间,一旦超时没有完成,就会增加自己的term,并发起新一轮选举</strong>.</p>
+<h3 id="3-Log-replication"><a href="#3-Log-replication" class="headerlink" title="3. Log replication"></a>3. Log replication</h3><p>当一个节点称为<code>server</code>后,就开始对<code>client</code>的请求开始处理,对于发送请求的客户端,每一个都包含一个命令用于状态机的执行.</p>
+<p>当接收到之后,就会生成一个条目,这个条目由<code>&lt;index,term,cmd&gt;</code>组成,并写道日志末尾,进而向所有其他节点广播.</p>
+<p>当<code>follower</code>接收到该条目之后,就写入自己的日志中,并返回同意.如果<code>leader</code>收到了多数成功的答复,就将此条目执行到自己的状态机中.进而可以这个条目是<code>commited</code>的,然后再被广播到其他节点,进而其他节点在进行commited.</p>
+<p>所以,可以说,对于一个命令,<code>leader</code>先自己写日志,然后在广播给<code>follower</code>写,如果没有异常的话,<code>leader</code>在自己<code>commited</code>,然后通知<code>followers</code>进行<code>committed</code>.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2022%2047%2048%201658069268%201658069268400%20HPH6tN%20image-20220717224748288%20.png" alt="image-20220717224748288" style="zoom: 50%;">
 
+<p>此外,需要保证性质:</p>
+<p>**在两个日志中,如果有两个条目拥有相同的index和term,其cmd也相同.,他们前面的条目也相同.**由于这些条目是在<code>leader</code>中产生的,所以能够保证cmd的相同,而对于后半句的条件则需要一致性检查来进行.其步骤如下:</p>
+<p><code>leader</code>再通过<code>AppendEntriesRPC</code>和<code>follower</code>通信时,会带上条目的信息,而<code>folloer</code>在接收到会对比自己的日志,如果发现和自己的不符合,就会拒绝.这是<code>leader</code>接收到拒绝的消息后就会和该<code>follower</code>进行细致地比对,找到最大的共识点,利用leader的条目重写folloer的日志.</p>
+<p>当在进行比对的时候,leader会从后向前逐个尝试,如果仍然是拒绝,就在向前的条目尝试.直到找到共识点.</p>
+<p>因此,每个<code>leader</code>都会为<code>followers</code>维护一个索引表,在当选为<code>leader</code>时,其索引默认为<code>leader</code>自己日志的index+1,每接收到一个节点的拒绝信号,就将对应的nextindex-1.</p>
+<h3 id="4-Safety"><a href="#4-Safety" class="headerlink" title="4.Safety"></a>4.Safety</h3><h4 id="1-Election-restriction"><a href="#1-Election-restriction" class="headerlink" title="1)Election restriction"></a>1)Election restriction</h4><p>对于<code>leader</code>来说,需要保证其包含最全面最新的日志记录.但是该如何实现呢?</p>
+<p>在raft中,不会像其他的共识算法需要将自己缺少的记录从别的节点上传输过来.<strong>因为他直接预防存在缺少记录的节点称为<code>leader</code></strong>.</p>
+<p>因为被选举出来的<code>leader</code>会和节点中的大部分进行交互,是得到了它们的认可的,这么大比重中,很容易就包含最新最全的节点.</p>
+<p>所以在竞选者所使用的<code>RequestVote </code>中,会附带自己的log记录,这样可以是参与选举的节点,和自己的日志进行比对,比对是否比自己的版本更新.对于比对的细节,主要是比对<code>index</code>和<code>term</code>.</p>
+<h4 id="2-Committing-entries-from-previous-terms"><a href="#2-Committing-entries-from-previous-terms" class="headerlink" title="2)Committing entries from previous terms"></a>2)Committing entries from previous terms</h4><h4 id="3-Safety-argument"><a href="#3-Safety-argument" class="headerlink" title="3)Safety argument"></a>3)Safety argument</h4><h3 id="5-Follower-and-candidate-crashes"><a href="#5-Follower-and-candidate-crashes" class="headerlink" title="5.Follower and candidate crashes"></a>5.Follower and candidate crashes</h3><h3 id="6-Timing-and-availability"><a href="#6-Timing-and-availability" class="headerlink" title="6.Timing and availability"></a>6.Timing and availability</h3><h2 id="Cluster-membership-changes"><a href="#Cluster-membership-changes" class="headerlink" title="Cluster membership changes"></a>Cluster membership changes</h2><h2 id="Log-compaction"><a href="#Log-compaction" class="headerlink" title="Log compaction"></a>Log compaction</h2><h2 id="Client-interaction"><a href="#Client-interaction" class="headerlink" title="Client interaction"></a>Client interaction</h2>
                 
             </div>
             <hr/>
