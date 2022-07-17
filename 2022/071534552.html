@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="MapReduce, Yfs&#39;s Box">
+    <meta name="keywords" content="The Google File System 论文阅读笔记, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>MapReduce | Yfs&#39;s Box</title>
+    <title>The Google File System 论文阅读笔记 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">MapReduce</h1>
+                    <h1 class="description center-align post-title">The Google File System 论文阅读笔记</h1>
                 </div>
             </div>
         </div>
@@ -448,6 +448,10 @@
                                 <span class="chip bg-color">分布式系统</span>
                             </a>
                         
+                            <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">存储系统</span>
+                            </a>
+                        
                     </div>
                     
                 </div>
@@ -460,7 +464,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-07-07
+                    2022-07-15
                 </div>
                 
 
@@ -469,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.3k
+                    3.5k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    4 Min
+                    12 Min
                 </div>
                 
 
@@ -494,83 +498,180 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="abstract">0.Abstract</h2>
-<p><code>MapReduce</code>是一种编程模型,一般用于在分布式系统上并行地处理大规模数据.</p>
-<p>对于在此框架上开发的程序员来说,主要制定<code>map</code>和<code>reduce</code>这两个函数,一般情况下,前者的输入和输出都是k-v的,后者则合并前者生成的中间结果.</p>
-<h2 id="introduction">1.Introduction</h2>
-<p>其实在很多大规模计算的场景下,难点并不在于原始计算本身,而在于<strong>在分布式系统中,如何并行计算,分配数据,容错处理等问题</strong>.</p>
-<p><code>MapReduce</code>的核心作用就在于提供一种抽象,不需要考虑太多上述问题.</p>
-<p>其设计思想:很多计算可以视为,将数据分解为一个个记录,每个记录可以经过一个<code>Map</code>函数,形成一个k-v元组,而<code>Reduce</code>可以将相同<code>key</code>值的元组合并在一起.</p>
-<p>这是一种<strong>分而治之</strong>的思想.</p>
-<h2 id="programming-model">2. Programming Model</h2>
-<p><code>User</code>在设计时,主要考虑的是<code>Map</code>和<code>Reduce</code>.</p>
-<p>一个比较简单的应用就是统计单词数量.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2044%2014%201657208654%201657208654216%208vHJaN%20image-20220707234414092%20.png" alt="image-20220707234414092" style="zoom: 50%;"></p>
-<p>一个<code>map</code>处理的是一个k-v对,每处理一个k-v对,就将相应的w的value
-+ 1.</p>
-<p>一个<code>reduce</code>只处理一个<code>key</code>,参数中的迭代器是从中间结果中收集的<code>values</code>,将这些<code>values</code></p>
-<p>累加起来即可.累加结束后,形成最终的key对应的结果.</p>
-<p>除此之外还有其他应用:</p>
+                <p>分布式系统的目标:性能,拓展性,容错等等.</p>
+<h2 id="所面临的基本问题">1.所面临的基本问题</h2>
+<p><strong>容错</strong>:一台机器的故障发生率也许不高,但是在成千甚至上万台机器的集群中,故障就成了必然事件.所以设计一些发现错误和故障,并且有一种自动化容错的机制非常重要.</p>
+<p><strong>更大,更多的文件</strong>:在这里达到几个GB的文件是常见的,如果管理十亿个几KB大小的文件将会给系统带来巨大的负担,所以对于IO操作以及文件分块的大小,也应该重新考虑.</p>
+<h2 id="设计总览">2.设计总览</h2>
+<p>首先说明一下,一些基本的前提:</p>
 <ul>
-<li>从日志文件中,统计<code>url</code>的访问频率.</li>
-<li>Reverse Web-Link Graph.</li>
-<li>倒序索引.</li>
-<li>分布式排序.</li>
+<li>所用的设备不仅数据量大,而且廉价,故障率比较高,需要容错机制.</li>
+<li>文件大小适度,假设有几百万100MB设置更大的文件.</li>
+<li>工作负载分为,大型流式读和小型随机读.</li>
+<li>有关于写的操作,<strong>GFS的应用场景中主要是append</strong>.</li>
+<li>读写会有相关的并发和原子操作的要求.</li>
 </ul>
-<p>总体的运行图如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" alt="image-20220707235622564" style="zoom:50%;"></p>
-<h2 id="implementation">3.Implementation</h2>
-<p>这一部分描述的实现方式主要适用于(使用交换式以太网连接的):</p>
+<p>不过GFS还没有实现完备的<code>POSIX</code>标准.</p>
+<p>在总体结构上.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2010%2024%2057%201657851897%201657851897175%20H8GY7t%20image-20220715102457093%20.png" alt="image-20220715102457093">
+<figcaption aria-hidden="true">image-20220715102457093</figcaption>
+</figure>
+<p>总体来说仍然是主从式的.</p>
+<blockquote>
+<p>不过需要注意的是,在这里的<code>master</code>,<code>chunkserver</code>并不是狭义地指某一个机器,可以是一个服务器上的一个进程.因而,一个机器其实既可以作为运行一个作为<code>client</code>的进程,也可以运行一个作为<code>chunkserver</code>的进程.</p>
+</blockquote>
+<h3 id="single-master">Single Master</h3>
+<p>简而言之,<code>master</code>是在一个GFS系统中唯一的全局性的管理者,自己不做具体的业务处理.</p>
+<p>想很多其他的设计一样,仍然通过心跳包和<code>chunkserver</code>通信,记录其状态.</p>
+<p>由于只有一个,设计和实现都简单了不少.不过当<code>master</code>本身出现宕机时,会带来更大的麻烦,所以<code>master</code>自己会维护一个<code>log</code>文件.这是属于<code>master</code>的容错机制.</p>
+<p>对于<code>clients</code>来说,<code>master</code>根据其所请求的文件名和chunk
+id来返回其所访问的<code>chunkserver</code>.</p>
+<blockquote>
+<p>简单地说一下,读操作的实现:</p>
+<ol type="1">
+<li>client根据文件偏移计算出chunk id(毕竟chunk的大小固定).</li>
+<li>client向master发送(文件名和chunk id).</li>
+<li>master返回chunk handle以及replicas的位置.</li>
+<li>client向其中一个repicas发送请求,该请求指定块句柄和该块中的字节范围.</li>
+</ol>
+</blockquote>
+<p>在<code>master</code><strong>内存</strong>中有两个表,也就是matadata,其基本内容如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2016%2021%2051%2012%201657979472%201657979472811%20TWuflK%20image-20220716215112735%20.png" alt="image-20220716215112735" style="zoom: 50%;"></p>
+<p>前者比较适合使用hashmap实现,对于单个key的查询hashmap性能比较优越.而第二个表比较适合使用B-tree,B-tree更适合范围查询的情况,因为第二个table的key是chunk
+handle,相对而言,当访问一个跨越多个chunk的文件时,也就是多个连续的chunk
+handle,相当于范围查询了,B-tree效率比较高.</p>
+<p>在内存中存储<code>metadata</code>的优点,便于密度较大的<code>client</code>请求时,能够做出更快的响应,读取查询起来更快.</p>
+<p>不过也并非完全<code>nv</code>的,也会有一些持久化机制,后面会进行更具体地说明.</p>
+<h3 id="chunk-size"><strong>Chunk Size</strong></h3>
+<p>64MB,比一般的文件系统块要大不少.也是每个chunk replica的基本单位.</p>
+<blockquote>
+<p><strong>其优点有哪些呢?</strong></p>
+<p>1.大粒度的chunk有利于利用局部性的特点,进而一定程度上可以减少<code>client</code>与<code>master</code>以及<code>client</code>与<code>chunkserver</code>之间交互的数据开销.</p>
+<p>2.matadata的所占大小(毕竟数量相对较少了)减小,有利于其在内存上存储的特点.</p>
+</blockquote>
+<p>但是对于小文件较多的情况不利.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2016%2021%2040%2010%201657978810%201657978810184%20IMpNDY%20image-20220716214010081%20.png" alt="https://en.wikipedia.org/wiki/Google_File_System" style="zoom:33%;"></p>
+<p>除此之外,在<code>master</code>将文件<code>Chunk Mappings</code>的时候,会给每一个<code>chunk</code>划分出来一个全局唯一的标识符.</p>
+<h3 id="metadata"><strong>Metadata</strong></h3>
+<p>存储在master的内存中.有三类:<code>file and chunk namespaces,the mapping from files to chunks, the locations of each chunk replicas</code>.都会在内存中有存储,并且前两类会有log文件作为持久性存储,主要是为了在故障后快速恢复.后者只在内存中存储,<code>master</code>通过与<code>chunk server</code>交互(一般master开机和chunk
+server加入和离开时发生)即可获取并更新<code>the locations of each chunk replicas</code>.在log相关的操作中,主要包含了<code>metadata</code>变化的历史记录,如果log丢失,那么<code>master</code>的可靠性就几乎彻底失去了保证,因此对于log也需要做备份,一般在一个远程的机器上,并且当<code>master</code>与远程复制保持一致时才会相应一个client请求.</p>
+<h3 id="operation-log">Operation Log</h3>
+<p>非常重要,其内容主要是<code>metadata</code>修改的记录,是<code>metadata</code>
+的持久性机制.</p>
+<p>对于<code>metadata</code>一般除了在本机上存储,还会有多个远程的存储备份,一旦<code>Log</code>出现了问题,这个<code>master</code>的容错与恢复也就彻底失败了.对于<code>Log</code>的更新:<strong>本机和远程机上的Log的写入(磁盘)都是先于用户的请求处理的.</strong>,这体现了系统中写日志的一种套路,也就是先写日志,在写数据.</p>
+<p>再通过日志进行恢复时,<code>master</code>会遍历日志文件记录,逐个重做.</p>
+<p>如果无论如何都重新做一遍的话,将会是非常麻烦的,所以引入一种<code>checkpoint</code>机制.</p>
+<h3 id="consistency-model"><strong>Consistency Model</strong></h3>
+<p>其一致性模型是弱一致性的,但是实现起来高效比较简单.</p>
+<p>关于<code>metadata</code>中<code>namespace</code>的变化,<code>master</code>会使用个锁来进行控制原子性和并发.Mater
+节点的 operation log 定义了这些操作在系统中的全局顺序.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2011%2028%2053%201657855733%201657855733365%20OVMZlt%20image-20220715112853284%20.png" alt="image-20220715112853284" style="zoom: 50%;"></p>
+<p>关于这个表的话,首先解释以下几个关键的名词:</p>
 <ul>
-<li>x86双处理器,linux系统,内存2-4GB.</li>
-<li>一个集群数百或者上千个机器.</li>
-<li>网络方面,一般有100Mb/s或者1Gb/s.</li>
-<li>存储硬件上,每个机器有直连的IDE硬盘,同时有运行的分布式文件系统,提供容错服务.</li>
-<li>用户像调度系统提交一组任务,每组任务可经过调度系统分配给某些机器.</li>
+<li><code>consistent</code>,任何chunk server
+replicas所读取到的结果都是相同的.</li>
+<li><code>defined</code>,当发生文件的写操作后,所有<code>client</code>还是能够读取到<code>consistent</code>的结果,并且还是写数据生效后的结果.</li>
+<li><code>consistent but undefined</code>,能保持<code>consistent</code>,但是对于写数据的变化不能保证及时看到.</li>
+<li><code>inconsistent</code>.最差的情况,如果不能满足<code>consistent</code>那么<code>defined</code>一定不能满足.</li>
 </ul>
-<p>所以,一般来说,描述一个集群的配置,往往从如下角度分析:</p>
+<p>其中<code>defined</code>是最高级别的一致性.</p>
+<h2 id="系统交互">3.系统交互</h2>
+<p>接下来说明的是,在这个系统中<code>client,master,chunkservers</code>的交互方式进而实现数据修改,原子记录追加等.</p>
+<h3 id="leases-and-mutation-order"><strong>Leases and Mutation
+Order</strong></h3>
+<p><code>mutation</code>就是改变<code>metadata</code>或者chunk内容的操作,比如说write和append.每次修改应该作用于chunk的所有副本上,之所以采用了<code>lease</code>的机制,主要是为了在众副本上,有一个统一的<code>mutation</code>顺序.</p>
+<p>这种机制是为了<strong>保证各chunkserver写操作具有一致性的</strong>.</p>
+<p>除此之外,这种设计还减小了<code>master</code>的开销.在<code>lease</code>中的<code>timeout</code>方面,初始值一般为60s,如果这个<code>primary</code>处理了一个<code>mutation</code>请求,就会增加相应的<code>timeout</code>,通常会被允许增加<code>timeout</code>,这些信息往往会被附加在<code>master</code>与<code>chunkservers</code>的心跳包中.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2011%2038%2056%201657856336%201657856336050%20g6wMXL%20image-20220715113855970%20.png" alt="image-20220715113855970" style="zoom: 50%;"></p>
+<p>当一个client要对某个chunk进行写操作时,其过程可以如下:</p>
 <ul>
-<li>机器的硬件(处理器,内存等),操作系统.</li>
-<li>规模(机器数量).</li>
-<li>网络带宽与存储(硬件和软件).</li>
+<li>client向<code>master</code>请求该chunk当前的<code>primary</code>机器.</li>
+<li>然后接收到<code>master</code>的相应.client将会缓存这个数据.</li>
+<li>client将这些数据发给所有副本,先存在缓存中.</li>
+<li>当所有副本收到数据后,client就会向<code>primary</code>发送一个write请求.这个请求标识了所有之前push副本的数据,<code>primary</code>会给其收到的所有修改指定序号.</li>
+<li><code>primary</code>把write请求传递给所有的<code>secondary</code>副本,每个<code>secondary</code>根据指定的序号修改应用,<code>primary</code>等待<code>secondary</code>回复.</li>
+<li><code>secondary</code>接收到<code>primary</code>指定的序列号后,处理操作,处理完后通知<code>primary</code>.</li>
+<li><code>primary</code>回复client,如果有错误也会反馈.失败时,client通常通过重试,来进行处理.</li>
 </ul>
-<h3 id="execution-overview">3.1 Execution Overview</h3>
-<p>再次复现一下这个过程,结合上面的图片:</p>
+<p>当write单位的大小跨越多个chunk,通常会拆分成多个请求,转化为多个chunk的操作.</p>
+<h3 id="data-flow"><strong>Data Flow</strong></h3>
+<p>在上面的图中,我们可以发现数据流和控制流是解耦的.如何从数据流的角度上,充分利用网络带宽呢?</p>
+<p>在这里的数据流主要是,client向所有chunkserver
+push数据的过程,GFS中的实现并不是分布式地push,而是线性的.也就是先传递给A,然后A到B,B到C,最终遍历到所有chunkserver.</p>
+<p>每个机器在传递数据流的时候,选择其中最近的还没有收到的机器(包括client开始的第一跳).对于远近的判断,在GFS的部署中可以通过IP地址来大体地判断.</p>
+<h3 id="atomic-record-appends"><strong>Atomic Record
+Appends</strong></h3>
+<p>传统的写入操作一般是指定文件+偏移量进行操作的,但是这在并发的条件下容易出现问题.</p>
+<p>在GFS中,<code>client</code>只需要指定要写入的数据,无需考虑所写入文件的偏移量,其偏移量由<code>chunkserver</code>决定.具体而言,其内部执行的逻辑如下(<code>record append</code>
+):</p>
 <ul>
-<li>在用户程序中所使用的<code>MapReduce</code>库,将输入的文件<code>split</code>成(16-64
-MB)大小的部分(M个),然后 MapReduce
-在一个机器集群上启动很多个程序的副本.</li>
-<li>在这些启动的程序副本中,分为<code>master</code>和<code>worker</code>,前者是特殊的,一般有一个.由M个<code>Map</code>任务,<code>R</code>个<code>Reduce</code>任务,<code>master</code>具有为<code>worker</code>分工的功能.</li>
-<li>对于分工到<code>Map</code>任务的<code>worker</code>读取到一份<code>split</code>,然后解析出输入的k-v,并带入<code>Map</code>函数,进而产生结果,结果缓存在内存中.</li>
-<li>缓存在内存中的<code>intermediate pairs</code>会被写的disk中,会被<code>partitioning function</code>分成<code>R</code>份,被写到的disk的位置会告知<code>master</code>,进而可以使<code>master</code>在分配<code>Reduce</code>任务时,告知<code>worker</code>的需要的输入路径.</li>
-<li>当<code>worker</code>收到了<code>master</code>通告的<code>disk</code>地址,就通过rpc从相应的disk读取内容,读取完之后,根据key进行排序.</li>
-<li><code>worker</code>将排好序的数组进行遍历,将每个key值对应的<code>values</code>集合,根据<code>reduce</code>得出结果,最终输出到文件.</li>
-<li>当所有<code>map</code>和<code>reduce</code>结束,<code>master</code>唤醒用户进程,<code>MapReduce</code>调用返回.</li>
+<li>Client 确定 file name 以及要写入的 byte data.</li>
+<li><code>client</code>向<code>master</code>发送请求,这时不需要加上<code>byte data</code>.</li>
+<li><code>master</code>接收到<code>file name</code>通过查询得出对应的<code>chunk servers</code>,并发送给<code>client</code>.</li>
+<li>之后的过程类似于前面所提到的.</li>
 </ul>
-<h3 id="master-data-structures">3.2 Master Data Structures</h3>
+<h2 id="master的行为">4. master的行为</h2>
+<p>简单地概括一下,<code>master</code>的操作:</p>
 <ul>
-<li>记录任务状态.包括<code>Map</code>和<code>Reduce</code>的状态(空闲,处理中,完成).</li>
-<li>R个中间结果的位置与大小.</li>
+<li>master记录chunks放置的位置.</li>
+<li>创建新的<code>chunks</code>和之后的副本.</li>
+<li>协调各种各样的系统范围内的活动,保持chunks完全拷贝.</li>
+<li>在chunkserver上做负载均衡.</li>
+<li>回收未使用的内存空间.</li>
 </ul>
-<h3 id="fault-tolerance">3.3 Fault Tolerance</h3>
-<h4 id="worker-failure">Worker Failure</h4>
-<p><code>master</code>会周期性地ping
-<code>workers</code>.超出特定时间没有回应就说明此<code>worker</code>宕机.</p>
-<p>宕机的<code>worker</code>相应的任务会被设置为空闲,然后进行重新分配.</p>
-<p><code>Reduce</code>已经完成但是宕机的任务无需重新执行,因为其输出文件在全局文件系统中,而<code>Map</code>则需要重新做,因为其输出文件一般在已经故障的机器的本地disk上.</p>
-<p>如果有一个<code>Map</code>任务因故障而重新分配了,此时所有正在运行的<code>Reduce</code>都需要重做.</p>
-<h4 id="master-failure">Master Failure</h4>
-<p>一般情况下,只有一个<code>master</code>故障的可能性比较低,一旦故障就会终止整个<code>MapReduce</code>.</p>
-<p>对于任务的状态,<code>master</code>会进行维护,故障后新的<code>master</code>可以继续从最近的任务状态检查点进行.</p>
-<h4 id="semantics-in-the-presence-of-failures">Semantics in the Presence
-of Failures</h4>
-<p>暂鸽</p>
-<h3 id="locality">3.4 Locality</h3>
-<p>网络带宽是一种稀缺的资源.</p>
-<p>论文中的实验部署在GFS中,GFS 将每个文件划分为多个 64MB
-的块,每个块都会存几个副本(一般是 3 个)在不同的机器上.</p>
-<p>尽可能地从本地磁盘上读取数据是一种节省网络带宽的好办法.所以<code>master</code>在分配<code>Map</code>任务时,尽可能保证分配到一个有该任务相应副本的机器.</p>
-<p>最终呈现的效果是,在大规模运行时,<code>worker</code>大多数输入数据是从本地读取的.</p>
+<h3 id="namespcace-management-and-locking">namespcace management and
+locking</h3>
+<p>对于<code>master</code>中对于<code>namespace</code>的操作使用上锁的方式来实现对多种操作的正确串行顺序.</p>
+<p>GFS的目录和文件机制没有一般的文件系统那样完备.<code>namespace</code>就像是一个<code>map</code>将文件的相对路径名或者绝对路径名映射到一个<code>metadata</code>.因而便于在内存中存储和查询.</p>
+<p>对于<code>namespace</code>的树中,每个节点对应一个<code>full pathname</code>,每个节点都有一个读写锁.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2008%2055%2038%201658019338%201658019338469%20zVkffq%20image-20220717085538388%20.png" alt="image-20220717085538388" style="zoom:50%;"></p>
+<p>有关于写操作所涉及的规律:</p>
+<ul>
+<li>最底层节点获得写锁.</li>
+<li>其他父,祖父节点只需要读锁(可以共享读).</li>
+</ul>
+<h3 id="replica-placement">Replica Placement</h3>
+<p>这种机制的目的主要是:</p>
+<ul>
+<li>最大化可靠性和可用性.</li>
+<li>最大化网络带宽利用率.</li>
+</ul>
+<p><code>replicas</code>在<code>chunkserver</code>中的分配是有讲究的,在GFS一般是<strong>分布存储在不同机架的<code>chunkserver</code></strong>,这样能够减少压力集中在一个机架的情况,也使了当一个机架故障时,仍然有较好的可靠性和可用性.</p>
+<h3 id="creation-re-replication-rebalancing">Creation, Re-replication,
+Rebalancing</h3>
+<p><code>chunk replicas</code>有三种场景会被创建:</p>
+<ul>
+<li><code>chunk reation</code>.这是<code>master</code>需要挑选<code>chunkserver</code>来存储<code>chunk</code>,一般会挑选磁盘利用率比较低的,这样有利于<code>chunkserver</code>磁盘空间的平衡利用.还会考虑一个<code>chunkserver</code>的最近新增的<code>chunk</code>数量.除此之外,还会考虑到机架的平衡.</li>
+<li><code>re-replication</code>.当因为某些原因可用<code>replicas</code>减少,低于预设值.与<code>chunkserver</code>崩溃或者<code>chunk</code>检验错误有关.</li>
+<li><code>reblancing</code>.</li>
+</ul>
+<h3 id="garbage-collection">Garbage Collection</h3>
+<p>当一个文件应用删除.</p>
+<p>首先只在<code>master</code>发生变化,即将先将删除记录写入日志再文件重命名(hidden
+name,其中包含删除的时间).</p>
+<p>此外<code>master</code>对于<code>namespace</code>会有周期性地扫描,移除3天以上的<code>hidden files</code>相关的<code>metadata</code>,也即是说在3天之内还是有恢复的余地的.</p>
+<p>而对<code>chunkserver</code>中的删除应该怎么进行呢?<strong>是通过心跳交互间接实现的.</strong></p>
+<p><code>chunkserver</code>和<code>master</code>的心跳包中,会有关于其<code>chunks</code>的信息,<code>master</code>进而响应其中有哪些没有相应的<code>metadata</code>,<code>chunkserver</code>接受到之后进而在检查这些<code>chunks</code>,然后执行删除.</p>
+<h3 id="stale-replica-detection">Stale Replica Detection</h3>
+<p><code>master</code>中对于每个<code>chunk</code>都会维护版本号,版本号会在每次<code>lease</code>时对相应的版本号进行自增(发生在<code>metadata</code>本地的),然后会将版本号告诉其他<code>replicas</code>.</p>
+<p>如果某个<code>replica</code>不可用,就收不到版本更新的消息,也就不会自增,当重新上线时,向<code>master</code>发送心跳包时(附带版本号),这个时候可以比对发现此<code>replica</code>的问题.如果<code>master</code>的版本比较低,将会更新为这个比较高的版本.</p>
+<p>对于出现版本过旧的<code>replica</code>会在<strong>定时</strong>地垃圾收集任务中删除有过期问题的<code>replicas</code>,如果<code>client</code>对过期的<code>chunk</code>发出请求,<code>master</code>会响应此<code>chunk</code>不存在.</p>
+<h2 id="容错和诊断">5.容错和诊断</h2>
+<h3 id="high-availability">High Availability</h3>
+<p>其中主要的策略是<code>fast recovery</code>和<code>replication</code>.</p>
+<p>GFS对于<code>chunkserver</code>的退出状态,不区分正常和异常退出,通常也是通过<code>kiil</code>的方式去关闭<code>chunkserver</code>,此外<code>chunkserver</code>也是拥有快速重启的能力,所以<code>client</code>和<code>master</code>借助重发请求就可以做到<code>fast recovery</code>.</p>
+<p>此外,我们还会对<code>chunk</code>进行复制,一般情况下复制的级别是3,也就是有3份.</p>
+<p>对于<code>master</code>来说除了有<code>log + checkpoint</code>的容错机制除外,还会有一个<code>shadow master</code>,当<code>master</code>宕机,<code>shadow master</code>能够提供可读服务,但是<code>shadow master</code>和<code>master</code>只能保证是<strong>弱一致性</strong>的.</p>
+<p>这与<code>append</code>的特点有关,即使如此,只能说读不到比较新的数据,但不会读到错的旧数据.</p>
+<p>对于<code>shadow master</code>的更新来说,依靠的是<code>master</code>日志的<code>replicas</code>.</p>
+<p><code>shadow master</code><strong>不参与和其他<code>chunkserver</code>的通信</strong>.</p>
+<h3 id="data-integrity">Data Integrity</h3>
+<p>数据完整性就是检查存储的数据有无错误或者丢失.</p>
+<p>数据检查的工作会在<code>chunkserver</code>中有所进行,其使用的方式是<code>chunksum</code>.但如果通过比对不同<code>chunkserver</code>中的chunk来实现,将会是非常困难的.</p>
+<p><code>chunksum</code>和用户数据分开,但是存储在内存上,最终通过日志来持久化.</p>
+<p>当<code>client</code>向<code>chunkserver</code>发送请求时,首先<code>chunkserver</code>会对读操作涉及的block进行检验,如果不匹配就会向请求者<code>client</code>发送一个错误响应,并向<code>master</code>报告错误,<code>client</code>收到之后就向另一个<code>replica</code>请求读取,<code>master</code>则会从另一个<code>replica</code>克隆数据块,并指示<code>chunkserver</code>删除其<code>replica</code>.</p>
+<p>对于最有特色的<code>apend</code>操作来说,会有额外的优化,就是<strong>增加最后部分block对应的chunksum</strong>就可以了.</p>
 
                 
             </div>
@@ -597,7 +698,7 @@ of Failures</h4>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/070764376.html">http://example.com/2022/070764376.html</a>
+                    <a href="http://example.com/2022/071534552.html">http://example.com/2022/071534552.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -637,6 +738,10 @@ of Failures</h4>
                             
                                 <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
                                     <span class="chip bg-color">分布式系统</span>
+                                </a>
+                            
+                                <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">存储系统</span>
                                 </a>
                             
                         </div>
@@ -684,23 +789,24 @@ of Failures</h4>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/070837932.html">
+                <a href="/2022/07170.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2008%2020%2024%2050%201657283090%201657283090375%20OfzMcY%20image-20220708202450275%20.png" class="responsive-img" alt="关于go语言的一些事儿">
                         
-                        <span class="card-title">关于go语言的一些事儿</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="">
+                        
+                        <span class="card-title"></span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            关于golang这门语言,我很大程度上是边做边学的,并没有经过太系统的学习,所以我打算将我在做的过程中遇到的一些问题和一些思考记录下来.
+                            
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-08
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-17
                         </span>
                         <span class="publish-author">
                             
@@ -709,14 +815,6 @@ of Failures</h4>
                             
                         </span>
                     </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/golang/">
-                        <span class="chip bg-color">golang</span>
-                    </a>
-                    
                 </div>
                 
             </div>
@@ -728,33 +826,28 @@ of Failures</h4>
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/06211699.html">
+                <a href="/2022/071462018.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2022%2043%2056%201657809836%201657809836063%20K2zf8q%20image-20220714224355957%20.png" class="responsive-img" alt="mit 6.824:lab 1">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:内存管理">
-                        
-                        <span class="card-title">linux 0.11源码分析:内存管理</span>
+                        <span class="card-title">mit 6.824:lab 1</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
+                            大名鼎鼎的神课,小试牛刀,花了4,5天写完了lab1,虽然小毛病不少,但还是基本可以通过测试样例了.
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-14
                             </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
-                                    源码分析
-                                </a>
-                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
                             
                         </span>
                     </div>
@@ -762,12 +855,12 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
                     </a>
                     
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/mit-6-824/">
+                        <span class="chip bg-color">mit 6.824</span>
                     </a>
                     
                 </div>
