@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="The Google File System 论文阅读笔记, Yfs&#39;s Box">
+    <meta name="keywords" content="Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>The Google File System 论文阅读笔记 | Yfs&#39;s Box</title>
+    <title>Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/banner/1.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">The Google File System 论文阅读笔记</h1>
+                    <h1 class="description center-align post-title"></h1>
                 </div>
             </div>
         </div>
@@ -442,17 +442,9 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                    <div class="article-tag">
-                        
-                            <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                <span class="chip bg-color">分布式系统</span>
-                            </a>
-                        
-                            <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
-                                <span class="chip bg-color">存储系统</span>
-                            </a>
-                        
-                    </div>
+                          <div class="article-tag">
+                            <span class="chip bg-color">No tag</span>
+                          </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -473,14 +465,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    2.6k
+                    3.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    9 Min
+                    13 Min
                 </div>
                 
 
@@ -498,7 +490,11 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>分布式系统的目标:性能,拓展性,容错等等.</p>
+                <p>title: The Google File System 论文阅读笔记 tags: - 分布式系统 -
+存储系统 summary: google分布式三驾马车之一. img: &gt;-
+https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png
+abbrlink: 34552 date: 2022-07-15 09:48:07</p>
+<p>分布式系统的目标:性能,拓展性,容错等等.</p>
 <h2 id="所面临的基本问题">1.所面临的基本问题</h2>
 <p><strong>容错</strong>:一台机器的故障发生率也许不高,但是在成千甚至上万台机器的集群中,故障就成了必然事件.所以设计一些发现错误和故障,并且有一种自动化容错的机制非常重要.</p>
 <p><strong>更大,更多的文件</strong>:在这里达到几个GB的文件是常见的,如果管理十亿个几KB大小的文件将会给系统带来巨大的负担,所以对于IO操作以及文件分块的大小,也应该重新考虑.</p>
@@ -622,17 +618,56 @@ Appends</strong></h3>
 </ul>
 <h3 id="namespcace-management-and-locking">namespcace management and
 locking</h3>
+<p>对于<code>master</code>中对于<code>namespace</code>的操作使用上锁的方式来实现对多种操作的正确串行顺序.</p>
+<p>GFS的目录和文件机制没有一般的文件系统那样完备.<code>namespace</code>就像是一个<code>map</code>将文件的相对路径名或者绝对路径名映射到一个<code>metadata</code>.因而便于在内存中存储和查询.</p>
+<p>对于<code>namespace</code>的树中,每个节点对应一个<code>full pathname</code>,每个节点都有一个读写锁.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2008%2055%2038%201658019338%201658019338469%20zVkffq%20image-20220717085538388%20.png" alt="image-20220717085538388" style="zoom:50%;"></p>
+<p>有关于写操作所涉及的规律:</p>
+<ul>
+<li>最底层节点获得写锁.</li>
+<li>其他父,祖父节点只需要读锁(可以共享读).</li>
+</ul>
 <h3 id="replica-placement">Replica Placement</h3>
+<p>这种机制的目的主要是:</p>
+<ul>
+<li>最大化可靠性和可用性.</li>
+<li>最大化网络带宽利用率.</li>
+</ul>
+<p><code>replicas</code>在<code>chunkserver</code>中的分配是有讲究的,在GFS一般是<strong>分布存储在不同机架的<code>chunkserver</code></strong>,这样能够减少压力集中在一个机架的情况,也使了当一个机架故障时,仍然有较好的可靠性和可用性.</p>
 <h3 id="creation-re-replication-rebalancing">Creation, Re-replication,
 Rebalancing</h3>
+<p><code>chunk replicas</code>有三种场景会被创建:</p>
+<ul>
+<li><code>chunk reation</code>.这是<code>master</code>需要挑选<code>chunkserver</code>来存储<code>chunk</code>,一般会挑选磁盘利用率比较低的,这样有利于<code>chunkserver</code>磁盘空间的平衡利用.还会考虑一个<code>chunkserver</code>的最近新增的<code>chunk</code>数量.除此之外,还会考虑到机架的平衡.</li>
+<li><code>re-replication</code>.当因为某些原因可用<code>replicas</code>减少,低于预设值.与<code>chunkserver</code>崩溃或者<code>chunk</code>检验错误有关.</li>
+<li><code>reblancing</code>.</li>
+</ul>
 <h3 id="garbage-collection">Garbage Collection</h3>
+<p>当一个文件应用删除.</p>
+<p>首先只在<code>master</code>发生变化,即将先将删除记录写入日志再文件重命名(hidden
+name,其中包含删除的时间).</p>
+<p>此外<code>master</code>对于<code>namespace</code>会有周期性地扫描,移除3天以上的<code>hidden files</code>相关的<code>metadata</code>,也即是说在3天之内还是有恢复的余地的.</p>
+<p>而对<code>chunkserver</code>中的删除应该怎么进行呢?<strong>是通过心跳交互间接实现的.</strong></p>
+<p><code>chunkserver</code>和<code>master</code>的心跳包中,会有关于其<code>chunks</code>的信息,<code>master</code>进而响应其中有哪些没有相应的<code>metadata</code>,<code>chunkserver</code>接受到之后进而在检查这些<code>chunks</code>,然后执行删除.</p>
 <h3 id="stale-replica-detection">Stale Replica Detection</h3>
 <p><code>master</code>中对于每个<code>chunk</code>都会维护版本号,版本号会在每次<code>lease</code>时对相应的版本号进行自增(发生在<code>metadata</code>本地的),然后会将版本号告诉其他<code>replicas</code>.</p>
 <p>如果某个<code>replica</code>不可用,就收不到版本更新的消息,也就不会自增,当重新上线时,向<code>master</code>发送心跳包时(附带版本号),这个时候可以比对发现此<code>replica</code>的问题.如果<code>master</code>的版本比较低,将会更新为这个比较高的版本.</p>
 <p>对于出现版本过旧的<code>replica</code>会在<strong>定时</strong>地垃圾收集任务中删除有过期问题的<code>replicas</code>,如果<code>client</code>对过期的<code>chunk</code>发出请求,<code>master</code>会响应此<code>chunk</code>不存在.</p>
 <h2 id="容错和诊断">5.容错和诊断</h2>
 <h3 id="high-availability">High Availability</h3>
+<p>其中主要的策略是<code>fast recovery</code>和<code>replication</code>.</p>
+<p>GFS对于<code>chunkserver</code>的退出状态,不区分正常和异常退出,通常也是通过<code>kiil</code>的方式去关闭<code>chunkserver</code>,此外<code>chunkserver</code>也是拥有快速重启的能力,所以<code>client</code>和<code>master</code>借助重发请求就可以做到<code>fast recovery</code>.</p>
+<p>此外,我们还会对<code>chunk</code>进行复制,一般情况下复制的级别是3,也就是有3份.</p>
+<p>对于<code>master</code>来说除了有<code>log + checkpoint</code>的容错机制除外,还会有一个<code>shadow master</code>,当<code>master</code>宕机,<code>shadow master</code>能够提供可读服务,但是<code>shadow master</code>和<code>master</code>只能保证是<strong>弱一致性</strong>的.</p>
+<p>这与<code>append</code>的特点有关,即使如此,只能说读不到比较新的数据,但不会读到错的旧数据.</p>
+<p>对于<code>shadow master</code>的更新来说,依靠的是<code>master</code>日志的<code>replicas</code>.</p>
+<p><code>shadow master</code><strong>不参与和其他<code>chunkserver</code>的通信</strong>.</p>
 <h3 id="data-integrity">Data Integrity</h3>
+<p>数据完整性就是检查存储的数据有无错误或者丢失.</p>
+<p>数据检查的工作会在<code>chunkserver</code>中有所进行,其使用的方式是<code>chunksum</code>.但如果通过比对不同<code>chunkserver</code>中的chunk来实现,将会是非常困难的.</p>
+<p><code>chunksum</code>和用户数据分开,但是存储在内存上,最终通过日志来持久化.</p>
+<p>当<code>client</code>向<code>chunkserver</code>发送请求时,首先<code>chunkserver</code>会对读操作涉及的block进行检验,如果不匹配就会向请求者<code>client</code>发送一个错误响应,并向<code>master</code>报告错误,<code>client</code>收到之后就向另一个<code>replica</code>请求读取,<code>master</code>则会从另一个<code>replica</code>克隆数据块,并指示<code>chunkserver</code>删除其<code>replica</code>.</p>
+<p>对于最有特色的<code>apend</code>操作来说,会有额外的优化,就是<strong>增加最后部分block对应的chunksum</strong>就可以了.</p>
 
                 
             </div>
@@ -659,7 +694,7 @@ Rebalancing</h3>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/071534552.html">http://example.com/2022/071534552.html</a>
+                    <a href="http://example.com/2022/07151.html">http://example.com/2022/07151.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -696,15 +731,7 @@ Rebalancing</h3>
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            
-                                <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                    <span class="chip bg-color">分布式系统</span>
-                                </a>
-                            
-                                <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
-                                    <span class="chip bg-color">存储系统</span>
-                                </a>
-                            
+                            <span class="chip bg-color">No tag</span>
                         </div>
                     
                 </div>
@@ -751,18 +778,19 @@ Rebalancing</h3>
                 <i class="far fa-dot-circle"></i>&nbsp;Current
             </div>
             <div class="card">
-                <a href="/2022/071534552.html">
+                <a href="/2022/07151.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png" class="responsive-img" alt="The Google File System 论文阅读笔记">
                         
-                        <span class="card-title">The Google File System 论文阅读笔记</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="">
+                        
+                        <span class="card-title"></span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            google分布式三驾马车之一.
+                            
                         
                     </div>
                     <div class="publish-info">
@@ -778,18 +806,6 @@ Rebalancing</h3>
                     </div>
                 </div>
 
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">分布式系统</span>
-                    </a>
-                    
-                    <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">存储系统</span>
-                    </a>
-                    
-                </div>
                 
             </div>
         </div>
