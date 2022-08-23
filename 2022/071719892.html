@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="MapReduce, Yfs&#39;s Box">
+    <meta name="keywords" content="raft算法, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>MapReduce | Yfs&#39;s Box</title>
+    <title>raft算法 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2018%2007%2014%2040%201658099680%201658099680773%20OKxB4V%20image-20220718071440681%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">MapReduce</h1>
+                    <h1 class="description center-align post-title">raft算法</h1>
                 </div>
             </div>
         </div>
@@ -448,6 +448,10 @@
                                 <span class="chip bg-color">分布式系统</span>
                             </a>
                         
+                            <a href="/tags/%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/">
+                                <span class="chip bg-color">共识算法</span>
+                            </a>
+                        
                     </div>
                     
                 </div>
@@ -460,7 +464,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-07-07
+                    2022-07-17
                 </div>
                 
 
@@ -469,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.3k
+                    3.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    4 Min
+                    11 Min
                 </div>
                 
 
@@ -494,83 +498,132 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="abstract">0.Abstract</h2>
-<p><code>MapReduce</code>是一种编程模型,一般用于在分布式系统上并行地处理大规模数据.</p>
-<p>对于在此框架上开发的程序员来说,主要制定<code>map</code>和<code>reduce</code>这两个函数,一般情况下,前者的输入和输出都是k-v的,后者则合并前者生成的中间结果.</p>
-<h2 id="introduction">1.Introduction</h2>
-<p>其实在很多大规模计算的场景下,难点并不在于原始计算本身,而在于<strong>在分布式系统中,如何并行计算,分配数据,容错处理等问题</strong>.</p>
-<p><code>MapReduce</code>的核心作用就在于提供一种抽象,不需要考虑太多上述问题.</p>
-<p>其设计思想:很多计算可以视为,将数据分解为一个个记录,每个记录可以经过一个<code>Map</code>函数,形成一个k-v元组,而<code>Reduce</code>可以将相同<code>key</code>值的元组合并在一起.</p>
-<p>这是一种<strong>分而治之</strong>的思想.</p>
-<h2 id="programming-model">2. Programming Model</h2>
-<p><code>User</code>在设计时,主要考虑的是<code>Map</code>和<code>Reduce</code>.</p>
-<p>一个比较简单的应用就是统计单词数量.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2044%2014%201657208654%201657208654216%208vHJaN%20image-20220707234414092%20.png" alt="image-20220707234414092" style="zoom: 50%;"></p>
-<p>一个<code>map</code>处理的是一个k-v对,每处理一个k-v对,就将相应的w的value
-+ 1.</p>
-<p>一个<code>reduce</code>只处理一个<code>key</code>,参数中的迭代器是从中间结果中收集的<code>values</code>,将这些<code>values</code></p>
-<p>累加起来即可.累加结束后,形成最终的key对应的结果.</p>
-<p>除此之外还有其他应用:</p>
+                <p><code>raft</code>是一种维护日志一致性的共识算法.在此,为什么要维护日志的一致性呢?其所依据的结论是,对于起始状态和接受指令都相同的状态机,能够保持状态的一致,而“接受指令”则借助日志来记录.</p>
+<p>其所包含的关键环节是:</p>
 <ul>
-<li>从日志文件中,统计<code>url</code>的访问频率.</li>
-<li>Reverse Web-Link Graph.</li>
-<li>倒序索引.</li>
-<li>分布式排序.</li>
+<li><code>leader election</code>.</li>
+<li><code>log replication</code>.</li>
+<li><code>safety</code>.</li>
 </ul>
-<p>总体的运行图如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" alt="image-20220707235622564" style="zoom:50%;"></p>
-<h2 id="implementation">3.Implementation</h2>
-<p>这一部分描述的实现方式主要适用于(使用交换式以太网连接的):</p>
+<h2 id="introduction">Introduction</h2>
+<p>在此之前<code>Paxos</code>是主流的一致性算法,但是其实现和理解难度比较高.<code>raft</code>性能与之差别不大,但是实现和理解的难度比较低.</p>
+<p>其中的关键的环节有:<code>leader election</code>,<code>log replication</code>,<code>safety</code>,<code>state space reduction</code>.</p>
+<p>其中相比其他的共识算法,<code>raft</code>有几个独特的地方:</p>
 <ul>
-<li>x86双处理器,linux系统,内存2-4GB.</li>
-<li>一个集群数百或者上千个机器.</li>
-<li>网络方面,一般有100Mb/s或者1Gb/s.</li>
-<li>存储硬件上,每个机器有直连的IDE硬盘,同时有运行的分布式文件系统,提供容错服务.</li>
-<li>用户像调度系统提交一组任务,每组任务可经过调度系统分配给某些机器.</li>
+<li><code>Strong leader</code>,始终有一个全局性的<code>leader</code>负责分发<code>log</code>到其他的<code>server</code>.</li>
+<li><code>Leader election</code>,在心跳机制上,使用随机计时器来实现的.</li>
+<li><code>Membership changes</code>.当集群中的配置(Membership)要进行变化时,使用一种机制能够保证在变化期间正常运行.</li>
 </ul>
-<p>所以,一般来说,描述一个集群的配置,往往从如下角度分析:</p>
+<h2 id="replicated-state-machines">Replicated state machines</h2>
+<p><code>replicated state machines</code>是这种共识算法应用的基本情景,其用于解决容错问题.</p>
+<p>在这里,状态机也会有多个副本,并且在系统运行时,属于副本的状态机也会进行计算和更新.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2011%2036%2012%201658028972%201658028972925%2010hgda%20image-20220717113612839%20.png" alt="Replicated state machine" style="zoom: 50%;"></p>
+<blockquote>
+<p>图中提到,日志中维护了状态机所接受过的指令,在初始状态相同的情况下,接收到相同的指令(按照顺序)就可以得到相同的输出,因此可以借助日志来恢复状态.</p>
+</blockquote>
+<p>其实现方式主要是,对日志进行复制.如上面所说.</p>
+<p>因而这个算法的核心目的就是<strong>维护日志副本的一致性</strong>.每一个<code>server</code>上都会有相应的共识组件,共识组件不仅仅执行写入日志的功能,<code>server</code>之间的共识组件可以进行交互,进而可以确定这些<code>server</code>中的log是接受的请求是相同并且顺序相同的.只要日志的一致性没有问题,即使发生故障,也可以理想地恢复.</p>
+<p>实际使用的系统的共识算法需要如下的特性:</p>
 <ul>
-<li>机器的硬件(处理器,内存等),操作系统.</li>
-<li>规模(机器数量).</li>
-<li>网络带宽与存储(硬件和软件).</li>
+<li>非拜占庭条件下保证一致性.</li>
+<li>在多数节点存活时,保持可用性.</li>
+<li>不依赖于时间,时钟错误和高延迟只会导致可用性问题.</li>
+<li>在多数节点一致后就返回结果,不会受到个别慢节点的影响。</li>
 </ul>
-<h3 id="execution-overview">3.1 Execution Overview</h3>
-<p>再次复现一下这个过程,结合上面的图片:</p>
+<h2 id="the-raft-consensus-algorithm">The Raft consensus algorithm</h2>
+<p>其实现共识的方式简而言之,首先选举出一个<code>leader</code>,这个<code>leader</code>具有管理日志副本的功能,并且接受来自<code>clients</code>的日志条目,将其复制到其他的<code>server</code>上.并且告诉他们<strong>服务器何时可以安全地将日志条目应用于其状态机</strong>.当一个<code>leader</code>宕机故障时,采用选举的方式替代之.</p>
+<p>进一步地,可以将共识问题分解为三个子问题:</p>
 <ul>
-<li>在用户程序中所使用的<code>MapReduce</code>库,将输入的文件<code>split</code>成(16-64
-MB)大小的部分(M个),然后 MapReduce
-在一个机器集群上启动很多个程序的副本.</li>
-<li>在这些启动的程序副本中,分为<code>master</code>和<code>worker</code>,前者是特殊的,一般有一个.由M个<code>Map</code>任务,<code>R</code>个<code>Reduce</code>任务,<code>master</code>具有为<code>worker</code>分工的功能.</li>
-<li>对于分工到<code>Map</code>任务的<code>worker</code>读取到一份<code>split</code>,然后解析出输入的k-v,并带入<code>Map</code>函数,进而产生结果,结果缓存在内存中.</li>
-<li>缓存在内存中的<code>intermediate pairs</code>会被写的disk中,会被<code>partitioning function</code>分成<code>R</code>份,被写到的disk的位置会告知<code>master</code>,进而可以使<code>master</code>在分配<code>Reduce</code>任务时,告知<code>worker</code>的需要的输入路径.</li>
-<li>当<code>worker</code>收到了<code>master</code>通告的<code>disk</code>地址,就通过rpc从相应的disk读取内容,读取完之后,根据key进行排序.</li>
-<li><code>worker</code>将排好序的数组进行遍历,将每个key值对应的<code>values</code>集合,根据<code>reduce</code>得出结果,最终输出到文件.</li>
-<li>当所有<code>map</code>和<code>reduce</code>结束,<code>master</code>唤醒用户进程,<code>MapReduce</code>调用返回.</li>
+<li><code>Leader election</code>,一般用于当前<code>leader</code>故障的时候.</li>
+<li><code>Log replication</code>,<code>leader</code>必须接收来自clients的日志条目,并且将其复制扩散到集群中.</li>
+<li><code>Safety</code>,如果某一个状态机对于某个日志已经接收到某一条,那么其他的所有<code>server</code>上的状态机都得对此日志处于同步(同一条记录)的.</li>
 </ul>
-<h3 id="master-data-structures">3.2 Master Data Structures</h3>
+<h3 id="raft-basics">1.Raft basics</h3>
+<p>总的来说,其设计要求系统能够容忍两种错误,<code>server</code>有三种状态:<code>leader,follower,candidate</code>,一般是一个<code>leader</code>其他都是<code>follower</code>.</p>
+<p>对于从者,来说只会对来自<code>leader,condidate</code>的请求作出响应(不处理client的请求).<code>leader</code>会处理所有<code>client</code>的请求.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2012%2048%2005%201658033285%201658033285416%20hh8JeO%20image-20220717124805339%20.png" alt="Server states" style="zoom:50%;"></p>
+<p><code>followers</code>会接受到来自<code>leader</code>的心跳包,则可以怀疑这个<code>leader</code>是否出现问题,如果一段时间没有接收到,就会变成<code>condidate</code>,并且发起竞选并参与竞选,票数占据集群较多的当选为新的<code>leader</code>.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2012%2055%2000%201658033700%201658033700464%20Cp2g5E%20image-20220717125500382%20.png" alt="image-20220717125500382" style="zoom:50%;"></p>
+<p>这可以看作是整个系统的逻辑时钟.每一个term开始的时候都会开始一个选举的过程,如果出现选不出来的情况,就接着进入下一个term并判随着新一轮选举的开始.</p>
+<p>每个<code>server</code>都会保存当前的term,并随时间增长,这涉及到过期状态的判断:</p>
 <ul>
-<li>记录任务状态.包括<code>Map</code>和<code>Reduce</code>的状态(空闲,处理中,完成).</li>
-<li>R个中间结果的位置与大小.</li>
+<li>当<code>server</code>之间的服务器需要交换term,如果一个服务器的term比较小,就更新成大的.</li>
+<li>如果一个<code>leader,condidate</code>自己的term过期了,就退出成follower.</li>
+<li>如果一个<code>server</code>接收到的是过期的,就拒绝或忽略请求.</li>
 </ul>
-<h3 id="fault-tolerance">3.3 Fault Tolerance</h3>
-<h4 id="worker-failure">Worker Failure</h4>
-<p><code>master</code>会周期性地ping
-<code>workers</code>.超出特定时间没有回应就说明此<code>worker</code>宕机.</p>
-<p>宕机的<code>worker</code>相应的任务会被设置为空闲,然后进行重新分配.</p>
-<p><code>Reduce</code>已经完成但是宕机的任务无需重新执行,因为其输出文件在全局文件系统中,而<code>Map</code>则需要重新做,因为其输出文件一般在已经故障的机器的本地disk上.</p>
-<p>如果有一个<code>Map</code>任务因故障而重新分配了,此时所有正在运行的<code>Reduce</code>都需要重做.</p>
-<h4 id="master-failure">Master Failure</h4>
-<p>一般情况下,只有一个<code>master</code>故障的可能性比较低,一旦故障就会终止整个<code>MapReduce</code>.</p>
-<p>对于任务的状态,<code>master</code>会进行维护,故障后新的<code>master</code>可以继续从最近的任务状态检查点进行.</p>
-<h4 id="semantics-in-the-presence-of-failures">Semantics in the Presence
-of Failures</h4>
-<p>暂鸽</p>
-<h3 id="locality">3.4 Locality</h3>
-<p>网络带宽是一种稀缺的资源.</p>
-<p>论文中的实验部署在GFS中,GFS 将每个文件划分为多个 64MB
-的块,每个块都会存几个副本(一般是 3 个)在不同的机器上.</p>
-<p>尽可能地从本地磁盘上读取数据是一种节省网络带宽的好办法.所以<code>master</code>在分配<code>Map</code>任务时,尽可能保证分配到一个有该任务相应副本的机器.</p>
-<p>最终呈现的效果是,在大规模运行时,<code>worker</code>大多数输入数据是从本地读取的.</p>
+<blockquote>
+<p>raft中,会通过RPC进行通信,主要有两个:</p>
+<ul>
+<li><code>RequestVote</code>,竞选者发起.</li>
+<li><code>AppendEntries</code>,被<code>leader</code>发起用于向其他节点发送追加日志的请求,也用于心跳包的发送.</li>
+</ul>
+</blockquote>
+<h3 id="leader-election">2. Leader election</h3>
+<p><strong>心跳机制</strong>会触发选举.</p>
+<p>一个<code>follower</code>只要及时接收合法的RPC,就会一直保持follower,否则就要成为竞选者了.</p>
+<p><code>leader</code>也是会周期性地向它的<code>follower</code>发送心跳包的(彰显作为领袖的权威).</p>
+<p>当要开始进行选举的时候,这个<code>follower</code>就会调用RequestVote,并进入<code>condidate</code>状态.要么当选为leader,要么没有赢家,要么没被选上.(一般情况下,赢得最多选票的<code>condidate</code>会当选).</p>
+<p>如果没有赢家,这些竞选者就会递增term,并调用RequestVote,发起新一轮选举.</p>
+<p>为了保证这种情况尽可能少发生,采用了<strong>随机选举超时机制,每一个condidate在发起选举后,都会随机化一个新的选举超时时间,一旦超时没有完成,就会增加自己的term,并发起新一轮选举</strong>.</p>
+<h3 id="log-replication">3. Log replication</h3>
+<p>当一个节点称为<code>server</code>后,就开始对<code>client</code>的请求开始处理,对于发送请求的客户端,每一个都包含一个命令用于状态机的执行.</p>
+<p>当接收到用户的<code>client</code>后,会先在本地生成一个<code>&lt;term,index,cmd&gt;</code>的日志条目并追加到自己的末尾,进而再进行广播.<strong>注意这个广播最好是并行的</strong>.</p>
+<p>当<code>follower</code>接收到该条目之后,就写入自己的日志中,并返回同意.如果<code>leader</code>收到了多数成功的答复,就将此条目执行到自己的状态机中.进而可以这个条目是<code>commited</code>的,然后再被广播到其他节点,进而其他节点在进行commited.</p>
+<p>所以,可以说,对于一个命令,<code>leader</code>先自己写日志,然后在广播给<code>follower</code>写,如果没有异常的话,<code>leader</code>在自己<code>commited</code>,然后通知<code>followers</code>进行<code>committed</code>.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2017%2022%2047%2048%201658069268%201658069268400%20HPH6tN%20image-20220717224748288%20.png" alt="image-20220717224748288" style="zoom: 50%;"></p>
+<p>此外,需要保证性质:</p>
+<p><strong>在两个日志中,如果有两个条目拥有相同的index和term,其cmd也相同,他们前面的条目也相同.</strong>由于这些条目是在<code>leader</code>中产生的,所以能够保证cmd的相同,而对于后半句的条件则需要一致性检查来进行.其步骤如下:</p>
+<p><code>leader</code>再通过<code>AppendEntriesRPC</code>和<code>follower</code>通信时,会带上条目的信息,而<code>folloer</code>在接收到会对比自己的日志,如果发现和自己的不符合,就会拒绝.这是<code>leader</code>接收到拒绝的消息后就会和该<code>follower</code>进行细致地比对,找到最大的共识点,利用leader的条目重写folloer的日志.</p>
+<p>当在进行比对的时候,leader会从后向前逐个尝试,如果仍然是拒绝,就在向前的条目尝试.直到找到共识点.</p>
+<p>因此,每个<code>leader</code>都会为<code>followers</code>维护一个索引表,在当选为<code>leader</code>时,其索引默认为<code>leader</code>自己日志的index+1,每接收到一个节点的拒绝信号,就将对应的nextindex-1.</p>
+<h3 id="safety">4.Safety</h3>
+<h4 id="election-restriction">1)Election restriction</h4>
+<p>对于<code>leader</code>来说,需要保证其包含最全面最新的日志记录.但是该如何实现呢?</p>
+<p>在raft中,不会像其他的共识算法需要将自己缺少的记录从别的节点上传输过来.<strong>因为他直接预防存在缺少记录的节点称为<code>leader</code></strong>.</p>
+<p>因为被选举出来的<code>leader</code>会和节点中的大部分进行交互,是得到了它们的认可的,这么大比重中,很容易就包含最新最全的节点.</p>
+<p>所以在竞选者所使用的<code>RequestVote</code>中,会附带自己的log记录,这样可以是参与选举的节点,和自己的日志进行比对,比对是否比自己的版本更新.对于比对的细节,主要是比对<code>index</code>和<code>term</code>.</p>
+<h4 id="committing-entries-from-previous-terms">2)Committing entries
+from previous terms</h4>
+<p>之前说过,在确定大多数<code>follower</code>已经存储好某个条目时,就会将该条目<code>commited</code>,但如果还没有提交就出现故障了呢?</p>
+<p>这个时候自然会需要新的<code>leader</code>来代替它,并继续尝试复制这个条目.<strong>但是他不能确定这个时候其前任有没有将被认为已经在多数节点存储的条目完成提交</strong>.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2018%2007%2027%2038%201658100458%201658100458736%20iVuFhb%20image-20220718072738652%20.png" alt="image-20220718072738652">
+<figcaption aria-hidden="true">image-20220718072738652</figcaption>
+</figure>
+<h4 id="safety-argument">3)Safety argument</h4>
+<p>### 5.Follower and candidate crashes</p>
+<p>相对于<code>leader</code>的崩溃而言,其处理方式比较简单.</p>
+<p>这类崩溃最主要的特点就是后续发送的RPC都会失败,<strong>其处理方式就是对RPC进行不断地重试</strong>,如果这个时候一个节点崩溃,他所接受的RPC就会没有响应,直到其重启,才可以完成地完成一个RPC.</p>
+<h3 id="timing-and-availability">6.Timing and availability</h3>
+<h2 id="cluster-membership-changes">Cluster membership changes</h2>
+<p>这一部分主要针对于当我们需要对系统配置作出改变时的处理机制.</p>
+<p>需要避免的问题在于,在转换的过程中不能存在任何时间点使得两个<code>leader</code>被选举在同一个任期.我们不可能一次性地直接完成节点的迁移.这毕竟会有一个迁移的过程,因此整个集群存在划分成两个群体的可能.也就是新旧两种集体.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2018%2008%2003%2010%201658102590%201658102590391%20O503mR%20image-20220718080310306%20.png" alt="image-20220718080310306" style="zoom:33%;"></p>
+<p>所以采用两阶段的方法,首先在第一阶段停掉旧的配置所以集群就不能处理客户端请求.然后启用新的配置.在<code>raft</code>中,集群先切换到一个过渡的配置,称为共同一致,一旦被提交了就切换到新的配置上.</p>
+<h2 id="log-compaction">Log compaction</h2>
+<p>日志不能无限制地增长,因为当长度过长时,就会占用更多的内存,传播时间也会更长.</p>
+<p><strong>快照是一种日志压缩技术</strong>.在快照中需要将当前的系统状态写入一个<code>snapshotting</code>中,写入之后,在这个<code>snapshotting</code>之内的日志项会被丢弃.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2002%2010%2037%2006%201659407826%201659407826932%20yoRO8R%20image-20220802103706860%20.png" alt="image-20220802103706860" style="zoom:50%;"></p>
+<p>这张图中展示了有关于快照技术的基本概念,当一个server中的log数目超过一定的数量,就会生成一个新的snapshot将这些条目进行替代.其中在raft中包含了<code>last included index</code>就和<code>last included term</code>是该<code>snapshot</code>所对应的日志中的最后一项的索引和任期.这便于在后来该节点收到<code>addentry</code>的RPC请求时进行比对.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2002%2010%2031%2019%201659407479%201659407479013%20A9IkkK%20image-20220802103118908%20.png" alt="image-20220802103118908" style="zoom: 50%;"></p>
+<p>server不仅仅是独立地在本地生成快照并对log进行替换,leader也需要向比较落后的follower发送快照.其中<code>InstallSnapshot</code>是最主要的RPC,这个RPC用于由leader向follower发送快照.对于接受的<code>follower</code>来说需要做什么操作呢?</p>
+<p>如果其中包含新的条目,就丢弃整个日志,并被快照所取代.如果是之前所含有的条目(由于乱序或者延迟导致),则只是用快照替换所包含的部分,快照之后的部分将会被保留且仍然有效.</p>
+<p>关于快照技术主要考虑的是两种性能问题:</p>
+<ul>
+<li>生成快照的时机,如果太频繁,将会浪费磁盘空间和带宽,不够频繁的话,就容易导致日志过大进而超出容量,延长处理时间.<strong>在此,当日志超过一定的字节数就会生成快照</strong>.</li>
+<li>写快照会造成显著的开销,<strong>更不希望会因此对其他操作造成阻塞</strong>.所以在实现上采用了写时复制的技术.</li>
+</ul>
+<h2 id="client-interaction">Client interaction</h2>
+<p>这一部分主要讨论的是,client如何找到<code>leader</code>,毕竟只有leader才可以和client进行直接的交互.另一部分讨论的是,Raft如何支持线性语义的.</p>
+<blockquote>
+<p><strong>线性语义是什么?</strong></p>
+<p>每个操作似乎在请求和响应之间的某个时间点就完成了.</p>
+</blockquote>
+<p>当一个client启动时,随机连接一个server,如果不是leader将会在RPC的回复中给予一个否定,还会附加一个<strong>最近的leader</strong>的信息.当leader挂掉时,此时client与它的请求就会超时,这是就会尝试从其他server中寻找新的leader.</p>
+<p>关于线性语义的实现上,在Raft运行的过程中,一个command可能会执行多次.比如说一个leader在提交完一个日志记录后宕机,但是还没有为client作出响应,这个时候client就会向其他节点重试.<strong>解决方案是</strong>为每个command附加一个序列号,response会与之对应,如果接收到一个其序列号之前已经执行过的command,就会不经过重试直接进行响应.</p>
+<p>对于只读操作容易出现的问题是:<strong>读不到最新的数据</strong>.</p>
+<h2 id="implementation-and-evaluation">Implementation and
+evaluation</h2>
 
                 
             </div>
@@ -597,7 +650,7 @@ of Failures</h4>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/070764376.html">http://example.com/2022/070764376.html</a>
+                    <a href="http://example.com/2022/071719892.html">http://example.com/2022/071719892.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -637,6 +690,10 @@ of Failures</h4>
                             
                                 <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
                                     <span class="chip bg-color">分布式系统</span>
+                                </a>
+                            
+                                <a href="/tags/%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/">
+                                    <span class="chip bg-color">共识算法</span>
                                 </a>
                             
                         </div>
@@ -684,23 +741,24 @@ of Failures</h4>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/070837932.html">
+                <a href="/2022/080656355.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2008%2020%2024%2050%201657283090%201657283090375%20OfzMcY%20image-20220708202450275%20.png" class="responsive-img" alt="关于go语言的一些事儿">
                         
-                        <span class="card-title">关于go语言的一些事儿</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="分布式系统中的线性一致性">
+                        
+                        <span class="card-title">分布式系统中的线性一致性</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            关于golang这门语言,我很大程度上是边做边学的,并没有经过太系统的学习,所以我打算将我在做的过程中遇到的一些问题和一些思考记录下来.
+                            在做mit 6.824 lab3的时候有些地方一头雾水,感觉需要补充点理论性的东西.
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-08
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-08-06
                         </span>
                         <span class="publish-author">
                             
@@ -713,8 +771,8 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/golang/">
-                        <span class="chip bg-color">golang</span>
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
                     </a>
                     
                 </div>
@@ -728,33 +786,28 @@ of Failures</h4>
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/06211691.html">
+                <a href="/2022/071534552.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png" class="responsive-img" alt="The Google File System 论文阅读笔记">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
-                        
-                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
+                        <span class="card-title">The Google File System 论文阅读笔记</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
+                            google分布式三驾马车之一.
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-15
                             </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
-                                    源码分析
-                                </a>
-                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
                             
                         </span>
                     </div>
@@ -762,12 +815,12 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
                     </a>
                     
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">存储系统</span>
                     </a>
                     
                 </div>

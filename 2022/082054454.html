@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="MapReduce, Yfs&#39;s Box">
+    <meta name="keywords" content="linux多线程服务器编程模型及其相关实现要点, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>MapReduce | Yfs&#39;s Box</title>
+    <title>linux多线程服务器编程模型及其相关实现要点 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2020%2011%2001%2045%201660964505%201660964505026%20VcusSE%20image-20220820110144906%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">MapReduce</h1>
+                    <h1 class="description center-align post-title">linux多线程服务器编程模型及其相关实现要点</h1>
                 </div>
             </div>
         </div>
@@ -444,8 +444,16 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                <span class="chip bg-color">分布式系统</span>
+                            <a href="/tags/c/">
+                                <span class="chip bg-color">c++</span>
+                            </a>
+                        
+                            <a href="/tags/%E5%90%8E%E7%AB%AF/">
+                                <span class="chip bg-color">后端</span>
+                            </a>
+                        
+                            <a href="/tags/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+                                <span class="chip bg-color">基础架构</span>
                             </a>
                         
                     </div>
@@ -460,7 +468,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-07-07
+                    2022-08-20
                 </div>
                 
 
@@ -469,14 +477,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.3k
+                    2.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    4 Min
+                    8 Min
                 </div>
                 
 
@@ -494,83 +502,100 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="abstract">0.Abstract</h2>
-<p><code>MapReduce</code>是一种编程模型,一般用于在分布式系统上并行地处理大规模数据.</p>
-<p>对于在此框架上开发的程序员来说,主要制定<code>map</code>和<code>reduce</code>这两个函数,一般情况下,前者的输入和输出都是k-v的,后者则合并前者生成的中间结果.</p>
-<h2 id="introduction">1.Introduction</h2>
-<p>其实在很多大规模计算的场景下,难点并不在于原始计算本身,而在于<strong>在分布式系统中,如何并行计算,分配数据,容错处理等问题</strong>.</p>
-<p><code>MapReduce</code>的核心作用就在于提供一种抽象,不需要考虑太多上述问题.</p>
-<p>其设计思想:很多计算可以视为,将数据分解为一个个记录,每个记录可以经过一个<code>Map</code>函数,形成一个k-v元组,而<code>Reduce</code>可以将相同<code>key</code>值的元组合并在一起.</p>
-<p>这是一种<strong>分而治之</strong>的思想.</p>
-<h2 id="programming-model">2. Programming Model</h2>
-<p><code>User</code>在设计时,主要考虑的是<code>Map</code>和<code>Reduce</code>.</p>
-<p>一个比较简单的应用就是统计单词数量.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2044%2014%201657208654%201657208654216%208vHJaN%20image-20220707234414092%20.png" alt="image-20220707234414092" style="zoom: 50%;"></p>
-<p>一个<code>map</code>处理的是一个k-v对,每处理一个k-v对,就将相应的w的value
-+ 1.</p>
-<p>一个<code>reduce</code>只处理一个<code>key</code>,参数中的迭代器是从中间结果中收集的<code>values</code>,将这些<code>values</code></p>
-<p>累加起来即可.累加结束后,形成最终的key对应的结果.</p>
-<p>除此之外还有其他应用:</p>
+                <p>linux多线程服务器中常用的线程模型及其相关实现</p>
+<h2 id="进程与线程">1.进程与线程</h2>
+<p>在这里狭义地讲进程定义为系统通过fork所产生的东西,线程则是<code>pthread_create</code>出来的东西,线程和进程之间最显著的区分点在于,其是否有独立的内存空间.多线程的程序也就是需要有共享内存空间和数据的程序.</p>
+<p>而在多线程服务程序中,根据线程所运行任务的种类可以分为:</p>
 <ul>
-<li>从日志文件中,统计<code>url</code>的访问频率.</li>
-<li>Reverse Web-Link Graph.</li>
-<li>倒序索引.</li>
-<li>分布式排序.</li>
+<li>I/O线程,比如说主循环是IO复用,也可以处理一些定时事件.</li>
+<li>计算线程,这类线程主循环是<code>blocking queue</code>,阻塞在条件变量上,线程池中的线程</li>
+<li>第三方库所用的线程,比如说日志,数据库等.</li>
 </ul>
-<p>总体的运行图如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" alt="image-20220707235622564" style="zoom:50%;"></p>
-<h2 id="implementation">3.Implementation</h2>
-<p>这一部分描述的实现方式主要适用于(使用交换式以太网连接的):</p>
+<p>如果系统是在分布式的情景下,节点需要通过网络通信来联系,比如说周期性地发送心跳包来证明自己的存在.这也是多进程中消息传递的IPC机制.</p>
+<h2 id="常用的编程模型">2.常用的编程模型</h2>
+<p>单线程服务器程序方面,最常见的方式也就是<code>Reactor</code>模式,也就是“非阻塞I/O
++ I/O复用”.其程序基本结构如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-while">while</span><span class="token punctuation">(</span>looping<span class="token punctuation">)</span><span class="token punctuation">{</span>
+		<span class="token keyword keyword-int">int</span> timeout_ms <span class="token operator">=</span> <span class="token function">max</span><span class="token punctuation">(</span><span class="token number">1000</span><span class="token punctuation">,</span><span class="token function">getNextTimedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  	<span class="token keyword keyword-int">int</span> retval <span class="token operator">=</span> <span class="token double-colon punctuation">::</span><span class="token function">poll</span><span class="token punctuation">(</span>fds<span class="token punctuation">,</span>nfds<span class="token punctuation">,</span>timeout_ms<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>retval <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      处理错误
+    <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+      处理到期的timers<span class="token punctuation">,</span>回调用户的timer handler
+      	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>retval <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          处理io事件
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中的poll可以是select,epoll等I/O复用.</p>
+<p>而对于多线程服务器方面,在这里主要介绍“non-blocking I/O + one loop per
+thread”模型.</p>
+<p>对于<code>one loop per thread</code>这个概念,即每个I/O线程都有一个主循环,这个主循环也就是用于<code>event loop</code>.配合线程池本身就分配好固定数量的线程,当有任务需要做的时候,就从中分配某个线程去做,也就是将<code>timer</code>或者<code>IO channel</code>注册到其中的loop里.</p>
+<p>而有关于线程池的实现,线程池中的线程池对于计算任务来说是消费者,而生产者则是运行I/O复用的主循环线程,在这个典型的生产者消费者模型中,采用条件变量是比较方便的.当没有任务需要处理的时候,线程都休眠于线程池的条件变量上,一旦有任务需要处理,则唤醒其中的线程进行处理.</p>
+<p>这个线程池的实现的更多细节,该class会维护一个任务队列,每一个task由一个处理函数和参数构成.在<code>muduo</code>中,run是线程池对外接受任务的接口,将task接收到之后加入到队列中后,并唤醒线程池中睡眠在条件变量中的线程,被唤醒的线程从任务队列中取出任务进行处理.</p>
+<p>所以总的来说,<code>even loop + thread pool</code>,前者用来做I/O(常用I/O复用),thread
+pool用来做计算.</p>
+<h2 id="使用tcp作为ipc">3. 使用TCP作为IPC</h2>
+<p>相比于signal,FIFO,消息队列等,TCP很显著的优势在于无论是单机还是多机都很方便,也就是修改“host:port”的功夫,跨机器很方便.</p>
+<p>对于socket的操作主要就是对于文件描述符的操作,并且每个进程都占用一个端口也防止了一个程序多次被打开,因为一个端口只能被一个进程占用,即使当退出时也会被操作系统自动回收.</p>
+<h2 id="多线程服务器的适用场景">4.多线程服务器的适用场景</h2>
+<p>在有多个机器组成的分布式系统是多线程的,因为线程不能跨越多个os.</p>
+<p>对于一个机器可采用的模式,主要采用“运行多个单线程的进程”,这种模式又可以划分为“无主,多主,单主”等模式.</p>
+<h2 id="多线程服务器实现要点">5.多线程服务器实现要点</h2>
+<p>在使用c/c++实现时,虽然必须要使用一部分posix
+threads函数,但往往都是对其进行简单地wrapper,而非直接调用.其中最最基础的需要就是:<strong>mutex,thread,condition</strong>的封装.</p>
+<p>其中mutex直接使用的情况不少,而对于thread一般也很少直接使用,通常在线程池中使用.</p>
+<p>谈到<code>thread</code>的实现的话,首要问题就是如何唯一地标识一个<code>thread</code>呢?</p>
+<p>posix的设计中确实有<code>pthread_t</code>这个数据类型可以作为标识符,并且有<code>pthread_self</code>可以获取该值,并且有<code>pthread_equal</code>作为比较标识符相等的函数.</p>
+<p>但是<code>pthread_t</code>这个变量有一个明显的问题,它的数值类型不确定,有可能是整型,指针或者结构体.所以print起来不方便,大小不能计算,也不能作为k-v中的key.</p>
+<p>并且如果是glibc的话,其pthread_t是一个结构体指针(unsigned
+long),指向动态分配的内存,反复使用的内存相对而言导致重复率比较高.</p>
+<p>所以<code>gettid(2)</code>是比较好的标识线程的方式.不过这个API并不是系统库中的,而是自己封装的.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token class-name">pid_t</span> <span class="token function">gettid</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//是对于syscall的封装</span>
+  <span class="token keyword keyword-return">return</span> static_cast<span class="token operator">&lt;</span><span class="token class-name">pid_t</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token operator">::</span><span class="token function">syscall</span><span class="token punctuation">(</span>SYS_gettid<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>返回值是int,是固定的,并且保证不重复,也便于在外界使用系统监控工具进行监控.</p>
+<p>在muduo中,对于tid的获取做出了优化,并非每次查看都调用这个API,而是为每个线程缓存这个值(相当于在线程内部的一个全局变量),只有第一次调用该线程时才会触发这个系统调用.正如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-int">int</span> <span class="token function">tid</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">__builtin_expect</span><span class="token punctuation">(</span>t_cachedTid <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token function">cacheTid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> t_cachedTid<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token class-name">CurrentThread</span><span class="token double-colon punctuation">::</span><span class="token function">cacheTid</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>t_cachedTid <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    t_cachedTid <span class="token operator">=</span> detail<span class="token double-colon punctuation">::</span><span class="token function">gettid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    t_tidStringLength <span class="token operator">=</span> <span class="token function">snprintf</span><span class="token punctuation">(</span>t_tidString<span class="token punctuation">,</span> <span class="token keyword keyword-sizeof">sizeof</span> t_tidString<span class="token punctuation">,</span> <span class="token string">"%5d "</span><span class="token punctuation">,</span> t_cachedTid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>除此之外,muduo中善于利用<code>__thread</code>,用此来缓存线程中的tid,这个可以将其理解为每个线程独有的线程内的“全局变量”.读取效率挺高.但是需要注意的是,它不可以表示class类型的变量,比如说string等,一般是整型,指针等.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-int">int</span> t_cachedTid<span class="token punctuation">;</span>
+<span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-char">char</span> t_tidString<span class="token punctuation">[</span><span class="token number">32</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-int">int</span> t_tidStringLength<span class="token punctuation">;</span>
+<span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span><span class="token operator">*</span> t_threadName<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="一些c-raii的使用">6.一些C++ RAII的使用</h2>
+<p>在使用一个资源的时候,最容易使人忽视的一个环节就是销毁资源的环节,比如说内存泄漏.但是我们可以利用RAII去管理资源,正如<code>effective c++</code>中所言.其原理可以简单地概括为,为管理某个资源专门设计一个class,借助局部对象的构造函数进行初始化,当离开作用域,会借助析构函数自动地释放资源.所以在使用时,在特定的作用域内直接定义一个该类型的对象即可.</p>
+<p>比如说muduo中,mutexguard类则是在构造函数中对一个mutex上锁,在析构函数中unlock.</p>
+<p>一个进程中会维护其所打开的文件描述符,所以对于多线程而言,所打开的文件描述符是一种共享资源,对于<code>socket</code>这个API的特点就是<strong>其返回值必须是当前可使用的最小描述符fd</strong>.所以当多线程有read,close,open出现时,容易导致并发问题.比如说:</p>
 <ul>
-<li>x86双处理器,linux系统,内存2-4GB.</li>
-<li>一个集群数百或者上千个机器.</li>
-<li>网络方面,一般有100Mb/s或者1Gb/s.</li>
-<li>存储硬件上,每个机器有直连的IDE硬盘,同时有运行的分布式文件系统,提供容错服务.</li>
-<li>用户像调度系统提交一组任务,每组任务可经过调度系统分配给某些机器.</li>
+<li>线程1,接收到fd 8的请求,进行耗时处理.</li>
+<li>线程2,将fd 8关闭.</li>
+<li>线程3,又得到一个新的socket,fd 8又打开了.</li>
 </ul>
-<p>所以,一般来说,描述一个集群的配置,往往从如下角度分析:</p>
+<p>会发生什么呢?</p>
+<p><strong>会导致线程1处理完后,要将响应发送给fd
+8的时候,但此时已经不再是当时fd 8了</strong>.</p>
+<p>虽然可以采取加锁的机制避免,但是并不好用.</p>
+<p>比较理想的方式就是采用RAII对Socket描述符进行包装.析构函数则关闭描述符.</p>
+<p>关于现代C++对象生命周期的管理,有的对象需要长期运行,比如说<code>server</code>,可以做成<strong>静态单例模式或者main函数中的栈上对象</strong>,而对于一些短命的对象,比如说<code>TcpConnection</code>等,我们需要借助引用计数进行管理,我们很难确定什么时候会没有对该对象的引用,所以难以手动delete.</p>
+<p>关于<code>shared_ptr</code>引用计数的使用,在muduo中,对<code>TcpConnection</code>对象的管理使用,这样可以<strong>防止TCP串话.</strong></p>
+<p>至此,回想RAII机制的使用,其中很关键的一点在于,确保构造和析构一一对应被调用.</p>
+<h2 id="简单的总结">7.简单的总结</h2>
 <ul>
-<li>机器的硬件(处理器,内存等),操作系统.</li>
-<li>规模(机器数量).</li>
-<li>网络带宽与存储(硬件和软件).</li>
+<li>尽可能地利用线程池来避免频繁地反复创建和销毁线程.</li>
+<li>线程的指责尽可能清晰,比如I/O,计算等.</li>
+<li>线程之间的通信尽可能使用消息传递,就像<code>golang</code>中的<code>channel</code>就是充分利用这种思想.</li>
 </ul>
-<h3 id="execution-overview">3.1 Execution Overview</h3>
-<p>再次复现一下这个过程,结合上面的图片:</p>
-<ul>
-<li>在用户程序中所使用的<code>MapReduce</code>库,将输入的文件<code>split</code>成(16-64
-MB)大小的部分(M个),然后 MapReduce
-在一个机器集群上启动很多个程序的副本.</li>
-<li>在这些启动的程序副本中,分为<code>master</code>和<code>worker</code>,前者是特殊的,一般有一个.由M个<code>Map</code>任务,<code>R</code>个<code>Reduce</code>任务,<code>master</code>具有为<code>worker</code>分工的功能.</li>
-<li>对于分工到<code>Map</code>任务的<code>worker</code>读取到一份<code>split</code>,然后解析出输入的k-v,并带入<code>Map</code>函数,进而产生结果,结果缓存在内存中.</li>
-<li>缓存在内存中的<code>intermediate pairs</code>会被写的disk中,会被<code>partitioning function</code>分成<code>R</code>份,被写到的disk的位置会告知<code>master</code>,进而可以使<code>master</code>在分配<code>Reduce</code>任务时,告知<code>worker</code>的需要的输入路径.</li>
-<li>当<code>worker</code>收到了<code>master</code>通告的<code>disk</code>地址,就通过rpc从相应的disk读取内容,读取完之后,根据key进行排序.</li>
-<li><code>worker</code>将排好序的数组进行遍历,将每个key值对应的<code>values</code>集合,根据<code>reduce</code>得出结果,最终输出到文件.</li>
-<li>当所有<code>map</code>和<code>reduce</code>结束,<code>master</code>唤醒用户进程,<code>MapReduce</code>调用返回.</li>
-</ul>
-<h3 id="master-data-structures">3.2 Master Data Structures</h3>
-<ul>
-<li>记录任务状态.包括<code>Map</code>和<code>Reduce</code>的状态(空闲,处理中,完成).</li>
-<li>R个中间结果的位置与大小.</li>
-</ul>
-<h3 id="fault-tolerance">3.3 Fault Tolerance</h3>
-<h4 id="worker-failure">Worker Failure</h4>
-<p><code>master</code>会周期性地ping
-<code>workers</code>.超出特定时间没有回应就说明此<code>worker</code>宕机.</p>
-<p>宕机的<code>worker</code>相应的任务会被设置为空闲,然后进行重新分配.</p>
-<p><code>Reduce</code>已经完成但是宕机的任务无需重新执行,因为其输出文件在全局文件系统中,而<code>Map</code>则需要重新做,因为其输出文件一般在已经故障的机器的本地disk上.</p>
-<p>如果有一个<code>Map</code>任务因故障而重新分配了,此时所有正在运行的<code>Reduce</code>都需要重做.</p>
-<h4 id="master-failure">Master Failure</h4>
-<p>一般情况下,只有一个<code>master</code>故障的可能性比较低,一旦故障就会终止整个<code>MapReduce</code>.</p>
-<p>对于任务的状态,<code>master</code>会进行维护,故障后新的<code>master</code>可以继续从最近的任务状态检查点进行.</p>
-<h4 id="semantics-in-the-presence-of-failures">Semantics in the Presence
-of Failures</h4>
-<p>暂鸽</p>
-<h3 id="locality">3.4 Locality</h3>
-<p>网络带宽是一种稀缺的资源.</p>
-<p>论文中的实验部署在GFS中,GFS 将每个文件划分为多个 64MB
-的块,每个块都会存几个副本(一般是 3 个)在不同的机器上.</p>
-<p>尽可能地从本地磁盘上读取数据是一种节省网络带宽的好办法.所以<code>master</code>在分配<code>Map</code>任务时,尽可能保证分配到一个有该任务相应副本的机器.</p>
-<p>最终呈现的效果是,在大规模运行时,<code>worker</code>大多数输入数据是从本地读取的.</p>
 
                 
             </div>
@@ -597,7 +622,7 @@ of Failures</h4>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/070764376.html">http://example.com/2022/070764376.html</a>
+                    <a href="http://example.com/2022/082054454.html">http://example.com/2022/082054454.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -635,8 +660,16 @@ of Failures</h4>
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                    <span class="chip bg-color">分布式系统</span>
+                                <a href="/tags/c/">
+                                    <span class="chip bg-color">c++</span>
+                                </a>
+                            
+                                <a href="/tags/%E5%90%8E%E7%AB%AF/">
+                                    <span class="chip bg-color">后端</span>
+                                </a>
+                            
+                                <a href="/tags/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+                                    <span class="chip bg-color">基础架构</span>
                                 </a>
                             
                         </div>
@@ -684,23 +717,24 @@ of Failures</h4>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/070837932.html">
+                <a href="/2022/082222915.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2008%2020%2024%2050%201657283090%201657283090375%20OfzMcY%20image-20220708202450275%20.png" class="responsive-img" alt="关于go语言的一些事儿">
                         
-                        <span class="card-title">关于go语言的一些事儿</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="C++ 实现同步基础组件">
+                        
+                        <span class="card-title">C++ 实现同步基础组件</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            关于golang这门语言,我很大程度上是边做边学的,并没有经过太系统的学习,所以我打算将我在做的过程中遇到的一些问题和一些思考记录下来.
+                            
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-08
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-08-22
                         </span>
                         <span class="publish-author">
                             
@@ -713,8 +747,12 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/golang/">
-                        <span class="chip bg-color">golang</span>
+                    <a href="/tags/c/">
+                        <span class="chip bg-color">c++</span>
+                    </a>
+                    
+                    <a href="/tags/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+                        <span class="chip bg-color">基础架构</span>
                     </a>
                     
                 </div>
@@ -728,33 +766,28 @@ of Failures</h4>
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/06211691.html">
+                <a href="/2022/081860215.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2022%2019%2026%2031%201661167591%201661167591214%20AWZX4w%20image-20220822192631134%20.png" class="responsive-img" alt="ddia:Chapter 5 Replication">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
-                        
-                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
+                        <span class="card-title">ddia:Chapter 5 Replication</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
+                            
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-08-18
                             </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
-                                    源码分析
-                                </a>
-                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
                             
                         </span>
                     </div>
@@ -762,12 +795,12 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
                     </a>
                     
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/ddia/">
+                        <span class="chip bg-color">ddia</span>
                     </a>
                     
                 </div>

@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="MapReduce, Yfs&#39;s Box">
+    <meta name="keywords" content="C++ 实现同步基础组件, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>MapReduce | Yfs&#39;s Box</title>
+    <title>C++ 实现同步基础组件 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/banner/1.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">MapReduce</h1>
+                    <h1 class="description center-align post-title">C++ 实现同步基础组件</h1>
                 </div>
             </div>
         </div>
@@ -444,8 +444,12 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                <span class="chip bg-color">分布式系统</span>
+                            <a href="/tags/c/">
+                                <span class="chip bg-color">c++</span>
+                            </a>
+                        
+                            <a href="/tags/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+                                <span class="chip bg-color">基础架构</span>
                             </a>
                         
                     </div>
@@ -460,7 +464,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-07-07
+                    2022-08-22
                 </div>
                 
 
@@ -469,7 +473,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.3k
+                    1.2k
                 </div>
                 
 
@@ -494,83 +498,120 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="abstract">0.Abstract</h2>
-<p><code>MapReduce</code>是一种编程模型,一般用于在分布式系统上并行地处理大规模数据.</p>
-<p>对于在此框架上开发的程序员来说,主要制定<code>map</code>和<code>reduce</code>这两个函数,一般情况下,前者的输入和输出都是k-v的,后者则合并前者生成的中间结果.</p>
-<h2 id="introduction">1.Introduction</h2>
-<p>其实在很多大规模计算的场景下,难点并不在于原始计算本身,而在于<strong>在分布式系统中,如何并行计算,分配数据,容错处理等问题</strong>.</p>
-<p><code>MapReduce</code>的核心作用就在于提供一种抽象,不需要考虑太多上述问题.</p>
-<p>其设计思想:很多计算可以视为,将数据分解为一个个记录,每个记录可以经过一个<code>Map</code>函数,形成一个k-v元组,而<code>Reduce</code>可以将相同<code>key</code>值的元组合并在一起.</p>
-<p>这是一种<strong>分而治之</strong>的思想.</p>
-<h2 id="programming-model">2. Programming Model</h2>
-<p><code>User</code>在设计时,主要考虑的是<code>Map</code>和<code>Reduce</code>.</p>
-<p>一个比较简单的应用就是统计单词数量.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2044%2014%201657208654%201657208654216%208vHJaN%20image-20220707234414092%20.png" alt="image-20220707234414092" style="zoom: 50%;"></p>
-<p>一个<code>map</code>处理的是一个k-v对,每处理一个k-v对,就将相应的w的value
-+ 1.</p>
-<p>一个<code>reduce</code>只处理一个<code>key</code>,参数中的迭代器是从中间结果中收集的<code>values</code>,将这些<code>values</code></p>
-<p>累加起来即可.累加结束后,形成最终的key对应的结果.</p>
-<p>除此之外还有其他应用:</p>
-<ul>
-<li>从日志文件中,统计<code>url</code>的访问频率.</li>
-<li>Reverse Web-Link Graph.</li>
-<li>倒序索引.</li>
-<li>分布式排序.</li>
-</ul>
-<p>总体的运行图如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" alt="image-20220707235622564" style="zoom:50%;"></p>
-<h2 id="implementation">3.Implementation</h2>
-<p>这一部分描述的实现方式主要适用于(使用交换式以太网连接的):</p>
-<ul>
-<li>x86双处理器,linux系统,内存2-4GB.</li>
-<li>一个集群数百或者上千个机器.</li>
-<li>网络方面,一般有100Mb/s或者1Gb/s.</li>
-<li>存储硬件上,每个机器有直连的IDE硬盘,同时有运行的分布式文件系统,提供容错服务.</li>
-<li>用户像调度系统提交一组任务,每组任务可经过调度系统分配给某些机器.</li>
-</ul>
-<p>所以,一般来说,描述一个集群的配置,往往从如下角度分析:</p>
-<ul>
-<li>机器的硬件(处理器,内存等),操作系统.</li>
-<li>规模(机器数量).</li>
-<li>网络带宽与存储(硬件和软件).</li>
-</ul>
-<h3 id="execution-overview">3.1 Execution Overview</h3>
-<p>再次复现一下这个过程,结合上面的图片:</p>
-<ul>
-<li>在用户程序中所使用的<code>MapReduce</code>库,将输入的文件<code>split</code>成(16-64
-MB)大小的部分(M个),然后 MapReduce
-在一个机器集群上启动很多个程序的副本.</li>
-<li>在这些启动的程序副本中,分为<code>master</code>和<code>worker</code>,前者是特殊的,一般有一个.由M个<code>Map</code>任务,<code>R</code>个<code>Reduce</code>任务,<code>master</code>具有为<code>worker</code>分工的功能.</li>
-<li>对于分工到<code>Map</code>任务的<code>worker</code>读取到一份<code>split</code>,然后解析出输入的k-v,并带入<code>Map</code>函数,进而产生结果,结果缓存在内存中.</li>
-<li>缓存在内存中的<code>intermediate pairs</code>会被写的disk中,会被<code>partitioning function</code>分成<code>R</code>份,被写到的disk的位置会告知<code>master</code>,进而可以使<code>master</code>在分配<code>Reduce</code>任务时,告知<code>worker</code>的需要的输入路径.</li>
-<li>当<code>worker</code>收到了<code>master</code>通告的<code>disk</code>地址,就通过rpc从相应的disk读取内容,读取完之后,根据key进行排序.</li>
-<li><code>worker</code>将排好序的数组进行遍历,将每个key值对应的<code>values</code>集合,根据<code>reduce</code>得出结果,最终输出到文件.</li>
-<li>当所有<code>map</code>和<code>reduce</code>结束,<code>master</code>唤醒用户进程,<code>MapReduce</code>调用返回.</li>
-</ul>
-<h3 id="master-data-structures">3.2 Master Data Structures</h3>
-<ul>
-<li>记录任务状态.包括<code>Map</code>和<code>Reduce</code>的状态(空闲,处理中,完成).</li>
-<li>R个中间结果的位置与大小.</li>
-</ul>
-<h3 id="fault-tolerance">3.3 Fault Tolerance</h3>
-<h4 id="worker-failure">Worker Failure</h4>
-<p><code>master</code>会周期性地ping
-<code>workers</code>.超出特定时间没有回应就说明此<code>worker</code>宕机.</p>
-<p>宕机的<code>worker</code>相应的任务会被设置为空闲,然后进行重新分配.</p>
-<p><code>Reduce</code>已经完成但是宕机的任务无需重新执行,因为其输出文件在全局文件系统中,而<code>Map</code>则需要重新做,因为其输出文件一般在已经故障的机器的本地disk上.</p>
-<p>如果有一个<code>Map</code>任务因故障而重新分配了,此时所有正在运行的<code>Reduce</code>都需要重做.</p>
-<h4 id="master-failure">Master Failure</h4>
-<p>一般情况下,只有一个<code>master</code>故障的可能性比较低,一旦故障就会终止整个<code>MapReduce</code>.</p>
-<p>对于任务的状态,<code>master</code>会进行维护,故障后新的<code>master</code>可以继续从最近的任务状态检查点进行.</p>
-<h4 id="semantics-in-the-presence-of-failures">Semantics in the Presence
-of Failures</h4>
-<p>暂鸽</p>
-<h3 id="locality">3.4 Locality</h3>
-<p>网络带宽是一种稀缺的资源.</p>
-<p>论文中的实验部署在GFS中,GFS 将每个文件划分为多个 64MB
-的块,每个块都会存几个副本(一般是 3 个)在不同的机器上.</p>
-<p>尽可能地从本地磁盘上读取数据是一种节省网络带宽的好办法.所以<code>master</code>在分配<code>Map</code>任务时,尽可能保证分配到一个有该任务相应副本的机器.</p>
-<p>最终呈现的效果是,在大规模运行时,<code>worker</code>大多数输入数据是从本地读取的.</p>
+                <p>C++ 实现同步基础组件</p>
+<h2 id="mutex">1.Mutex</h2>
+<p>在muduo中,锁的实现包含了两个部分:<code>Mutex</code>和<code>MutexGuard</code>,它们都利用了RAII的机制,前者控制pthread_mutex的创建和销毁,后者控制一个pthread_mutex的上锁与解锁.</p>
+<p>其实现大体如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Mutex</span>  <span class="token operator">:</span> <span class="token base-clause">tinynetlib<span class="token double-colon punctuation">::</span><span class="token class-name">nocopyable</span></span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+        <span class="token function">Mutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">pthread_mutex_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>mutex_<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token operator">~</span><span class="token function">Mutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">pthread_mutex_destroy</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-void">void</span> <span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token function">pthread_mutex_lock</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+        <span class="token keyword keyword-void">void</span> <span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token function">pthread_mutex_unlock</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+        pthread_mutex_t <span class="token operator">*</span><span class="token function">getMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">&amp;</span>mutex_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+
+    <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+        pthread_mutex_t mutex_<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>以上是对于Mutex的封装,其中构造函数为一个<code>pthread_mutex_t</code>的创建,析构函数为对于一个<code>pthread_mutex_t</code>的销毁.其中关于<code>lock,unlock</code>的实现并不是被用户直接调用的,而是间接地通过<code>MutexGuard</code>这个类的构造函数和析构函数调用.正如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">MutexLock</span> <span class="token operator">:</span><span class="token base-clause">tinynetlib<span class="token double-colon punctuation">::</span><span class="token class-name">nocopyable</span></span><span class="token punctuation">{</span>
+    <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+        <span class="token keyword keyword-explicit">explicit</span> <span class="token function">MutexLock</span><span class="token punctuation">(</span>Mutex <span class="token operator">&amp;</span>mutex<span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">mutex_</span><span class="token punctuation">(</span>mutex<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            mutex_<span class="token punctuation">.</span><span class="token function">lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token operator">~</span><span class="token function">MutexLock</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            mutex_<span class="token punctuation">.</span><span class="token function">unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+        Mutex <span class="token operator">&amp;</span>mutex_<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>还有一个需要注意的地方在于,其中<code>MutexLock</code>这个类的成员数据是一个<code>Mutex</code>的引用,为什么是引用呢?这也更加体现了,这个类在于控制一个<code>Mutex</code>,而不是代表一个含有<code>Mutex</code>实体的类.也就是说,它并不产生一个新的<code>Mutex</code>对象,而是控制一个已有的<code>Mutex</code>对象.</p>
+<p>正如下所示,这也几乎就是有关于锁的主要应用操作.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//......</span>
+<span class="token punctuation">{</span>
+     MutexLock <span class="token function">lock</span><span class="token punctuation">(</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+     isRunning <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+     <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span><span class="token operator">!</span>tasksqueue_<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+         cond_<span class="token punctuation">.</span><span class="token function">signalAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token comment">//......</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>表示大括号内就是一个临界区.</p>
+<h2 id="condition-variable">2.Condition variable</h2>
+<p>条件变量最主要的设计初衷在于,能够以线程阻塞代替轮询,从而减少了大量的无效轮询,减少了CPU开销.但是有阻塞就必须要有唤醒,因此唤醒也是条件变量的设计的主要任务.</p>
+<p>在应用上,条件变量常用于是某些未达到某个条件的线程阻塞,因而不会反复轮询这个条件.当这个条件为真时,唤醒某个睡眠的线程.</p>
+<p>对于这个特定的条件,由于是需要多个线程进行读写的,因此也就需要一个<code>Mutex</code>用来防止对这个条件造成<code>DATA RACE</code>.此外,当进入等待状态时,也需要将这个<code>Mutex</code>释放,否则就会引发死锁.</p>
+<p>其实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Condition</span> <span class="token operator">:</span> <span class="token base-clause">tinynetlib<span class="token double-colon punctuation">::</span><span class="token class-name">nocopyable</span></span><span class="token punctuation">{</span>
+    <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+        <span class="token keyword keyword-explicit">explicit</span> <span class="token function">Condition</span><span class="token punctuation">(</span>Mutex <span class="token operator">&amp;</span>mutex<span class="token punctuation">)</span><span class="token operator">:</span><span class="token function">mutex_</span><span class="token punctuation">(</span>mutex<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">pthread_cond_init</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cond_<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token operator">~</span><span class="token function">Condition</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">pthread_cond_destroy</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cond_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-void">void</span> <span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">pthread_cond_wait</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cond_<span class="token punctuation">,</span>mutex_<span class="token punctuation">.</span><span class="token function">getMutex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-void">void</span> <span class="token function">signal</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">pthread_cond_signal</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cond_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-void">void</span> <span class="token function">signalAll</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">pthread_cond_broadcast</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>cond_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+        Mutex <span class="token operator">&amp;</span>mutex_<span class="token punctuation">;</span>
+        pthread_cond_t cond_<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>而对于关于<code>.Condition variable</code>的调用上,以线程池中的应用为例.首先是关于wait的应用,在这里条件变量所感兴趣的条件在于<code>tasksqueue</code>是否为空,如果为空就<code>wait</code>.在这里,为什么使用<code>while</code>而不是<code>if</code>呢?这个问题的原因称之为<code>spurcious wakeup</code>.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">MutexLock <span class="token function">lock</span><span class="token punctuation">(</span>self<span class="token operator">-&gt;</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-if">if</span><span class="token punctuation">(</span><span class="token operator">!</span>self<span class="token operator">-&gt;</span>isRunning<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-while">while</span><span class="token punctuation">(</span>self<span class="token operator">-&gt;</span>tasksqueue_<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    self<span class="token operator">-&gt;</span>cond_<span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+task <span class="token operator">=</span> self<span class="token operator">-&gt;</span>tasksqueue_<span class="token punctuation">.</span><span class="token function">front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+self<span class="token operator">-&gt;</span>tasksqueue_<span class="token punctuation">.</span><span class="token function">pop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>关于唤醒的调用:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">MutexLock <span class="token function">lock</span><span class="token punctuation">(</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>isRunning<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+tasksqueue_<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span>task<span class="token punctuation">)</span><span class="token punctuation">;</span>
+cond_<span class="token punctuation">.</span><span class="token function">signal</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>表示此时该线程的行为表示这个条件有可能被改变,所以此时需要唤醒睡眠在上面的线程.</p>
+<p>总的来说,对<code>Mutex</code>和<code>Condition variable</code>来说,都是同部分问题中最最基础的实现,一般都没有被用户调用,而是间接地实现在其他的类中.</p>
+<h2 id="thread-pool">3.Thread Pool</h2>
+<p><code>Thread Pool</code>的实现也是基于<code>Mutex</code>和<code>Condition variable</code>实现的,其中这个数据结构维护一个队列用来记录线程池所接受到的任务.</p>
+<p>其实线程池也是一个标准的“生产者-消费者模型”,线程池作为消费者,其中维护一个task队列,当需要处理一个任务时,就加入到线程池所维护的任务列表里,而线程池里的每个一个线程则需要检查队列的大小,如果是空的,就睡眠在条件变量上.否则,任务就会被唤醒.</p>
+<p>不过在muduo中,还增加了一个条件变量,其对应的条件是,任务队列是否为满.</p>
+<h2 id="countdownlatch">4.CountDownLatch</h2>
+<p>这个组件,最初我们并没有明白其意思,直到后来接触可<code>golang</code>之后开始明白其作用,其实现方式非常简单.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">CountDownLatch</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token class-name">noncopyable</span></span>
+<span class="token punctuation">{</span>
+ <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+
+  <span class="token keyword keyword-explicit">explicit</span> <span class="token function">CountDownLatch</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> count<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword keyword-void">void</span> <span class="token function">wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword keyword-void">void</span> <span class="token function">countDown</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword keyword-int">int</span> <span class="token function">getCount</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span><span class="token punctuation">;</span>
+
+ <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+  <span class="token keyword keyword-mutable">mutable</span> MutexLock mutex_<span class="token punctuation">;</span>
+  Condition condition_ <span class="token function">GUARDED_BY</span><span class="token punctuation">(</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-int">int</span> count_ <span class="token function">GUARDED_BY</span><span class="token punctuation">(</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中对外开放的接口主要是<code>wait,countDown</code>等.其中的锁用来维护count_变量,条件变量通过读取以count作为条件控制调用者的阻塞.其实现更具体地说,再<code>wait</code>中就是while循环中判断是否大于0,如果是,就wait.<code>countDown</code>这个变量用来将变量-1,倘若到了0,则将所有正在在其条件变量上的线程唤醒.</p>
+<p>所有总的来说,一个<code>CountDownLatch</code>变量就相当于<code>golang</code>中的<code>sync.WaitGroup</code>.<code>wait</code>就相当于其中的<code>wait</code>,而<code>countDown</code>则相当于被等待线程要调用的<code>Done</code>.</p>
 
                 
             </div>
@@ -597,7 +638,7 @@ of Failures</h4>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/070764376.html">http://example.com/2022/070764376.html</a>
+                    <a href="http://example.com/2022/082222915.html">http://example.com/2022/082222915.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -635,8 +676,12 @@ of Failures</h4>
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                    <span class="chip bg-color">分布式系统</span>
+                                <a href="/tags/c/">
+                                    <span class="chip bg-color">c++</span>
+                                </a>
+                            
+                                <a href="/tags/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+                                    <span class="chip bg-color">基础架构</span>
                                 </a>
                             
                         </div>
@@ -684,23 +729,23 @@ of Failures</h4>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/070837932.html">
+                <a href="/2022/082236923.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2008%2020%2024%2050%201657283090%201657283090375%20OfzMcY%20image-20220708202450275%20.png" class="responsive-img" alt="关于go语言的一些事儿">
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2022%2019%2024%2005%201661167445%201661167445429%208iudUr%20image-20220822192405308%20.png" class="responsive-img" alt="APUE:I/O概要">
                         
-                        <span class="card-title">关于go语言的一些事儿</span>
+                        <span class="card-title">APUE:I/O概要</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            关于golang这门语言,我很大程度上是边做边学的,并没有经过太系统的学习,所以我打算将我在做的过程中遇到的一些问题和一些思考记录下来.
+                            
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-08
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-08-22
                         </span>
                         <span class="publish-author">
                             
@@ -713,8 +758,12 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/golang/">
-                        <span class="chip bg-color">golang</span>
+                    <a href="/tags/linux/">
+                        <span class="chip bg-color">linux</span>
+                    </a>
+                    
+                    <a href="/tags/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/">
+                        <span class="chip bg-color">系统编程</span>
                     </a>
                     
                 </div>
@@ -728,33 +777,28 @@ of Failures</h4>
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/06211691.html">
+                <a href="/2022/082054454.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2020%2011%2001%2045%201660964505%201660964505026%20VcusSE%20image-20220820110144906%20.png" class="responsive-img" alt="linux多线程服务器编程模型及其相关实现要点">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
-                        
-                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
+                        <span class="card-title">linux多线程服务器编程模型及其相关实现要点</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
+                            其内容主要参考了muduo网络库及其相关的书籍《Linux多线程服务端编程》,其中一些没有太理解的地方就没有往上写.
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-08-20
                             </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
-                                    源码分析
-                                </a>
-                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
                             
                         </span>
                     </div>
@@ -762,12 +806,16 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/c/">
+                        <span class="chip bg-color">c++</span>
                     </a>
                     
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/%E5%90%8E%E7%AB%AF/">
+                        <span class="chip bg-color">后端</span>
+                    </a>
+                    
+                    <a href="/tags/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+                        <span class="chip bg-color">基础架构</span>
                     </a>
                     
                 </div>

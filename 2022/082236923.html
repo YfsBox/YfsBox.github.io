@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="MapReduce, Yfs&#39;s Box">
+    <meta name="keywords" content="APUE:I/O概要, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>MapReduce | Yfs&#39;s Box</title>
+    <title>APUE:I/O概要 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2022%2019%2024%2005%201661167445%201661167445429%208iudUr%20image-20220822192405308%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">MapReduce</h1>
+                    <h1 class="description center-align post-title">APUE:I/O概要</h1>
                 </div>
             </div>
         </div>
@@ -444,8 +444,12 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                <span class="chip bg-color">分布式系统</span>
+                            <a href="/tags/linux/">
+                                <span class="chip bg-color">linux</span>
+                            </a>
+                        
+                            <a href="/tags/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/">
+                                <span class="chip bg-color">系统编程</span>
                             </a>
                         
                     </div>
@@ -460,7 +464,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-07-07
+                    2022-08-22
                 </div>
                 
 
@@ -469,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.3k
+                    2.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    4 Min
+                    8 Min
                 </div>
                 
 
@@ -494,83 +498,123 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="abstract">0.Abstract</h2>
-<p><code>MapReduce</code>是一种编程模型,一般用于在分布式系统上并行地处理大规模数据.</p>
-<p>对于在此框架上开发的程序员来说,主要制定<code>map</code>和<code>reduce</code>这两个函数,一般情况下,前者的输入和输出都是k-v的,后者则合并前者生成的中间结果.</p>
-<h2 id="introduction">1.Introduction</h2>
-<p>其实在很多大规模计算的场景下,难点并不在于原始计算本身,而在于<strong>在分布式系统中,如何并行计算,分配数据,容错处理等问题</strong>.</p>
-<p><code>MapReduce</code>的核心作用就在于提供一种抽象,不需要考虑太多上述问题.</p>
-<p>其设计思想:很多计算可以视为,将数据分解为一个个记录,每个记录可以经过一个<code>Map</code>函数,形成一个k-v元组,而<code>Reduce</code>可以将相同<code>key</code>值的元组合并在一起.</p>
-<p>这是一种<strong>分而治之</strong>的思想.</p>
-<h2 id="programming-model">2. Programming Model</h2>
-<p><code>User</code>在设计时,主要考虑的是<code>Map</code>和<code>Reduce</code>.</p>
-<p>一个比较简单的应用就是统计单词数量.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2044%2014%201657208654%201657208654216%208vHJaN%20image-20220707234414092%20.png" alt="image-20220707234414092" style="zoom: 50%;"></p>
-<p>一个<code>map</code>处理的是一个k-v对,每处理一个k-v对,就将相应的w的value
-+ 1.</p>
-<p>一个<code>reduce</code>只处理一个<code>key</code>,参数中的迭代器是从中间结果中收集的<code>values</code>,将这些<code>values</code></p>
-<p>累加起来即可.累加结束后,形成最终的key对应的结果.</p>
-<p>除此之外还有其他应用:</p>
+                <h2 id="文件io">1.文件I/O</h2>
+<p>文件描述符是内核对于进程中所打开文件所提供的引用.</p>
+<p>其中Unix系统shell将0,1,2分别对应标准输入,标准输出和标准错误(STDIN_FILENO,STDOUT_FILENO,STDERR_FILENO).需要注意的是文件描述符对于每个进程有数量限制.</p>
+<p><strong>文件I/O的操作是紧紧围绕文件描述符展开的.</strong></p>
+<h3 id="基本函数">1) 基本函数</h3>
+<p>open和openat.返回的都是fd.其中第二个参数都有oflag,这是一个整型数.最常用的也就是0,1,2(分别对应O_RDONLY,O_WRONLY,O_RDWR).除此之外,还有一些比较常见的:<code>O_APPEND,O_CREAT,O_TRUNC,O_NONBLOCK</code>等.其返回的文件描述符都是最小的未使用的描述符数值.</p>
+<p>对于以上两者的区别在于openat多了一个fd参数.这个fd通常对应一个目录,也就是说在openat中path作为相对路径会在fd对应的目录下有效.如下:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c">dir_fd <span class="token operator">=</span> <span class="token function">open</span><span class="token punctuation">(</span>dir_path<span class="token punctuation">,</span> O_RDONLY<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>dir_fd <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  
+		<span class="token function">perror</span><span class="token punctuation">(</span><span class="token string">"open"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  
+    <span class="token function">exit</span><span class="token punctuation">(</span>EXIT_FAILURE<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+ <span class="token punctuation">}</span>   
+ flags <span class="token operator">=</span> O_CREAT <span class="token operator">|</span> O_TRUNC <span class="token operator">|</span> O_RDWR<span class="token punctuation">;</span>  
+ mode <span class="token operator">=</span> <span class="token number">0640</span><span class="token punctuation">;</span>  <span class="token comment">//-rw-r-----</span>
+ fd <span class="token operator">=</span> <span class="token function">openat</span><span class="token punctuation">(</span>dir_fd<span class="token punctuation">,</span> relative_path<span class="token punctuation">,</span> flags<span class="token punctuation">,</span> mode<span class="token punctuation">)</span><span class="token punctuation">;</span>  
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>关于create,最初之所以设计这个调用,只因为open的第二个参数所支持的模式很有限,只限于0,1,2.在后来<code>O_CREATE,O_TRUNC</code>出现后,open可以完全替代create的使用.<strong>需要注意的是,它是只写的</strong>.</p>
+<p>关于close.没有太多值得说的地方.会释放进程加在该文件上的记录锁.</p>
+<p>lseek返回值off_t,描述的是字节,这通常是一个非负数,并且适应于跨平台的需要.第三个参数whence指定了offset的起始方式,有SEEK_SET,SEEK_CUR,SEEK_END,后两者都是可正可负的.<strong>不是所有文件描述符都可以被设置偏移量,像pipe,socket,FIFO等会返回-1</strong>.</p>
+<p>read,三个参数文件描述符,缓冲区指针,读取字节数.其重点在于掌握其返回值,0表示到头了.正常情况下,应该与第三个参数相等.<strong>但是对于不同类型的文件,其返回值特点不同</strong>.</p>
+<p>普通文件的话,如果以100字节为读取的步数,最终只剩50,那么就返回50,再次调用时才返回0.从网络设备中读,可能返回值小于第三个参数.其返回值ssize_t是有符号数,这样就可以返回-1了.</p>
+<p>write返回值通常与第三个参数相同,<strong>如果出错一般是磁盘写满了,或者超过进程对文件的限制</strong>.对于写入的地址,如果文件指定了APPEND,就直接追加.否则从当前offset写.</p>
+<h3 id="文件共享">2) 文件共享</h3>
+<p>这里主要解决的问题在于<strong>Unix系统上不同进程共享打开文件的问题</strong>.</p>
+<p>首先介绍的是,内核维护的打开文件的数据结构.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2018%2017%2047%2014%201660816034%201660816034939%201gj0uw%20image-20220818174714835%20.png" alt="image-20220818174714835" style="zoom:50%;"></p>
+<p>linux系统中没有v节点,使用通用inode.</p>
+<p>对于共享相同文件的进程来说,虽然其描述符不同,但是最终指向相同的inode.如图下所示.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2018%2017%2053%2002%201660816382%201660816382232%20wtfYzn%20image-20220818175302163%20.png" alt="image-20220818175302163" style="zoom:50%;"></p>
+<p>文件表项在每个进程中不同.其中记录了状态和偏移等信息.</p>
+<p>再次,结合之前的I/O函数来进行分析的话,write,lseek中对于偏移量的变化,作用于文件表项中.而对于write对于文件长度的影响也会导致inode中的文件长度改变.对于O_APPEND的文件来说,每次写入后都会将表项中的偏移量设置为inode的长度,所以也就可以保持偏移量在文件末尾.</p>
+<h3 id="dupfcntlsyncfsyncioctl等函数">3)
+dup,fcntl,sync,fsync,ioctl等函数</h3>
+<p>dup的作用在于<strong>复制一个现有的文件描述符</strong>.在内核上,体现为使得相同的描述符指向同一个文件表项.使用<code>fcntl</code>也可以复制描述符,dup(fd)等同于<code>fcntl(fd,F_DUPFD,0)</code>,dup2等同于<code>close(fd2);fcntl(fd,F_DUPFD,fd2);</code>.后者也不算完全等同,因为dup2是原子操作.</p>
+<p>对于<code>sync,fsync</code>等函数,其设计的前提是基于,unix延迟写的特性.sync只用于将所有修改过的块缓冲区排入写队列,并不是等待写入磁盘结束.</p>
+<p><code>fcntl</code>函数则用于一些对于改变已经打开的文件的属性.其中第二个参数cmd有<code>F_DUPFD,F_GETFD,F_SETFD,F_GETFL</code>等.</p>
+<h2 id="标准io">2.标准I/O</h2>
+<p>正如文件I/O围绕着fd一样,标准I/O是围绕着stream进行的.比如说同样是对于文件的读写,标准IO则是对FILE
+*(文件流对象指针)进行操作.</p>
+<p>fopen是打开一个文件流的常用方式,返回一个FILE指针.FILE中包含了<strong>文件描述符,缓冲区指针,缓冲区长度等</strong>.</p>
+<h3 id="流buffer">1) 流Buffer</h3>
+<p>标准I/O的缓冲有三种:全缓冲,行缓冲,不带缓冲.</p>
+<p>全缓冲等到填满了buffer后进行实际的I/O操作,行缓冲只要遇到换行符就执行实际的I/O操作.不带缓冲的话,比如说<code>fputs,stderr</code>.</p>
+<p>在很多系统中,默认为:</p>
 <ul>
-<li>从日志文件中,统计<code>url</code>的访问频率.</li>
-<li>Reverse Web-Link Graph.</li>
-<li>倒序索引.</li>
-<li>分布式排序.</li>
+<li>stderr不带缓冲.</li>
+<li>指向终端设备,则是行缓冲,否则全缓冲.</li>
 </ul>
-<p>总体的运行图如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" alt="image-20220707235622564" style="zoom:50%;"></p>
-<h2 id="implementation">3.Implementation</h2>
-<p>这一部分描述的实现方式主要适用于(使用交换式以太网连接的):</p>
-<ul>
-<li>x86双处理器,linux系统,内存2-4GB.</li>
-<li>一个集群数百或者上千个机器.</li>
-<li>网络方面,一般有100Mb/s或者1Gb/s.</li>
-<li>存储硬件上,每个机器有直连的IDE硬盘,同时有运行的分布式文件系统,提供容错服务.</li>
-<li>用户像调度系统提交一组任务,每组任务可经过调度系统分配给某些机器.</li>
-</ul>
-<p>所以,一般来说,描述一个集群的配置,往往从如下角度分析:</p>
-<ul>
-<li>机器的硬件(处理器,内存等),操作系统.</li>
-<li>规模(机器数量).</li>
-<li>网络带宽与存储(硬件和软件).</li>
-</ul>
-<h3 id="execution-overview">3.1 Execution Overview</h3>
-<p>再次复现一下这个过程,结合上面的图片:</p>
-<ul>
-<li>在用户程序中所使用的<code>MapReduce</code>库,将输入的文件<code>split</code>成(16-64
-MB)大小的部分(M个),然后 MapReduce
-在一个机器集群上启动很多个程序的副本.</li>
-<li>在这些启动的程序副本中,分为<code>master</code>和<code>worker</code>,前者是特殊的,一般有一个.由M个<code>Map</code>任务,<code>R</code>个<code>Reduce</code>任务,<code>master</code>具有为<code>worker</code>分工的功能.</li>
-<li>对于分工到<code>Map</code>任务的<code>worker</code>读取到一份<code>split</code>,然后解析出输入的k-v,并带入<code>Map</code>函数,进而产生结果,结果缓存在内存中.</li>
-<li>缓存在内存中的<code>intermediate pairs</code>会被写的disk中,会被<code>partitioning function</code>分成<code>R</code>份,被写到的disk的位置会告知<code>master</code>,进而可以使<code>master</code>在分配<code>Reduce</code>任务时,告知<code>worker</code>的需要的输入路径.</li>
-<li>当<code>worker</code>收到了<code>master</code>通告的<code>disk</code>地址,就通过rpc从相应的disk读取内容,读取完之后,根据key进行排序.</li>
-<li><code>worker</code>将排好序的数组进行遍历,将每个key值对应的<code>values</code>集合,根据<code>reduce</code>得出结果,最终输出到文件.</li>
-<li>当所有<code>map</code>和<code>reduce</code>结束,<code>master</code>唤醒用户进程,<code>MapReduce</code>调用返回.</li>
-</ul>
-<h3 id="master-data-structures">3.2 Master Data Structures</h3>
-<ul>
-<li>记录任务状态.包括<code>Map</code>和<code>Reduce</code>的状态(空闲,处理中,完成).</li>
-<li>R个中间结果的位置与大小.</li>
-</ul>
-<h3 id="fault-tolerance">3.3 Fault Tolerance</h3>
-<h4 id="worker-failure">Worker Failure</h4>
-<p><code>master</code>会周期性地ping
-<code>workers</code>.超出特定时间没有回应就说明此<code>worker</code>宕机.</p>
-<p>宕机的<code>worker</code>相应的任务会被设置为空闲,然后进行重新分配.</p>
-<p><code>Reduce</code>已经完成但是宕机的任务无需重新执行,因为其输出文件在全局文件系统中,而<code>Map</code>则需要重新做,因为其输出文件一般在已经故障的机器的本地disk上.</p>
-<p>如果有一个<code>Map</code>任务因故障而重新分配了,此时所有正在运行的<code>Reduce</code>都需要重做.</p>
-<h4 id="master-failure">Master Failure</h4>
-<p>一般情况下,只有一个<code>master</code>故障的可能性比较低,一旦故障就会终止整个<code>MapReduce</code>.</p>
-<p>对于任务的状态,<code>master</code>会进行维护,故障后新的<code>master</code>可以继续从最近的任务状态检查点进行.</p>
-<h4 id="semantics-in-the-presence-of-failures">Semantics in the Presence
-of Failures</h4>
-<p>暂鸽</p>
-<h3 id="locality">3.4 Locality</h3>
-<p>网络带宽是一种稀缺的资源.</p>
-<p>论文中的实验部署在GFS中,GFS 将每个文件划分为多个 64MB
-的块,每个块都会存几个副本(一般是 3 个)在不同的机器上.</p>
-<p>尽可能地从本地磁盘上读取数据是一种节省网络带宽的好办法.所以<code>master</code>在分配<code>Map</code>任务时,尽可能保证分配到一个有该任务相应副本的机器.</p>
-<p>最终呈现的效果是,在大规模运行时,<code>worker</code>大多数输入数据是从本地读取的.</p>
+<p>除此之外,还有相应的API用来设置buffer.其参数有一个FILE*和buffer.<code>setbuf,setvbuf</code>后者还有mode和size两个参数,mode指定缓冲的三种方式.而<code>fflush</code>则是用于将buffer内容写入.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2019%2009%2025%2018%201660872318%201660872318646%20teO6oT%20image-20220819092518549%20.png" alt="image-20220819092518549" style="zoom:50%;"></p>
+<h3 id="常规的流操作">2) 常规的流操作</h3>
+<p>其中有<code>fopen,freopen,fdopen</code>用来打开标准I/O流.<code>fdopen</code>常用于打开一些不能够通过流直接打开(fopen)的文件类型,比如说<code>socket, pipe</code>等返回的描述符.对于其中的参数type,主要有<code>r,w,a,r+,w+</code>等.</p>
+<p><code>fclose</code>在关闭时会对流中的buffer进行flush.如果这个buffer还是系统分配则会被释放.当进程正常结束,打开的标准I
+O会被冲洗并关闭.</p>
+<h2 id="高级io">3.高级I/O</h2>
+<h3 id="io模型">1) I/O模型</h3>
+<p>其中主要的概念有非阻塞I/O,I/O复用,异步I/O等.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2018%2018%2055%2035%201660820135%201660820135808%20kzQD5N%20image-20220818185535727%20.png" alt="image-20220818185535727" style="zoom: 67%;"></p>
+<h3 id="io-复用">2) I/O 复用</h3>
+<p>当我们需要对多个描述符进行读写的时候,这个时候如果阻塞在某个描述符上,就会耽误对其他描述符的读写.这也就是I/O复用的最常见的用途.</p>
+<p>如果对每个需要读写的描述符都分配一个线程进行处理一个描述符呢?这样一是开销过大,而且对于进程的回收时机很难确定,需要额外的引入机制来终止进程.如果使用多线程的话,仍然不是好的方案,额外的同步机制增加了复杂度.</p>
+<p>如果都设置为非阻塞read并且采用for循环轮询,但是浪费CPU时间.</p>
+<p>如果采用异步I/O的方式.除了可移植性的问题,另外一种问题在于异步信号难以分辨出是哪一个描述符的.如果采用不同的信号,又该如何应对大量描述符的情况呢?</p>
+<p>因此,I/O复用是一种比较好的解决方式,<strong>基本思想在于,构造描述符及其对应的事件表,当其中有描述符的时间准备好,I/O复用函数返回,否则就阻塞</strong>.</p>
+<p>其中主要有:<code>select,pselect,epoll</code>等.</p>
+<p>关于select,其中的参数有:描述符,触发条件,等待时间.返回时:就绪描述符数量,3个条件中就绪的描述符.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span>      <span class="token function">select</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">,</span> fd_set <span class="token operator">*</span> __restrict<span class="token punctuation">,</span> fd_set <span class="token operator">*</span> __restrict<span class="token punctuation">,</span>
+    fd_set <span class="token operator">*</span> __restrict<span class="token punctuation">,</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">timeval</span> <span class="token operator">*</span> __restrict<span class="token punctuation">)</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>对于fd_set的设置需要借助特定的API,比如说,<code>FD_ISSET,FD_CLR,FD_SET,FD_ZERO</code>等.</p>
+<p>关于poll,需要构造的并不是对每种条件的描述符集合,而是构造pollfd的数组.其中这个结构体的内容为:fd,期望事件,返回事件.第二个参数指定数组的数量.关于其中timeout,-1无限等待,0则会退化成轮询.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-extern">extern</span> <span class="token keyword keyword-int">int</span> <span class="token function">poll</span><span class="token punctuation">(</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">pollfd</span> <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token class-name">nfds_t</span><span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> <span class="token function">__DARWIN_ALIAS_C</span><span class="token punctuation">(</span>poll<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><strong>其中描述这些时间的标志非常重要</strong>.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2018%2023%2016%2044%201660835804%201660835804984%20QE7Kw7%20image-20220818231644905%20.png" alt="image-20220818231644905" style="zoom:50%;"></p>
+<h3 id="readvwritev和readnwriten">3) readv,writev和readn,writen</h3>
+<p><code>ready,writev</code>和一般读写的区别在于,其中的buffer不是连续的,而是多个分散的buffer.其中读写的顺序是在数组中逐个顺序地读写的.</p>
+<p>对于<code>readn,writen</code>主要应对管道,FIFO,网络等场景,<strong>其读写返回的数据可能少于要求的数据量</strong>.这种情况下,应该继续进行读写处理.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> <span class="token function">readn</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> fd<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>vptr<span class="token punctuation">,</span> <span class="token class-name">size_t</span> n<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token class-name">size_t</span>          nleft <span class="token operator">=</span> n<span class="token punctuation">;</span>          <span class="token comment">//readn函数还需要读的字节数</span>
+    <span class="token class-name">ssize_t</span>        nread <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>          <span class="token comment">//read函数读到的字节数</span>
+    <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-char">char</span>  <span class="token operator">*</span>ptr <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">)</span>vptr<span class="token punctuation">;</span> <span class="token comment">//指向缓冲区的指针</span>
+    <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>nleft <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        nread <span class="token operator">=</span> <span class="token function">read</span><span class="token punctuation">(</span>fd<span class="token punctuation">,</span> ptr<span class="token punctuation">,</span> nleft<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">1</span> <span class="token operator">==</span> nread<span class="token punctuation">)</span><span class="token punctuation">{</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>EINTR <span class="token operator">==</span> errno<span class="token punctuation">)</span>
+                nread <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-else">else</span>
+                <span class="token keyword keyword-return">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token number">0</span> <span class="token operator">==</span> nread<span class="token punctuation">)</span><span class="token punctuation">{</span>
+            <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        nleft <span class="token operator">-=</span> nread<span class="token punctuation">;</span>
+        ptr <span class="token operator">+=</span> nread<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> n <span class="token operator">-</span> nleft<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-int">int</span> <span class="token function">writen</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> fd<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>vptr<span class="token punctuation">,</span> <span class="token class-name">size_t</span> n<span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token class-name">size_t</span>          nleft <span class="token operator">=</span> n<span class="token punctuation">;</span>  <span class="token comment">//writen函数还需要写的字节数</span>
+    <span class="token class-name">ssize_t</span>        nwrite <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token comment">//write函数本次向fd写的字节数</span>
+    <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span><span class="token operator">*</span>    ptr <span class="token operator">=</span> vptr<span class="token punctuation">;</span> <span class="token comment">//指向缓冲区的指针</span>
+
+    <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>nleft <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>nwrite <span class="token operator">=</span> <span class="token function">write</span><span class="token punctuation">(</span>fd<span class="token punctuation">,</span> ptr<span class="token punctuation">,</span> nleft<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&lt;=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>nwrite <span class="token operator">&lt;</span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span> EINTR <span class="token operator">==</span> errno<span class="token punctuation">)</span>
+                nwrite <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-else">else</span>
+                <span class="token keyword keyword-return">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        nleft <span class="token operator">-=</span> nwrite<span class="token punctuation">;</span>
+        ptr <span class="token operator">+=</span> nwrite<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> n<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="mmap">4) mmap</h3>
+<p>mmap的作用在于<strong>将一个buffer与磁盘文件相映射.读写缓冲区也就成了对文件的读写.</strong></p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token operator">*</span>  <span class="token function">mmap</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token class-name">size_t</span><span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">,</span> <span class="token class-name">off_t</span><span class="token punctuation">)</span> <span class="token function">__DARWIN_ALIAS</span><span class="token punctuation">(</span>mmap<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//如果将buffer的地址设置为0,表示由系统分配的,其中prot指定了保护要求,PROT_READ,PROT_WRITE,PROT_EXEC,PROT_NONE等.</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>其中第四个参数指定了影响buffer的多种属性.</p>
 
                 
             </div>
@@ -597,7 +641,7 @@ of Failures</h4>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/070764376.html">http://example.com/2022/070764376.html</a>
+                    <a href="http://example.com/2022/082236923.html">http://example.com/2022/082236923.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -635,8 +679,12 @@ of Failures</h4>
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                                    <span class="chip bg-color">分布式系统</span>
+                                <a href="/tags/linux/">
+                                    <span class="chip bg-color">linux</span>
+                                </a>
+                            
+                                <a href="/tags/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/">
+                                    <span class="chip bg-color">系统编程</span>
                                 </a>
                             
                         </div>
@@ -684,23 +732,24 @@ of Failures</h4>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/070837932.html">
+                <a href="/2022/082242275.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2008%2020%2024%2050%201657283090%201657283090375%20OfzMcY%20image-20220708202450275%20.png" class="responsive-img" alt="关于go语言的一些事儿">
                         
-                        <span class="card-title">关于go语言的一些事儿</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="UNP:TCP/IP概要及基本socket">
+                        
+                        <span class="card-title">UNP:TCP/IP概要及基本socket</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            关于golang这门语言,我很大程度上是边做边学的,并没有经过太系统的学习,所以我打算将我在做的过程中遇到的一些问题和一些思考记录下来.
+                            
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-08
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-08-22
                         </span>
                         <span class="publish-author">
                             
@@ -713,8 +762,16 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/golang/">
-                        <span class="chip bg-color">golang</span>
+                    <a href="/tags/linux/">
+                        <span class="chip bg-color">linux</span>
+                    </a>
+                    
+                    <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">
+                        <span class="chip bg-color">网络编程</span>
+                    </a>
+                    
+                    <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
+                        <span class="chip bg-color">计算机网络</span>
                     </a>
                     
                 </div>
@@ -728,33 +785,29 @@ of Failures</h4>
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/06211691.html">
+                <a href="/2022/082222915.html">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="C++ 实现同步基础组件">
                         
-                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
+                        <span class="card-title">C++ 实现同步基础组件</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
+                            
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-06-21
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-08-22
                             </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
-                                    源码分析
-                                </a>
-                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
                             
                         </span>
                     </div>
@@ -762,12 +815,12 @@ of Failures</h4>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/c/">
+                        <span class="chip bg-color">c++</span>
                     </a>
                     
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+                        <span class="chip bg-color">基础架构</span>
                     </a>
                     
                 </div>
