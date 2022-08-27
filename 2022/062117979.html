@@ -494,42 +494,30 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="chapter-1.-object-lessons">chapter 1. Object Lessons</h2>
-<p>这一章还是涉及到不少基础语法相关的东西的,这些关于基础语法的东西我就不再记录了.</p>
+                <h2 id="chapter-1-Object-Lessons"><a href="#chapter-1-Object-Lessons" class="headerlink" title="chapter 1. Object Lessons"></a>chapter 1. Object Lessons</h2><p>这一章还是涉及到不少基础语法相关的东西的,这些关于基础语法的东西我就不再记录了.</p>
 <p>首先,c也是可以采用一些面向对象的手法.比如说使用struct将数据打包,然后定义一些函数作用于这些struct.而c++使用class的话,就直接将函数和数据封装在一起了.</p>
 <p><strong>那么封装所带来的额外成本是什么?</strong></p>
 <p>其实c++对象在布局和存取时间上的额外负担是virtual造成:</p>
 <ul>
 <li>virtual function,支持动态绑定.</li>
-<li>virtual bass class,对于多次出现在继承体系的base
-class,有被共享的一个base class实体.</li>
+<li>virtual bass class,对于多次出现在继承体系的base class,有被共享的一个base class实体.</li>
 </ul>
-<h3 id="the-c-object-model">1.1 The C++ Object Model</h3>
-<p><strong>数据成员分为:static,nonstatic;函数成员分为:static,nonstatic,virtual</strong>.</p>
+<h3 id="1-1-The-C-Object-Model"><a href="#1-1-The-C-Object-Model" class="headerlink" title="1.1 The C++ Object Model"></a>1.1 The C++ Object Model</h3><p><strong>数据成员分为:static,nonstatic;函数成员分为:static,nonstatic,virtual</strong>.</p>
 <p>关于对象模型的表示,大致有以下几种.</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2015%2052%2020%201655797940%201655797940504%20jnTqrk%20image-20220621155220329%20.png" alt="image-20220621155220329">
-<figcaption aria-hidden="true">image-20220621155220329</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2015%2052%2020%201655797940%201655797940504%20jnTqrk%20image-20220621155220329%20.png" alt="image-20220621155220329"></p>
 <p>第三个大致是实际的c++所使用的模式.</p>
 <p>其中所有static属性的成员都处于此对象内存之外,非虚函数也是.</p>
-<p>class object之内,除了nonstatic data
-member,还有一个虚函数指针(vptr),指向一个虚函数表(vtbl),这个表头含有
-<code>type_info object</code>.其中<strong>constructor,destructor和copy
-assignment</strong>会做一些有关于vptr的动作.</p>
-<h3 id="a-keyword-distinction">1.2 A Keyword Distinction</h3>
-<p>首先来讨论一下,在c++中使用struct和class的区别:</p>
+<p>class object之内,除了nonstatic data member,还有一个虚函数指针(vptr),指向一个虚函数表(vtbl),这个表头含有 <code>type_info object</code>.其中<strong>constructor,destructor和copy assignment</strong>会做一些有关于vptr的动作.</p>
+<h3 id="1-2-A-Keyword-Distinction"><a href="#1-2-A-Keyword-Distinction" class="headerlink" title="1.2 A Keyword Distinction"></a>1.2 A Keyword Distinction</h3><p>首先来讨论一下,在c++中使用struct和class的区别:</p>
 <p>其实,c++之所以要引入struct,很大程度上是为了兼容现存的c代码.但如果这样,有必要引入class吗?其实引入class不单单是引入关键词这么简单,还有它所支持的继承和封装的哲学.</p>
 <p>甚至可以主张说.它的作用在于使c程序员更方便的入手c++.</p>
-<h3 id="an-object-distinction">1.3 An Object Distinction</h3>
-<p>C++支持三种程序设计典范:</p>
+<h3 id="1-3-An-Object-Distinction"><a href="#1-3-An-Object-Distinction" class="headerlink" title="1.3 An Object Distinction"></a>1.3 An Object Distinction</h3><p>C++支持三种程序设计典范:</p>
 <ul>
 <li>Procedural model(面向过程).</li>
 <li>Abstract data type model(ADT).数据和其操作封装到一起.</li>
-<li>Object- oriented
-model(面向对象模型).除了数据和操作封装意外,还支持继承,多态等.</li>
+<li>Object- oriented model(面向对象模型).除了数据和操作封装意外,还支持继承,多态等.</li>
 </ul>
-<p><strong>多态的实现是借助基类reference或者pointer的.</strong>直接使用类对象的话,会造成slicing.</p>
+<p>**多态的实现是借助基类reference或者pointer的.**直接使用类对象的话,会造成slicing.</p>
 <blockquote>
 <p><strong>ADT模式和OO模式对象的显著区别是什么?</strong></p>
 <p>ADT的对象的类型是固定的且确定的,在编译时期就定义好了.</p>
@@ -537,13 +525,11 @@ model(面向对象模型).除了数据和操作封装意外,还支持继承,多�
 </blockquote>
 <p>C++支持多态的方法:</p>
 <ul>
-<li>隐含的转化操作,将 <code>derived class</code>指针转化为指向
-<code>public base type</code>的指针.</li>
+<li>隐含的转化操作,将 <code>derived class</code>指针转化为指向 <code>public base type</code>的指针.</li>
 <li>借助 <code>virtual function</code>机制.</li>
 <li>借助 <code>dynamic_cast</code>和 <code>typeid</code>运算符.</li>
 </ul>
-<p>多态主要用于为不同的类通过一个通用的接口来进行封装,这个通用接口被定义在base
-class中.</p>
+<p>多态主要用于为不同的类通过一个通用的接口来进行封装,这个通用接口被定义在base class中.</p>
 <p><strong>需要多少内存才能表示一个class object?</strong></p>
 <ul>
 <li><code>nonstatic data members</code>的大小.</li>
@@ -551,70 +537,38 @@ class中.</p>
 <li>由于支持virtual额外的空间,比如说vptr指针.</li>
 </ul>
 <p>不同类型的指针的区别是什么呢?“指针类型”的意义在于决定编译器接受内存内容的方式,而cast不影响内存内容,只影响编译器解释内存内容的方式.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2017%2056%2023%201655805383%201655805383669%20vdi1ex%20image-20220621175623494%20.png" alt="image-20220621175623494" style="zoom:50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2021%2017%2056%2023%201655805383%201655805383669%20vdi1ex%20image-20220621175623494%20.png" alt="image-20220621175623494" style="zoom:50%;">
+
 <p>对于指向Bear对象,但是分别为Bear和ZooAnimal类型的指针,所指向的地址相同,但是<strong>其解释的内存内容所包含的范围不同</strong>.一个是整个Bear对象,一个只含有ZooAnimal部分.</p>
 <p>当Slicing发生时,确实将ZooAnimal部分的内存进行了拷贝,但为什么vptr不能支持派生类的多态呢?</p>
-<h2 id="chapter-2.-the-semantics-of-constructors">chapter 2. The
-Semantics of Constructors</h2>
-<h3 id="default-constructor-construction">2.1 Default Constructor
-Construction</h3>
-<p>C++
-ARM中有一句非常含糊的话:“当编译器需要时,会生成默认的构造函数”.</p>
+<h2 id="chapter-2-The-Semantics-of-Constructors"><a href="#chapter-2-The-Semantics-of-Constructors" class="headerlink" title="chapter 2. The Semantics of Constructors"></a>chapter 2. The Semantics of Constructors</h2><h3 id="2-1-Default-Constructor-Construction"><a href="#2-1-Default-Constructor-Construction" class="headerlink" title="2.1 Default Constructor Construction"></a>2.1 Default Constructor Construction</h3><p>C++ ARM中有一句非常含糊的话:“当编译器需要时,会生成默认的构造函数”.</p>
 <p>“编译器需要”和“程序员需要”是两个不同的概念.</p>
 <p>不过已经修改之后的说法是这样的:“当对于一个没有声明构造函数的类,此时会有隐式地构造函数产生,但此构造函数是浅薄无力的.”</p>
-<h4 id="member-class-object-with-default-constructor">Member Class
-Object with Default Constructor</h4>
-<p>编译器需要在构造函数中将每个数据成员初始化.如果数据成员中含有一些类对象,如果这些类对象的
-<code>default constructor</code>已经定义出来,那么编译器将会调用此对象的
-<code>default constructor</code>.如果有必要,会在原来的
-<code>constructor</code>上进行代码的扩张,对于多个
-<code>class object</code>的情况,将会按照声明次序调用.</p>
-<p>一下面这个例子,如果 <code>Snow_White</code>含有
-<code>dopey,sneey,bashful,number(int)</code>这几个数据成员,没有定义
-<code>default constructor</code>就会合成
-<code>nontrival constructor</code>.在其中依次调用
-<code>default constructor</code>.</p>
-<h4 id="base-class-with-default-constructor">Base Class with Default
-Constructor</h4>
-<p>对于一个类自己没有定义的构造函数,但是它所继承的基类是有默认构造函数的,这个时候会涉及到构造函数的合成.</p>
+<h4 id="Member-Class-Object-with-Default-Constructor"><a href="#Member-Class-Object-with-Default-Constructor" class="headerlink" title="Member Class Object with Default Constructor"></a>Member Class Object with Default Constructor</h4><p>编译器需要在构造函数中将每个数据成员初始化.如果数据成员中含有一些类对象,如果这些类对象的 <code>default constructor</code>已经定义出来,那么编译器将会调用此对象的 <code>default constructor</code>.如果有必要,会在原来的 <code>constructor</code>上进行代码的扩张,对于多个 <code>class object</code>的情况,将会按照声明次序调用.</p>
+<p>一下面这个例子,如果 <code>Snow_White</code>含有 <code>dopey,sneey,bashful,number(int)</code>这几个数据成员,没有定义 <code>default constructor</code>就会合成 <code>nontrival constructor</code>.在其中依次调用 <code>default constructor</code>.</p>
+<h4 id="Base-Class-with-Default-Constructor"><a href="#Base-Class-with-Default-Constructor" class="headerlink" title="Base Class with Default Constructor"></a>Base Class with Default Constructor</h4><p>对于一个类自己没有定义的构造函数,但是它所继承的基类是有默认构造函数的,这个时候会涉及到构造函数的合成.</p>
 <p>基类中的默认构造函数会被调用,按照基类所被声明的部分.</p>
-<h4 id="class-with-a-virtual-function">Class with a Virtual
-Function</h4>
-<p>主要是两种情况:</p>
+<h4 id="Class-with-a-Virtual-Function"><a href="#Class-with-a-Virtual-Function" class="headerlink" title="Class with a Virtual Function"></a>Class with a Virtual Function</h4><p>主要是两种情况:</p>
 <ul>
 <li>声明或者继承于某个 <code>virtual function</code>.</li>
-<li>派生于一个继承链,其中有多个或一个
-<code>virtual base classes</code>.</li>
+<li>派生于一个继承链,其中有多个或一个 <code>virtual base classes</code>.</li>
 </ul>
 <p>在这时会有扩张操作发生:</p>
 <ul>
 <li>一个 <code>virtual function table</code>被产生.</li>
-<li>每一个 <code>class object</code>中,一个额外的指针成员会被合成,内有
-<code>class vtbl</code>.</li>
+<li>每一个 <code>class object</code>中,一个额外的指针成员会被合成,内有 <code>class vtbl</code>.</li>
 </ul>
-<p>对于一个类中的
-<code>class objects</code>,编译器会合成每一个类对象中的vptr.</p>
-<h4 id="class-with-a-virtual-base-class">Class with a Virtual Base
-Class</h4>
-<p>对于含有一个
-<code>virtual base class</code>的派生类,编译器必须使其在<strong>运行时</strong>明确基类的地址.</p>
+<p>对于一个类中的 <code>class objects</code>,编译器会合成每一个类对象中的vptr.</p>
+<h4 id="Class-with-a-Virtual-Base-Class"><a href="#Class-with-a-Virtual-Base-Class" class="headerlink" title="Class with a Virtual Base Class"></a>Class with a Virtual Base Class</h4><p>对于含有一个 <code>virtual base class</code>的派生类,编译器必须使其在<strong>运行时</strong>明确基类的地址.</p>
 <p>????</p>
-<p>最后梳理一下,总共有四种情况,导致需要编译器需要合成
-<code>default constructor</code>.</p>
-<p>在合成的 <code>defuault constructor</code>中,只有
-<code>base class subobjects</code>和
-<code>member class objects</code>被初始化.</p>
+<p>最后梳理一下,总共有四种情况,导致需要编译器需要合成 <code>default constructor</code>.</p>
+<p>在合成的 <code>defuault constructor</code>中,只有 <code>base class subobjects</code>和 <code>member class objects</code>被初始化.</p>
 <p>所以注意两个误解:</p>
 <ul>
 <li>如果没有定义 <code>default constructor</code>就会合成.</li>
 <li>合成的 <code>default constructor</code>会设定每一个数据成员.</li>
 </ul>
-<h3 id="copy-constructor-construction">2.2 Copy Constructor
-Construction</h3>
-<h4 id="default-memberwize">Default Memberwize</h4>
-<p>当没有提供
-<code>explicit copy constructor</code>时,如果要发生拷贝构造,内部是以“逐个成员进行拷贝”的手法.对于其中的
-<code>member class object</code>,则以递归的方式进行“逐个成员拷贝”.</p>
+<h3 id="2-2-Copy-Constructor-Construction"><a href="#2-2-Copy-Constructor-Construction" class="headerlink" title="2.2 Copy Constructor Construction"></a>2.2 Copy Constructor Construction</h3><h4 id="Default-Memberwize"><a href="#Default-Memberwize" class="headerlink" title="Default Memberwize"></a>Default Memberwize</h4><p>当没有提供 <code>explicit copy constructor</code>时,如果要发生拷贝构造,内部是以“逐个成员进行拷贝”的手法.对于其中的 <code>member class object</code>,则以递归的方式进行“逐个成员拷贝”.</p>
 <p>比如说</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Word</span><span class="token punctuation">{</span>
   <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
@@ -623,21 +577,18 @@ Construction</h3>
   	<span class="token keyword keyword-int">int</span> occur_<span class="token punctuation">;</span>
     String word_<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>上面的这种情况,<code>default memberwise initialzation</code>会拷贝
-<code>occur_</code>,然后递归地处理 <code>word_</code>.</p>
-<h2 id="chapter-3.-the-semantics-of-data">chapter 3. The Semantics of
-Data</h2>
-<p>首先考虑一个菱形继承的例子(X,Y,Z,A).调用
-<code>sizeof</code>打印出来的结果依次为:1,8,8,12.</p>
-<p>对于X,这个空的类,其大小为1,其实是编译器预留出来的一个
-<code>char</code>,其作用在于<strong>使不同的类在内存中地址不同.</strong></p>
+
+<p>上面的这种情况,<code>default memberwise initialzation</code>会拷贝 <code>occur_</code>,然后递归地处理 <code>word_</code>.</p>
+<h2 id="chapter-3-The-Semantics-of-Data"><a href="#chapter-3-The-Semantics-of-Data" class="headerlink" title="chapter 3. The Semantics of Data"></a>chapter 3. The Semantics of Data</h2><p>首先考虑一个菱形继承的例子(X,Y,Z,A).调用 <code>sizeof</code>打印出来的结果依次为:1,8,8,12.</p>
+<p>对于X,这个空的类,其大小为1,其实是编译器预留出来的一个 <code>char</code>,其作用在于<strong>使不同的类在内存中地址不同.</strong></p>
 <p>对于Z,Y虚拟继承了X,其内存占用主要来自于:</p>
 <ul>
 <li>支持继承带来的负担.通常是一个指针或者偏移量.</li>
 <li>编译器对于特殊情况的优化处理.</li>
 <li>Alignment,对齐机制.比如说32位机器上,会对齐到8个字节.</li>
 </ul>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2024%2013%2002%2008%201656046928%201656046928575%20eWwYKG%20image-20220624130108426%20.png" alt="image-20220624130108426" style="zoom: 67%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2024%2013%2002%2008%201656046928%201656046928575%20eWwYKG%20image-20220624130108426%20.png" alt="image-20220624130108426" style="zoom: 67%;">
+
 <p>对于有12个字节的A应该是这这种情况:</p>
 <ul>
 <li>确保唯一性的 <code>char</code>,1B.</li>
@@ -645,9 +596,7 @@ Data</h2>
 <li><code>Base class X,Y</code>,8 B</li>
 <li>alignment.</li>
 </ul>
-<h3 id="the-binding-of-a-data-member">3.1 The Binding of a Data
-Member</h3>
-<p>在一个类中定义了x,外部也有一个x全局变量.如果类的成员函数引用这个x,指的究竟是哪一个呢?就现在而言,是内部的x.</p>
+<h3 id="3-1-The-Binding-of-a-Data-Member"><a href="#3-1-The-Binding-of-a-Data-Member" class="headerlink" title="3.1 The Binding of a Data Member"></a>3.1 The Binding of a Data Member</h3><p>在一个类中定义了x,外部也有一个x全局变量.如果类的成员函数引用这个x,指的究竟是哪一个呢?就现在而言,是内部的x.</p>
 <p><strong>如果一个内联函数在一个class声明后被定义,就需要重新评估求值.</strong></p>
 <p>比如说下面的这一段:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-extern">extern</span> <span class="token keyword keyword-int">int</span> x<span class="token punctuation">;</span>
@@ -657,33 +606,23 @@ Member</h3>
 <span class="token keyword keyword-private">private</span><span class="token operator">:</span><span class="token comment">//像这种再类内部定义的函数位inline函数,会等到整个class都声明完后进行</span>
   	<span class="token keyword keyword-float">float</span> x<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>但是参数列表中就不是这样的......</p>
-<h3 id="data-member-layout">3.2 Data Member Layout</h3>
-<p>这一届主要探讨的是member在类中的排列顺序问题.</p>
-<p><code>Nonstatic data members</code>在对象中的排列顺序和其被声明的顺序一样.中间插入的
-<code>static data members</code>不会计入.因为有时候有
-<code>alignment</code>填空,<strong>更准确地说,同一个access,不一定连续较晚出现的成员的地址较高.</strong></p>
-<p>除此之外,在含有 <code>virtual function class</code>的对象中还以有一个
-<code>vptr</code>.</p>
-<p>目前的各家编译器,一般是将
-<code>access section</code>连锁在一起,按照声明顺序形成连续的区块.</p>
-<h3 id="access-of-a-data-member">3.3 Access of a Data Member</h3>
-<p>我们将讨论 <code>nonstatic</code>和 <code>static</code>两种情况.</p>
-<h4 id="static-data-member">Static Data Member</h4>
-<p>最突出的特点就是,其地址在class之外,其实体是唯一的,处于数据段中.</p>
+
+<p>但是参数列表中就不是这样的……</p>
+<h3 id="3-2-Data-Member-Layout"><a href="#3-2-Data-Member-Layout" class="headerlink" title="3.2 Data Member Layout"></a>3.2 Data Member Layout</h3><p>这一届主要探讨的是member在类中的排列顺序问题.</p>
+<p><code>Nonstatic data members</code>在对象中的排列顺序和其被声明的顺序一样.中间插入的 <code>static data members</code>不会计入.因为有时候有 <code>alignment</code>填空,<strong>更准确地说,同一个access,不一定连续较晚出现的成员的地址较高.</strong></p>
+<p>除此之外,在含有 <code>virtual function class</code>的对象中还以有一个 <code>vptr</code>.</p>
+<p>目前的各家编译器,一般是将 <code>access section</code>连锁在一起,按照声明顺序形成连续的区块.</p>
+<h3 id="3-3-Access-of-a-Data-Member"><a href="#3-3-Access-of-a-Data-Member" class="headerlink" title="3.3 Access of a Data Member"></a>3.3 Access of a Data Member</h3><p>我们将讨论 <code>nonstatic</code>和 <code>static</code>两种情况.</p>
+<h4 id="Static-Data-Member"><a href="#Static-Data-Member" class="headerlink" title="Static Data Member"></a>Static Data Member</h4><p>最突出的特点就是,其地址在class之外,其实体是唯一的,处于数据段中.</p>
 <p>当访问时的编译器的转化如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//origin.chunksize = 250;</span>
 Point3d<span class="token double-colon punctuation">::</span>chunkSize <span class="token operator">=</span> <span class="token number">250</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>尽管看上去是经过一个对象的“.”或者“-&gt;”实现,但实际上对于
-<code>static</code>类型来说,并不需要经过 <code>class object</code>.</p>
+
+<p>尽管看上去是经过一个对象的“.”或者“-&gt;”实现,但实际上对于 <code>static</code>类型来说,并不需要经过 <code>class object</code>.</p>
 <p>并且这种特征不受继承特征的影响.</p>
 <p>????</p>
-<h4 id="nontatic-data-members">Nontatic Data Members</h4>
-<p>直接处于 <code>class object</code>中,除了借助 <code>explot</code>和
-<code>implicit</code>的class object,否则无法存取.</p>
-<p><strong>当在成员函数处理 <code>nonstatic members</code>,就会有
-<code>implicit class object</code>生成.</strong>其实都是借助了一个
-<code>implicit class object</code>,this指针.</p>
+<h4 id="Nontatic-Data-Members"><a href="#Nontatic-Data-Members" class="headerlink" title="Nontatic Data Members"></a>Nontatic Data Members</h4><p>直接处于 <code>class object</code>中,除了借助 <code>explot</code>和 <code>implicit</code>的class object,否则无法存取.</p>
+<p>**当在成员函数处理 <code>nonstatic members</code>,就会有 <code>implicit class object</code>生成.**其实都是借助了一个 <code>implicit class object</code>,this指针.</p>
 <p>比如说,在下面代码段中:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Point3d
 <span class="token class-name">Point3d</span><span class="token double-colon punctuation">::</span><span class="token function">translate</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Point3d <span class="token operator">&amp;</span>pt<span class="token punctuation">)</span><span class="token punctuation">{</span>
@@ -694,14 +633,14 @@ Point3d
 <span class="token class-name">Point3d</span><span class="token double-colon punctuation">::</span><span class="token function">translate</span><span class="token punctuation">(</span>Point3d <span class="token operator">*</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">,</span><span class="token keyword keyword-const">const</span> Point3d <span class="token operator">&amp;</span>opt<span class="token punctuation">)</span><span class="token punctuation">{</span>
   <span class="token keyword keyword-this">this</span> <span class="token operator">-&gt;</span> x <span class="token operator">+=</span> pt<span class="token punctuation">.</span>x<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>如果不是在此类的内部存取一个 <code>data member</code>:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">origin<span class="token punctuation">.</span>_y <span class="token operator">=</span> <span class="token number">0.0</span><span class="token punctuation">;</span>
 <span class="token comment">//其存取方式可以看做是</span>
 <span class="token operator">&amp;</span>origin <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token operator">&amp;</span> Point3d<span class="token double-colon punctuation">::</span>_y <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//offset是在编译阶段就确定了.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p><strong>关于虚拟继承的话,看不太懂,暂鸽.</strong></p>
-<h3 id="inheritance-and-the-data-member">3.4 Inheritance and the Data
-Member</h3>
 
+<p><strong>关于虚拟继承的话,看不太懂,暂鸽.</strong></p>
+<h3 id="3-4-Inheritance-and-the-Data-Member"><a href="#3-4-Inheritance-and-the-Data-Member" class="headerlink" title="3.4 Inheritance and the Data Member"></a>3.4 Inheritance and the Data Member</h3>
                 
             </div>
             <hr/>
@@ -814,13 +753,13 @@ Member</h3>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/06211699.html">
+                <a href="/2022/06211691.html">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:内存管理">
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
                         
-                        <span class="card-title">linux 0.11源码分析:内存管理</span>
+                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
