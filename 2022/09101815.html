@@ -1,0 +1,1334 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="mit 6.830 数据库系统: lab 5, Yfs&#39;s Box">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>mit 6.830 数据库系统: lab 5 | Yfs&#39;s Box</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+    <link rel="stylesheet" href="/js/prism/prism.css">
+
+    <script src="/libs/jquery/jquery.min.js"></script>
+
+<meta name="generator" content="Hexo 6.0.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+</head>
+
+
+
+   <style>
+    body{
+       background-image: url(https://cdn.jsdelivr.net/gh/Tokisaki-Galaxy/res/site/medias/background.jpg);
+       background-repeat:no-repeat;
+       background-size:cover;
+       background-attachment:fixed;
+    }
+</style>
+
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Yfs&#39;s Box</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>Index</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>Tags</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>Categories</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>Archives</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>About</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>Contact</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>Friends</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="Search" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Yfs&#39;s Box</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			Index
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			Tags
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			Categories
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			Archives
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			About
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			Contact
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			Friends
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2010%2016%2045%2019%201662799519%201662799519534%20dpwghL%20image-20220910164519396%20.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">mit 6.830 数据库系统: lab 5</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">数据库系统</span>
+                            </a>
+                        
+                            <a href="/tags/mit-6-830/">
+                                <span class="chip bg-color">mit 6.830</span>
+                            </a>
+                        
+                            <a href="/tags/java/">
+                                <span class="chip bg-color">java</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
+                    2022-09-10
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
+                    2.9k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
+                    11 Min
+                </div>
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="1-实现基础"><a href="#1-实现基础" class="headerlink" title="1.实现基础"></a>1.实现基础</h2><h3 id="1-索引系统"><a href="#1-索引系统" class="headerlink" title="1) 索引系统"></a>1) 索引系统</h3><p>之前的lab中,Tuple在文件中的分布是没有规律的,而且想要在表对应的文件中查询一个Tuple,不得不在该文件中逐页地遍历查找,至于删除,插入等操作亦复如是.</p>
+<p>而索引系统(这里主要围绕着B+ tree展开).其作用在于,能够根据某个字段或者多个字段,加速其查找.也可以说,索引是在原始存储的数据中,所抽象出来的一层将数据中的键值根据某种方式组织成的便于查找的数据结构,比如说在本次lab中,就会将文件中的数据中的某个键组织成一颗B+树,之后关于对文件的增删查操作都会现在B+ 树上进行,找到目标后,就返回其对应的Page.这样显然避免了对整个文件的遍历.</p>
+<p>此外,一个原始数据文件可以有多个索引文件,每个不同的索引文件可以代表不同键值处所构造的索引.在本次lab中,通常是将一个文件有一个索引文件实现的.此外,索引还有稀疏或者稠密之分,稠密的索引就是一个文件中所有Record都有索引项的方式,否则就是稀疏的.</p>
+<h3 id="2-B-树"><a href="#2-B-树" class="headerlink" title="2) B+树"></a>2) B+树</h3><p>首先B+树有几个基本的特点:</p>
+<ul>
+<li>除了leaf节点之外,不存储实际的数据.</li>
+<li>叶子结点以链表的方式连接起来,所以B+树具有范围查找的能力,相比之下,B树的leaf节点并没有串起来,所以没有范围查找的能力.</li>
+<li>每个leaf的高度是一样的,相比一般的二叉树,其增长过程是从leaf开始,自下向上的,很多树都是自顶向下插入的.</li>
+</ul>
+<p>此外,由于这里数据库系统做I/O操作的基本单位是Page,而一个B+树节点也就是一个Page.因此,在这里,如果将一个文件(只有一个索引键)对应一个B+树的话,文件中的所有数据都在leaf上,想要定位一个数据就得查找到其所在的leaf Page.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2010%2016%2045%2019%201662799519%201662799519534%20dpwghL%20image-20220910164519396%20.png" alt="image-20220910164519396" style="zoom: 50%;">
+
+<p>关于检索,插入,删除等操作的执行过程,在下面的每个练习中会细说.</p>
+<blockquote>
+<p><strong>1.B树系列为什么适合磁盘上的读写操作?</strong></p>
+<p>​    B树相比于红黑树等数据结构,不在限制于“二叉”的性质,而且一个节点可以包含多个数据项,所以一般情况下,相同的数量的数据n,一个B树所呈现的高度更低,对于存储于磁盘上的数据,操作系统I/O的基本单位是一个block,此外在读取或者写数据时,I/O时间要显著多于CPU时间,因此节省I/O时间是提升读写磁盘数据的关键.</p>
+<p>   由于B树作为多叉树的特点,可以有更低的高度,和更少的节点,一般B树一个节点对应disk上的一个block,因此访问block的次数大大减少,进而导致I/O开销大大减少,一个节点可以有多个数据项也充分地利用了disk分块作为单位读写的特点.</p>
+<p>​    虽然一个节点有多个数据项的特点导致在查找时,需要多花费时间在遍历一个节点上,但是由于局部性的特点,这点开销不大.</p>
+<p><strong>2.B树,B+树的区别有什么?</strong></p>
+<p>​    在实际的磁盘存储中,B+树用得比B树多一些.</p>
+<p>(1).B+树只有叶子结点保存数据,再结合B+树平衡的特性,任何查找工作经过的路径长度都是相同的,因此B+树的查找开销是更加稳定的.</p>
+<p>(2).B+树的叶子结点之间是具有指针连接的,这点使得B+树具有范围查找的能力.</p>
+<p>(3).B+树的中间节点不保存数据,</p>
+</blockquote>
+<h2 id="2-实现过程"><a href="#2-实现过程" class="headerlink" title="2.实现过程"></a>2.实现过程</h2><h3 id="1-Exercise-1-BTreeFile-findLeafPage"><a href="#1-Exercise-1-BTreeFile-findLeafPage" class="headerlink" title="1) Exercise 1: BTreeFile.findLeafPage()"></a>1) Exercise 1: BTreeFile.findLeafPage()</h3><p>这一部分的实现是比较简单的,类似于一般的二叉树的递归,但是B+树是多叉树,因此每一步向下递归的过程中,还会涉及到对于一个节点上的数据项的遍历.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">BTreeLeafPage</span> <span class="token function">findLeafPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span> <span class="token class-name">BTreePageId</span> pid<span class="token punctuation">,</span> <span class="token class-name">Permissions</span> perm<span class="token punctuation">,</span>
+                                      <span class="token class-name">Field</span> f<span class="token punctuation">)</span>
+				<span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+	<span class="token comment">// some code goes here</span>
+		<span class="token class-name">BTreePageId</span> pageId <span class="token operator">=</span> pid<span class="token punctuation">;</span>
+		<span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>pageId<span class="token punctuation">.</span><span class="token function">pgcateg</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token class-name">BTreePageId</span><span class="token punctuation">.</span>LEAF<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+			<span class="token class-name">Page</span> page <span class="token operator">=</span> <span class="token function">getPage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>pageId<span class="token punctuation">,</span><span class="token class-name">Permissions</span><span class="token punctuation">.</span>READ_ONLY<span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token keyword keyword-int">int</span> pgcatag <span class="token operator">=</span> pageId<span class="token punctuation">.</span><span class="token function">pgcateg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+			<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pgcatag <span class="token operator">==</span> <span class="token class-name">BTreePageId</span><span class="token punctuation">.</span>INTERNAL<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+				<span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">BTreeEntry</span><span class="token punctuation">&gt;</span></span> it <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">BTreeInternalPage</span><span class="token punctuation">)</span> page<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token class-name">BTreeEntry</span> entry <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+				<span class="token keyword keyword-boolean">boolean</span> isfound <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+				<span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>it<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+					entry <span class="token operator">=</span> it<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+					<span class="token class-name">Field</span> field <span class="token operator">=</span> entry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+					<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>f <span class="token operator">==</span> <span class="token keyword keyword-null">null</span> <span class="token operator">||</span> field<span class="token punctuation">.</span><span class="token function">compare</span><span class="token punctuation">(</span><span class="token class-name">Op</span><span class="token punctuation">.</span>GREATER_THAN_OR_EQ<span class="token punctuation">,</span> f<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+						pageId <span class="token operator">=</span> entry<span class="token punctuation">.</span><span class="token function">getLeftChild</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+						isfound <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+						<span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+					<span class="token punctuation">}</span>
+				<span class="token punctuation">}</span>
+				<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>isfound <span class="token operator">&amp;&amp;</span> entry <span class="token operator">!=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+					pageId <span class="token operator">=</span> entry<span class="token punctuation">.</span><span class="token function">getRightChild</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+				<span class="token punctuation">}</span>
+			<span class="token punctuation">}</span>
+		<span class="token punctuation">}</span>
+		<span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token class-name">BTreeLeafPage</span><span class="token punctuation">)</span> <span class="token function">getPage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>pageId<span class="token punctuation">,</span>perm<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<p>直到遍历到一个leaf Page即为到达终点,其中需要注意的是对于<code>null</code>来说,一直向左递归就可以了,还有关于向下递归的条件,究竟应该是”大于等于“还是“大于”.我之前是按照大于做的,但是这样会导致错误,尤其是对于有重复的情况.在此举一个例子:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2010%2023%2017%2054%201662823074%201662823074233%20kCHVVZ%201191DF3D9BB32CD2F8B39AE3E736E033%20.jpg" alt="1191DF3D9BB32CD2F8B39AE3E736E033"></p>
+<p>对于图中的情况,如果等到“&gt;”才向下左递归的话,如果想要查找1,这样递归到根下面的一层后,就会朝最右方递归,这明显导致所读的leaf Page数据不全的情况,如果想要查找的是2的话,则会递归到[2,3,3,3]这一个叶子结点,仍然是不能得到一个含有2的完整的leaf Page.对于所要查找的值,正好等于一个中间节点(下一层就是leaf的情况),如果递归到左子则不一定含有该数值,但是由于leaf Page相连的特点,还是可以遍历到下一个leaf Page,进而达到完整地遍历该数值对应的leaf Page的.如果是“&gt;”的条件就向左下遍历,那么容易造成缺页,进而无法完整遍历该数值所在的leaf page.</p>
+<p>B+树的叶子结点中的key呈现单调不下降的特点,当叶子进行分裂并将m/2项放到上一层节点的时候,未必就能保证该Tuple右边的一定就大,左边的就一定要小,它们还有可能是相等的.所以在这里我认为,不能认为左子树一定是小于的,右子树一定是大于的,左右子树都可以有等于的情况在其中.</p>
+<h3 id="2-Exercise-2-Splitting-Pages"><a href="#2-Exercise-2-Splitting-Pages" class="headerlink" title="2) Exercise 2: Splitting Pages"></a>2) Exercise 2: Splitting Pages</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">BTreeInternalPage</span> <span class="token function">splitInternalPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
+		<span class="token class-name">BTreeInternalPage</span> page<span class="token punctuation">,</span> <span class="token class-name">Field</span> field<span class="token punctuation">)</span> 
+				<span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+
+	<span class="token class-name">BTreeInternalPage</span> newPage <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">BTreeInternalPage</span><span class="token punctuation">)</span> <span class="token function">getEmptyPage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span><span class="token class-name">BTreePageId</span><span class="token punctuation">.</span>INTERNAL<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-int">int</span> maxEntry <span class="token operator">=</span> page<span class="token punctuation">.</span><span class="token function">getMaxEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>index <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+	<span class="token class-name">BTreeEntry</span> midEntry <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+	<span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">BTreeEntry</span><span class="token punctuation">&gt;</span></span> rit <span class="token operator">=</span> page<span class="token punctuation">.</span><span class="token function">reverseIterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-int">int</span> maxSize <span class="token operator">=</span> page<span class="token punctuation">.</span><span class="token function">getMaxEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> maxSize <span class="token operator">/</span> <span class="token number">2</span> <span class="token punctuation">;</span> i <span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token class-name">BTreeEntry</span> entry <span class="token operator">=</span> rit<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		page<span class="token punctuation">.</span><span class="token function">deleteKeyAndRightChild</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		newPage<span class="token punctuation">.</span><span class="token function">insertEntry</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	midEntry <span class="token operator">=</span> rit<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	page<span class="token punctuation">.</span><span class="token function">deleteKeyAndRightChild</span><span class="token punctuation">(</span>midEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>newPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token class-name">BTreePage</span> parentPage <span class="token operator">=</span> <span class="token function">getParentWithEmptySlots</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>page<span class="token punctuation">.</span><span class="token function">getParentId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>field<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">BTreeInternalPage</span><span class="token punctuation">)</span> parentPage<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">insertEntry</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">BTreeEntry</span><span class="token punctuation">(</span>midEntry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>page<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>newPage<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span><span class="token punctuation">(</span><span class="token class-name">BTreeInternalPage</span><span class="token punctuation">)</span> parentPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>parentPage<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>parentPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>page<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>newPage<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>newPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>field<span class="token punctuation">.</span><span class="token function">compare</span><span class="token punctuation">(</span><span class="token class-name">Op</span><span class="token punctuation">.</span>GREATER_THAN_OR_EQ<span class="token punctuation">,</span>midEntry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token keyword keyword-return">return</span> newPage<span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword keyword-return">return</span> page<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这一部分的实现相对来说比较简单,这里只列举<code>splitInternalPage</code>.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2008%2054%2028%201662857668%201662857668375%20ylrF7i%20image-20220911085428235%20.png" alt="image-20220911085428235" style="zoom: 50%;">
+
+<p>其中分裂的规则就是两方对半平分,至于<code>Internal,Leaf</code>的主要区别就在于,是否需要将第m/2个节点移除,由于B+树的特点就是所有的叶子结点必须涵盖所有的数据,因此当leaf Page进行split时无需将第m/2个节点移除,如果是Internal的话,则需要进行移除.</p>
+<p>所以在<code>splitInternalPage</code>的实现中,主要分为如下过程:</p>
+<ul>
+<li>将page的部分节点移除(对半平分),并且插入到newpage中.</li>
+<li>对于最后一个移除的要进行一定的特殊处理,这一个不需要插入到newpage中.</li>
+<li>更新newpage和page的孩子节点.</li>
+<li>使用<code>getParentWithEmptySlots</code>(递归地)获取这两个节点的父节点.</li>
+<li>将mid项插入(注意左右child的设置),到父节点.</li>
+<li>缓存脏页并返回.</li>
+</ul>
+<p>理解了<code>split</code>操作后,就可以将insert概括为,首先<code>findLeafPage</code>找到目标应该所在的leaf Page,然后根据其当前大小判断是否要进行split,如果不需要就直接加入,否则就将其分裂出一个new leaf Page,并且加入一个新的中间结点,如果中间节点也出现了超出数量的情况,则继续递归到中间节点,并执行split,再加入新的中间结点,以此类推,知道不需要分裂或者到达根节点为止.</p>
+<h3 id="3-Exercise-3-Redistributing-pages"><a href="#3-Exercise-3-Redistributing-pages" class="headerlink" title="3) Exercise 3: Redistributing pages"></a>3) Exercise 3: Redistributing pages</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">stealFromLeftInternalPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
+		<span class="token class-name">BTreeInternalPage</span> page<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> leftSibling<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> parent<span class="token punctuation">,</span>
+		<span class="token class-name">BTreeEntry</span> parentEntry<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+	<span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">BTreeEntry</span><span class="token punctuation">&gt;</span></span> rit <span class="token operator">=</span> leftSibling<span class="token punctuation">.</span><span class="token function">reverseIterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-int">int</span> totalNum <span class="token operator">=</span> page<span class="token punctuation">.</span><span class="token function">getNumEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> leftSibling<span class="token punctuation">.</span><span class="token function">getNumEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token class-name">BTreeEntry</span> bTreeEntry <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">,</span>newBtreeEntry <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+
+	<span class="token class-name">BTreeEntry</span> oldParentEntry <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">BTreeEntry</span><span class="token punctuation">(</span>parentEntry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+								leftSibling<span class="token punctuation">.</span><span class="token function">reverseIterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getRightChild</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+								page<span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getLeftChild</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	page<span class="token punctuation">.</span><span class="token function">insertEntry</span><span class="token punctuation">(</span>oldParentEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>page<span class="token punctuation">.</span><span class="token function">getNumEntries</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> totalNum <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		bTreeEntry <span class="token operator">=</span> rit<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		leftSibling<span class="token punctuation">.</span><span class="token function">deleteKeyAndRightChild</span><span class="token punctuation">(</span>bTreeEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		page<span class="token punctuation">.</span><span class="token function">insertEntry</span><span class="token punctuation">(</span>bTreeEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	newBtreeEntry <span class="token operator">=</span> rit<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	leftSibling<span class="token punctuation">.</span><span class="token function">deleteKeyAndRightChild</span><span class="token punctuation">(</span>newBtreeEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>leftSibling<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	parentEntry<span class="token punctuation">.</span><span class="token function">setKey</span><span class="token punctuation">(</span>newBtreeEntry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	parent<span class="token punctuation">.</span><span class="token function">updateEntry</span><span class="token punctuation">(</span>parentEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>parent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>page<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>leftSibling<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>leftSibling<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>parent<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>parent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<p>关于删除操作需要涉及到的操作有<code>steal</code>和<code>Merge</code>,前者的原则仍然是对半平分.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2002%2030%201662865350%201662865350896%20fm1lfg%20image-20220911110230782%20.png" alt="image-20220911110230782" style="zoom:50%;">
+
+
+
+<h3 id="4-Exercise-4-Merging-pages"><a href="#4-Exercise-4-Merging-pages" class="headerlink" title="4) Exercise 4: Merging pages"></a>4) Exercise 4: Merging pages</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">mergeInternalPages</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
+		<span class="token class-name">BTreeInternalPage</span> leftPage<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> rightPage<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> parent<span class="token punctuation">,</span> <span class="token class-name">BTreeEntry</span> parentEntry<span class="token punctuation">)</span> 
+				<span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+   
+	<span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">BTreeEntry</span><span class="token punctuation">&gt;</span></span> entryIt <span class="token operator">=</span> rightPage<span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token class-name">BTreeEntry</span> oldparentEntry <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">BTreeEntry</span><span class="token punctuation">(</span>parentEntry<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>leftPage<span class="token punctuation">.</span><span class="token function">reverseIterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getRightChild</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+			rightPage<span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getLeftChild</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	leftPage<span class="token punctuation">.</span><span class="token function">insertEntry</span><span class="token punctuation">(</span>oldparentEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>entryIt<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+		<span class="token class-name">BTreeEntry</span> entry <span class="token operator">=</span> entryIt<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+		rightPage<span class="token punctuation">.</span><span class="token function">deleteKeyAndLeftChild</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		leftPage<span class="token punctuation">.</span><span class="token function">insertEntry</span><span class="token punctuation">(</span>entry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>leftPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	<span class="token function">setEmptyPage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>rightPage<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getPageNumber</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">deleteParentEntry</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>leftPage<span class="token punctuation">,</span>parent<span class="token punctuation">,</span>parentEntry<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token function">updateParentPointers</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>parent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>leftPage<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>leftPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>rightPage<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>rightPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
+	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>parent<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>parent<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>其中以<code>mergeInternalPages</code>为例,这里的实现过程(将右leaf Page合并到左leaf Page)如下:</p>
+<ul>
+<li>将需要移除的BTreeEntry追加到left page中(注意child的设置).</li>
+<li>将所有right page中的项移除,并insert到left leaf page.</li>
+<li>更新left page的child的父母节点,将已经合并的righht page设置为null,移除父节点中对应的项.</li>
+<li>缓存脏页.</li>
+</ul>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2006%2022%201662865582%201662865582427%20HpWI7l%20image-20220911110622307%20.png" alt="image-20220911110622307" style="zoom:50%;">
+
+
+
+<p>在这里关于<code>merge</code>的实现,其中中间节点和leaf结点的区别在于,同样都需要将对应的某个parent进行移除,但是移除的时候是否还需要将这个移除的项加入到子节点中呢?如果是leaf page,直接移除就可以,其他不需要做什么,如果是中间节点,则还需要将移除的节点项加入到某个child Page中.因为在其他的操作中,都不会破坏leaf page维护全部数据的性质.</p>
+<p>接下来可以简单地梳理一下<code>delete</code>过程,仍然是先找到目标所在的leaf page.然后检查该leaf page的数量,如果去掉一个后不少于一半就直接移除该项,否则进行<code>steal</code>或者<code>merge</code>,首先进行steal,如果steal之后发现仍然有一方数量不足就进行merge.一直向上递归,知道递归到某个节点的数量符合要求或者到达根节点.</p>
+<h2 id="3-小结"><a href="#3-小结" class="headerlink" title="3.小结"></a>3.小结</h2><p>这个lab怎么说呢,B+树的实现方面细节比较多,这算是一个难点,但是这次lab并不会涉及到太多关于整个database的架构的理解.至于这次lab的实现,我有个很遗憾的地方在于,并没有通过附加题中的<code>BTreetest</code>.我想应该是我在<code>Lock Manager</code>方面出的问题吧,暂时先鸽了.</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        Author:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">yfs</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        Link:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="http://example.com/2022/09101815.html">http://example.com/2022/09101815.html</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        Reprint policy:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    All articles in this blog are used except for special statements
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    reprint polocy. If reproduced, please indicate source
+                    <a href="/about" target="_blank">yfs</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>Copied successfully, please follow the reprint policy of this article</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">more</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">数据库系统</span>
+                                </a>
+                            
+                                <a href="/tags/mit-6-830/">
+                                    <span class="chip bg-color">mit 6.830</span>
+                                </a>
+                            
+                                <a href="/tags/java/">
+                                    <span class="chip bg-color">java</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+            <div class="card">
+                <a href="/2022/09101623.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2052%2019%201662868339%201662868339584%20H5qbhe%20C0D262E9B18BE8B92ECFAA2AF52B8A63%20.jpg" class="responsive-img" alt="mit 6.830 数据库系统: lab 6 + 总复盘">
+                        
+                        <span class="card-title">mit 6.830 数据库系统: lab 6 + 总复盘</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            做完lab6就算是将这整套lab过了一遍了,虽然这个lab我的实现肯定会有很多问题和遗憾,但是我还是学到了不少东西.
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-09-10
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">数据库系统</span>
+                    </a>
+                    
+                    <a href="/tags/mit-6-830/">
+                        <span class="chip bg-color">mit 6.830</span>
+                    </a>
+                    
+                    <a href="/tags/java/">
+                        <span class="chip bg-color">java</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Next&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/090564897.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2005%2013%2012%2041%201662354761%201662354761127%20iDtVLu%20image-20220905131241004%20.png" class="responsive-img" alt="数据库系统概念:TRANSACTION MANAGEMENT">
+                        
+                        <span class="card-title">数据库系统概念:TRANSACTION MANAGEMENT</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-09-05
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">数据库系统</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;TOC</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2022</span>
+            
+            <span id="year">2022</span>
+            <a href="/about" target="_blank">yfs</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;<span id="busuanzi_value_site_pv"
+                    class="white-color"></span>&nbsp;次
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;<span id="busuanzi_value_site_uv"
+                    class="white-color"></span>&nbsp;人
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/YfsBox" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:1027342142@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1027342142" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1027342142" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<script src="/js/prism/prism.js" async></script>
+<link rel="stylesheet" href="/css/prism.css">
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;Search</span>
+            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+	
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+    <script type="text/javascript">
+        //只在桌面版网页启用特效
+        var windowWidth = $(window).width();
+        if (windowWidth > 768) {
+            document.write('<script type="text/javascript" src="/js/sakura.js"><\/script>');
+        }
+        </script>
+        
+
+</body>
+
+</html>

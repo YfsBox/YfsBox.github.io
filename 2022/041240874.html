@@ -1,0 +1,1299 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="C++ Primer: Chapter 13,14,15概要, Yfs&#39;s Box">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>C++ Primer: Chapter 13,14,15概要 | Yfs&#39;s Box</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+    <link rel="stylesheet" href="/js/prism/prism.css">
+
+    <script src="/libs/jquery/jquery.min.js"></script>
+
+<meta name="generator" content="Hexo 6.0.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+</head>
+
+
+
+   <style>
+    body{
+       background-image: url(https://cdn.jsdelivr.net/gh/Tokisaki-Galaxy/res/site/medias/background.jpg);
+       background-repeat:no-repeat;
+       background-size:cover;
+       background-attachment:fixed;
+    }
+</style>
+
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Yfs&#39;s Box</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>Index</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>Tags</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>Categories</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>Archives</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>About</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>Contact</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>Friends</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="Search" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Yfs&#39;s Box</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			Index
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			Tags
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			Categories
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			Archives
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			About
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			Contact
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			Friends
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2002%2009%2027%2041%201662082061%201662082061425%208Xrv1T%20image-20220902092741291%20.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">C++ Primer: Chapter 13,14,15概要</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/c/">
+                                <span class="chip bg-color">c++</span>
+                            </a>
+                        
+                            <a href="/tags/C-Primer/">
+                                <span class="chip bg-color">C++ Primer</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
+                    2022-04-12
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
+                    5.6k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
+                    19 Min
+                </div>
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="Chapter-7-类"><a href="#Chapter-7-类" class="headerlink" title="Chapter 7 类"></a>Chapter 7 类</h2><p>对于this,是每个成员函数中的一个隐含的参数,它代表的是当前执行该成员函数的地址,在每次调用成员函数时,该对象都会将自己的地址初始化给成员函数中的this指针.我们可以将其理解为这种:</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">object.dosomething();
+//相当于
+Object::dosomething(&amp;object);//将自己的地址填充到隐含的参数中,该参数也就是this.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>关于这个指针,这个指针this是无法修改的,也就说只能指向这个对象,不能修改它使其指向其他的对象.如果引入const符号,那么就可以表示这是一个const Object*类型,也就是说这个对象是不可修改的.也就相当于这个(伪代码):</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">std::string Scalas::ibsn(const Scalas* const this) { return this-&gt;isbn; }<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>对于一些情况,我需要返回一个this所指向的对象?对于下面这种情况:</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">Scalas_data&amp; Scalas_data::combine(const Scalas_data&amp; rhs) {
+  	units_sold += rhs.units_sold;
+  	return *this;
+}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这是对于<code>=,+=,-=</code>等运算符常用的方式.</p>
+<p>关于构造函数中的<code>=default</code>表示的是,对于某人构造函数,我显式地声明我所使用的是编译器生成的版本.再primer书中的一些设计中,对于一些可以采用合成的构造函数,都将其设置为<code>=default</code>了.</p>
+<p>除了构造之外,析构、拷贝、赋值等操作都有编译器合成的现象.如果一个类内部涉及到一些动态管理内存的,那么使用合成的函数则不大妥当,如果是vector,string等数据类型的数据成员,由于这些容器内部已经做好了关于内存管理的方面的工作,因此合成的函数对于vector,string等类型的数据成员不会有一些不当的影响.</p>
+<blockquote>
+<p>primer中说,对于struct和class唯一的区别就在于默认的访问权限.</p>
+</blockquote>
+<p>关于类的向前声明,向程序中引入了名字Screen并且指明Screen是一种类类型,但之后的,在其定义之前是一个<strong>不完全类型</strong>,不清楚内部的数据成员以及方法等属性,在此期间只可以定义指针或者引用,也可以作为函数参数或者返回值.<strong>如果想要创建某个类的对象,必须要有该类的定义</strong>.向前声明时常用来解决互为成员的类,但是又不能抗头文件相互引用的情况.</p>
+<p>关于类中的<code>name lookup</code>和作用域的关系.这个过程比较简单:</p>
+<ul>
+<li>再该name所在的块寻找声明,只考虑该name引用前的声明.</li>
+<li>没有找到的话,就去外层找.</li>
+<li>如果一只没有找到就报错.</li>
+</ul>
+<h2 id="Chapt-13-拷贝控制"><a href="#Chapt-13-拷贝控制" class="headerlink" title="Chapt 13 拷贝控制"></a>Chapt 13 拷贝控制</h2><h3 id="1-拷贝控制"><a href="#1-拷贝控制" class="headerlink" title="1. 拷贝控制"></a>1. 拷贝控制</h3><p>这一部分有两个核心的概念:<strong>右值引用,移动操作</strong>.主要说copy constructor,move constructor,copy-assignment,move-assignment,destructor等函数.</p>
+<p>关于这部分的坑点,主要是当不对某个函数进行定义(比如拷贝构造),编译器就会自动生成,然而自动生成的未必可用.</p>
+<p>为什么拷贝构造函数不应该是<code>explicit</code>的呢?因为有几种情况下,需要进行隐式地转化.</p>
+<p>关于编译器自动合成的拷贝构造函数,对于其中类成员,则调用其构造函数进行构造,对于内部类则会进行直接拷贝,总的来说,是将类内部的每个元素(非static)逐个拷贝.这种行为对于类成员来说还可以往下进行递归,即使某个数据成员是数组,也会被拷贝.</p>
+<p>此外还提出了两个不同的概念<code>copy initialization</code>和<code>direct initialization</code>.其区别在于一个使用构造函数,另一个使用的是拷贝构造函数.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2031%2023%2023%2058%201661959438%201661959438807%201wO8qU%20image-20220831232358680%20.png" alt="image-20220831232358680"></p>
+<p>其中拷贝初始化发生的时机有:**通过=定义,传参与返回,花括号列表初始化数组或者某个class中的成员.关于函数的传参与返回,**很大关系上和参数或者返回值是否是引用类型有关.</p>
+<p>正义因为函数传参的过程中会触发拷贝构造,所以拷贝构造的定义应该是引用,否则就会陷入“鸡生蛋,蛋生鸡”的死循环问题.</p>
+<p>关于<code>explicit</code>对于拷贝初始化的限制问题,这个关键字通常作用于:<strong>告诉编译器是否可以隐式初始化对象</strong>.对于加上<code>explicit</code>的拷贝构造函数后,对于像=,函数传参数和返回等会触发隐式拷贝构造的情况会禁止,只有直接地调用拷贝构造函数才可以.直接构造函数也是同理.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2001%2011%2006%2042%201662001602%201662001602602%201bCjBY%20image-20220901110642492%20.png" alt="image-20220901110642492"></p>
+<p>其中第二行代码代表赋值操作会触发隐式地出发构造函数的一种场景,因此会被<code>explicit</code>拦截.</p>
+<p>对与合成拷贝赋值函数,会对内部的每个非静态成员进行拷贝赋值,如果是数组则是逐个元素地进行.</p>
+<p>关于析构函数,由于没有参数的存在,因此也不会被重载,每个类都是唯一的.对于销毁的动作,如果是一个内置类型,什么也不需要做,对于类成员则会调用它自己的析构函数.</p>
+<p>关于一个类被析构的时机,其中最重要的是:离开作用域,当一个对象被析构其成员也会被销毁,对于动态分配的对象,当它的指针被delete时因此也会触发该对象的析构函数.</p>
+<p>如果是容器类型,当离开一个vector的作用域,其内部的元素会逐个析构.</p>
+<p>下面是一些建议:</p>
+<ul>
+<li>需要析构函数的类往往也需要拷贝和赋值操作,如果内部有一个指针,析构函数如果会释放该指针的内存,如果这个时候用的合成的拷贝和赋值函数,则会在其他对象对该指针有浅拷贝,一旦被析构函数delete,那么其他地方的浅拷贝就会持有死亡的指针.</li>
+<li>如果定义了拷贝,最好也定义赋值.</li>
+<li><code>default</code>对于一些支持合成的函数有用,<code>=delete</code>用于禁用某个函数,比如拷贝构造和赋值运算符.对于private类型的拷贝和赋值函数来说,可以只声明不定义.</li>
+</ul>
+<h3 id="2-拷贝控制与资源管理"><a href="#2-拷贝控制与资源管理" class="headerlink" title="2.拷贝控制与资源管理"></a>2.拷贝控制与资源管理</h3><p>书中将类分为两类,一个是行为像指针,另一个像值.</p>
+<p>其中“行为像值的类”对于内部核心数据的操作使用的是深拷贝,比如说拷贝构函数进行深拷贝,拷贝赋值函数则是释放当前的数据,然后进行深拷贝.不过要考虑<strong>赋值拷贝中的自赋现象</strong>.</p>
+<p>“行为像指针的类”,比如说<code>shard_ptr</code>.下面是关于引用计数的实现,主要增加一个数据成员size_t * used.当调用析构函数时,这个值-1,当减到0时,将其所维护的指针和used自己都释放.赋值拷贝构造函数除了浅拷贝数据的指针,还需要对于右值的对象的引用计数+1,自己的原本的引用计数-1,如果减到0,如同析构函数.</p>
+<h3 id="3-交换操作"><a href="#3-交换操作" class="headerlink" title="3.交换操作"></a>3.交换操作</h3><p>一般来说,对于swap的实现,采用交换指针的方式比较好,这样能够减少因为拷贝而带来的开销.拷贝并交换的技术可以用来做拷贝赋值,这对于应对自赋值的作用非常显著.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2001%2016%2004%2015%201662019455%201662019455921%20TfDRPY%20image-20220901160415799%20.png" alt="image-20220901160415799"></p>
+<h3 id="4-对象移动"><a href="#4-对象移动" class="headerlink" title="4. 对象移动"></a>4. 对象移动</h3><h4 id="右值引用与move"><a href="#右值引用与move" class="headerlink" title="右值引用与move"></a>右值引用与move</h4><p>移动用于不可以被共享的资源,只能有一个所有者.</p>
+<p>在内存的操作上,move和copy(深拷贝)的区别在于,<strong>是否分配新的内存空间.</strong></p>
+<p>其中<code>string,stl容器,shared_ptr</code>既支持移动也支持拷贝,IO类和unique_ptr可以移动但是不能拷贝.</p>
+<p>右值引用也就是&amp;&amp;,重要的特点就是只能绑定到一个将要销毁的对象中.对于做只来说可以通过<code>std::move</code>来进行.</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">int &amp;&amp;rr3 = std::move(rr1);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="移动构造函数"><a href="#移动构造函数" class="headerlink" title="移动构造函数"></a>移动构造函数</h4><p>为了可以实现这种操作,比如<code>Object obj(std::move(robj));</code>.这种操作并不能通过一般的构造函数来完成,因此需要移动构造函数.除了初始化左值还要将原来的右值设置为空.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2001%2016%2026%2000%201662020760%201662020760035%20MScZCK%20image-20220901162559946%20.png" alt="image-20220901162559946"></p>
+<p>由图中的操作可见,相比于浅拷贝,多了一步,也就是将原来的指针设置成nullptr.当移动操作结束后,原本的源对象会被调用析构函数因此而被销毁,由于这个时候内部的指针已经成空的了,所以即使被delete也不会影响到被move到的对象.</p>
+<p>而对于移动赋值操作,这一部分相比拷贝赋值操作,一般来说,对于“自移动”的操作来说,不需要做任何处理,操作和移动构造函数类似.当源对象被移动后,源对象应当保持有效,可析构的状态.</p>
+<p>至于编译器合成的移动构造函数,其合成发生的条件:没有定义任何自己的拷贝构造函数,并且每个非static都是可以移动的(对于类成员来说,如果它有move操作那么就可以).</p>
+<p><strong>定义了一个移动构造函数和移动赋值运算符也必须定义自己的拷贝操作,否则会将这些成员默认地定义为删除的</strong>.</p>
+<blockquote>
+<p><strong>如果没有移动构造函数只有拷贝构造的情况下,会发生什么?</strong></p>
+<p>这种情况下,Object &amp;&amp;会被转换成const Object &amp;,进而调用拷贝构造函数.这时和一般的拷贝构造行为没有区别.</p>
+</blockquote>
+<h4 id="结合swap的移动赋值操作"><a href="#结合swap的移动赋值操作" class="headerlink" title="结合swap的移动赋值操作"></a>结合swap的移动赋值操作</h4><p>如果结合其之前的swap操作,那么移动赋值运算符可以有怎样的实现呢?</p>
+<p>简单地说,就是将其参数设置成非引用的模式.函数内部采用之前实现的swap.这样实现,如果传入的是一个右值,就会借助移动构造函数进行初始化,否则就是拷贝构造函数进行初始化.当离开作用域后,该参数所对应的对象都将会被销毁.最终这个函数可以呈现一种“通用”的效果.</p>
+<h4 id="支持右值引用的成员函数"><a href="#支持右值引用的成员函数" class="headerlink" title="支持右值引用的成员函数"></a>支持右值引用的成员函数</h4><p>一个类的成员函数如何实现既支持const Obj &amp;,也支持Obj &amp;&amp;.就比如说STL vector中:</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">void push_back(const X &amp;);
+void push_back(X &amp;&amp;);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>至于当我们调用<code>push_back</code>的时候,我们传入的实参的类型将决定具体会执行哪一个.只要借助C++的重载机制即可实现这种机制.</p>
+<h2 id="Chapt-14-运算符重载与类型转换"><a href="#Chapt-14-运算符重载与类型转换" class="headerlink" title="Chapt 14 运算符重载与类型转换"></a>Chapt 14 运算符重载与类型转换</h2><p>其中的核心问题,在于根据内置匀速运算的机制,去理解参数与返回值类型设计的原因.</p>
+<h3 id="1-基本概念"><a href="#1-基本概念" class="headerlink" title="1.基本概念"></a>1.基本概念</h3><p>运算符重载本质上还是一种函数,并且还是可以直接调用的.如下:</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">data1 + data2;
+operator + (data1,data2);
+//或者
+data1 += data2;
+data1.operator+=(data2);
+//如果是定义的成员函数,这样会出错!如果改成非成员的则不会出错
+string s = "world";
+string t = "hi" + s; //应该是s + "hi"<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>对于函数来说,函数有参数,有返回值.参数的话,如果是一元运算符的话,就是一个参数二元运算符则是两个参数.当作为成员函数的时候,第一个参数默认是this指针上的对象.因此看上去,参数总是少一个.</p>
+<p>对于某一个运算符在进行重载时应该作为成员函数还是非成员函数呢?</p>
+<p>有以下准则可以供参考:</p>
+<ul>
+<li>=,[],(),-&gt;等运算符应该是成员函数,++,–,&amp;等应该是成员.</li>
+<li>具有对称性的运算符,可以转换到任意一端,比如算术,相等性,关系等.应该是非成员.</li>
+</ul>
+<p>此外,即使是有运算符重载的作用,内置运算符的优先级和结合律仍然一致.</p>
+<h3 id="2-输入和输出运算符"><a href="#2-输入和输出运算符" class="headerlink" title="2.输入和输出运算符"></a>2.输入和输出运算符</h3><p>对于”&lt;&lt;”的第一个形参是一个非常量<code>ostream</code>对象引用,之所以是引用是因为这个对象我们需要进行改写,并且还不能直接复制过来.第二个const Object&amp;,既避免了复制,也限制了改写.其返回值也是它的形参.</p>
+<p>通常情况下,”&lt;&lt;”的运算符的重载允许开发者对其输出格式进行一定的控制,比如说日志库的使用.</p>
+<p>此外,<strong>输入输出函数不能是类的成员函数</strong>.因为这样的话,其第一个参数会是this所指的对象.由于很多时候需要读取类中的私有成员,因此也常被生命为friend.</p>
+<p>对于”&gt;&gt;”来说,第一个参数是一个要读取的流引用,第二个是要读入到的对象的引用.</p>
+<p>比如说:</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">istream &amp;operator &gt;&gt;(istream &amp;is,Sales_data &amp;item) {
+  //......
+}<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>一般来说,输入运算符最好考虑处理失败的情况,当读取操作发生错误的时候,<strong>应该负责从错误中进行恢复</strong>.输入运算符也最好设置好的流的状态并标识处失败的信息.</p>
+<h3 id="3-算术和关系运算符"><a href="#3-算术和关系运算符" class="headerlink" title="3.算术和关系运算符"></a>3.算术和关系运算符</h3><p>算术和关系运算符一般定义为<strong>非成员函数</strong>.形参都是const Object&amp;,返回值就是一个Object.</p>
+<p>有个问题,一般在+,-等函数体中,返回的是一个临时对象的拷贝,如果该临时对象内部有一个指针,并且指针所指向的东西在调用析构函数时被释放怎么办?</p>
+<p>很多情况下,是根据+=,-=运算符重载实现+,-等运算符的.</p>
+<p>==匀速符对于形参也是类似的方式,返回值是一个bool,有一些设计准则:</p>
+<ul>
+<li>==,!=都进行定义比较好.但是可以这样: != 通过调用==实现,或者==通过调用!=实现.</li>
+<li>应当具有传递性.</li>
+</ul>
+<p>有关于&lt;,&gt;,&lt;=等关系与运算符的定义,对于多个数据成员的类需要考虑优先级,在实现时也可以通过基于&lt;去实现&gt;=这种类似的方式.</p>
+<h3 id="4-赋值运算符"><a href="#4-赋值运算符" class="headerlink" title="4.赋值运算符"></a>4.赋值运算符</h3><p>除了拷贝赋值,移动赋值之外,还有接收{}内参数列表进行赋值的类型.采用以下类似的方式实现:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2001%2020%2030%2049%201662035449%201662035449204%20yy5sSH%20image-20220901203049121%20.png" alt="image-20220901203049121"></p>
+<p>有关于+=,-=等类型,一般倾向于定义为成员内部函数.通常返回类型该类对象的引用,返回值为*this,</p>
+<h3 id="5-下标运算符"><a href="#5-下标运算符" class="headerlink" title="5.下标运算符"></a>5.下标运算符</h3><p><strong>下标运算符必须是成员函数</strong>.一般会将其定义为两个版本:普通引用和常量引用.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2001%2020%2037%2035%201662035855%201662035855160%20nshEXD%20image-20220901203735066%20.png" alt="image-20220901203735066"></p>
+<p>当对象时非常量时,将会调用第一个,如果是常量则会调用第二个.</p>
+<h3 id="6-递减和递增运算符"><a href="#6-递减和递增运算符" class="headerlink" title="6.递减和递增运算符"></a>6.递减和递增运算符</h3><p>返回值应该是引用,这个原因不必多说,因为++,–的意义就需要将其所跟的对象进行改变.</p>
+<p>虽然不一定要求定义为类成员函数,但是还是定义为成员函数比较好.此外有前后置之分,应该分为不同版本.对于前后的区分,则是括号内的int,看似是多了一个形参,其实没有参与到运算过程,只是起到一个标识的作用.</p>
+<p>但是后置的返回值通常不是引用类型.因为我们在使用++object时,其返回值是++之前的旧值.</p>
+<h3 id="7-成员访问运算符"><a href="#7-成员访问运算符" class="headerlink" title="7.成员访问运算符"></a>7.成员访问运算符</h3><p>其中包括*和-&gt;.其返回值分别对应引用和指针.</p>
+<h2 id="Chapter-15-面向对象程序设计"><a href="#Chapter-15-面向对象程序设计" class="headerlink" title="Chapter 15 面向对象程序设计"></a>Chapter 15 面向对象程序设计</h2><p>继承的定义不在多说.</p>
+<p>虚函数,对于某些函数,不同的派生类希望继承基类某些方法,但是又希望有不同的实现.</p>
+<p>在派生类中,将继承来的虚函数后面加一个<code>override</code>是比较好的编程习惯.</p>
+<p><strong>动态绑定</strong>是多态实现的基础,需要借助基类的指针或者引用实现,借助指针或者引用调用某个虚函数方法时,会根据该指针或引用所指对象的类型确定具体调用的是虚函数的哪个版本.</p>
+<p>动态绑定机制和虚函数相互依存.</p>
+<h3 id="1-基类和虚函数的定义"><a href="#1-基类和虚函数的定义" class="headerlink" title="1.基类和虚函数的定义"></a>1.基类和虚函数的定义</h3><p>关于基类的定义,需要注意的是<strong>将析构函数定义为<code>virtual</code>.</strong></p>
+<p>在定义派生类的虚函数时,通常在后面加上<code>override</code>比较好.</p>
+<p>关于类型转换方面值得一提,在此先不讨论多继承的情况.</p>
+<p>对于派生类向基类的转换,通常是基于指针或者引用的(会发生隐式地转换),不使用指针和引用则会slice,导致转换后派生类对象转换的结果不再是原来的完整的对象.</p>
+<p>此外,对于派生的构造函数,其中关于基类的部分借助基类的构造函数.一般情况下<strong>首先初始化基类的部分,然后按照声明的顺序依次初始化派生类的成员</strong>.</p>
+<p>在访问权限方面,private的在派生类中不可以访问.protected和public则可以.</p>
+<p>如何防止继承的发生呢?在基类后面加final.</p>
+<p>有关于基类和派生类的类型转换非常重要,关于变量的类型有静态和动态之分.前者在编译时可知,在表达式或者声明时确定,后者则是在内存中的对象的类型,运行时确定.<strong>只有引用和指针的情况,才会发生静态数据类型和动态类型不一致的情况,这也是动态绑定的基础</strong>.</p>
+<p>此外还要注意几个不存在的类型转换的情况:(1)基类向派生类的转换(2)对象之间的转换.对于前者而言,因为一个派生类对象中总是包含有一个基类对象的部分,而反之一个基类对象不一定处于一个派生类对象中,所以不可以.第二个问题的话,容易发生slice的问题(不仅仅是赋值,以及拷贝,移动等同理).</p>
+<h3 id="2-虚函数"><a href="#2-虚函数" class="headerlink" title="2.虚函数"></a>2.虚函数</h3><p>结合上面所说的动态绑定可知,虚函数的执行只有在运行时才会被解析.如果不是指针或者引用调用虚函数,那么所调用的版本将会是静态确定的.</p>
+<blockquote>
+<p><strong>关于多态</strong></p>
+<p>多态存在的根本依赖于引用和指针的静态类型和动态类型不同.当使用基类的引用或者指针调用基类中的一个函数,并不知道该函数的类型,该对象有可能是一个基类对象也有可能是一个派生类对象.</p>
+</blockquote>
+<p>对于虚函数实现时,有一点需要注意:<strong>当虚函数返回值某个类的指针或者引用时,返回类型可以不与基类中的匹配</strong>.</p>
+<p>有关于<code>override</code>的情况,这个标识符可以让编译器对有没有将对应的虚函数进行有效覆盖作出提示.如果是final的函数,则不允许后面的类中对此进行覆盖.</p>
+<p>如果想要强制执行某个虚函数版本,而不是动态绑定的结果,那么应该借助作用域运算符.比如说这样:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-double">double</span> undiscouted <span class="token operator">=</span> baseP<span class="token operator">-&gt;</span><span class="token class-name">Quote</span><span class="token double-colon punctuation">::</span><span class="token function">net_price</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="3-抽象基类"><a href="#3-抽象基类" class="headerlink" title="3.抽象基类"></a>3.抽象基类</h3><p>抽象类不能直接定义该类的对象.抽象类的实现借助纯虚函数的声明来实现.需要注意的是,纯虚函数的函数体其实是可以定义的,但是需要在函数体之外进行定义.</p>
+<p>在派生类中,只会初始化它的直接基类,其初始化过程采用的是一种递归初始化的方式.</p>
+<p>关于继承体系中的友元,基类中的友元不可以被派生类所继承,并且每个类中的友元都不可以跨越其所处的继承层次,而去访问其他层次的数据成员,比如说某个派生类的友元不能访问其基类中的成员.</p>
+<h3 id="4-继承中的类作用域"><a href="#4-继承中的类作用域" class="headerlink" title="4.继承中的类作用域"></a>4.继承中的类作用域</h3><p>继承体系中作用域分布,通常是基类包住派生类的情况,因此派生类中可以自如地访问基类中的成员.</p>
+<p>根据这种作用域的分布方式,我们可以因此推算某个成员名解析的过程:其基本过程是在继承体系中的本层逐渐向外层寻找.比如说<code>bulk.isbn()</code>会先在本层Bulk_quote查找,然后向<code>Disc_quote</code>查找,直到最外的基类.</p>
+<p>如果是一个基类类型成员的指针或者派生类成员的指针,前者的解析将会从基类这一层开始,后者将会层该派生类开始.</p>
+<p>当名字解析时遇到冲突会怎么样呢?这会使得高层的隐藏掉底层的,因为解析方式就是从继承体系高层向底层解析,遇到结果就返回,这个时候肯定优先就在高层返回了.如果想要使用被隐藏的成员,可以通过作用域去返回.如果是成员函数方法也是这样的.</p>
+<p>派生类的析构函数,是从本层开始,派生类自己的析构函数首先执行,一层层地到基类函数,最后析构完毕.</p>
+<p>如果某个构造函数或者析构函数调用了某个虚函数,应该执行与构造函数或析构函数所属类型相对应的虚函数版本.如果在调用某个基类的构造函数中,会调用某个虚函数的派生版本,这个虚函数可能会需要访问派生类中的成员,然而由于派生类的构造函数还没有执行,所以派生类成员还没有初始化,因此容易造成程序崩溃.</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        Author:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">yfs</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        Link:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="http://example.com/2022/041240874.html">http://example.com/2022/041240874.html</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        Reprint policy:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    All articles in this blog are used except for special statements
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    reprint polocy. If reproduced, please indicate source
+                    <a href="/about" target="_blank">yfs</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>Copied successfully, please follow the reprint policy of this article</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">more</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/c/">
+                                    <span class="chip bg-color">c++</span>
+                                </a>
+                            
+                                <a href="/tags/C-Primer/">
+                                    <span class="chip bg-color">C++ Primer</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+            <div class="card">
+                <a href="/2022/042510608.html">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="STL源码分析">
+                        
+                        <span class="card-title">STL源码分析</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            主要内容参考了《STL源码剖析》和SGI STL.
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-04-25
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/c/">
+                        <span class="chip bg-color">c++</span>
+                    </a>
+                    
+                    <a href="/tags/STL/">
+                        <span class="chip bg-color">STL</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Current&nbsp;<i class="far fa-dot-circle"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/041240874.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2002%2009%2027%2041%201662082061%201662082061425%208Xrv1T%20image-20220902092741291%20.png" class="responsive-img" alt="C++ Primer: Chapter 13,14,15概要">
+                        
+                        <span class="card-title">C++ Primer: Chapter 13,14,15概要</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            粗读了C++ Primer中第13,14,15章,这也是有关于面向对象方面最基础的几个章节.
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-04-12
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/c/">
+                        <span class="chip bg-color">c++</span>
+                    </a>
+                    
+                    <a href="/tags/C-Primer/">
+                        <span class="chip bg-color">C++ Primer</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;TOC</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2022</span>
+            
+            <span id="year">2022</span>
+            <a href="/about" target="_blank">yfs</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;<span id="busuanzi_value_site_pv"
+                    class="white-color"></span>&nbsp;次
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;<span id="busuanzi_value_site_uv"
+                    class="white-color"></span>&nbsp;人
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/YfsBox" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:1027342142@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1027342142" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1027342142" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<script src="/js/prism/prism.js" async></script>
+<link rel="stylesheet" href="/css/prism.css">
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;Search</span>
+            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+	
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+    <script type="text/javascript">
+        //只在桌面版网页启用特效
+        var windowWidth = $(window).width();
+        if (windowWidth > 768) {
+            document.write('<script type="text/javascript" src="/js/sakura.js"><\/script>');
+        }
+        </script>
+        
+
+</body>
+
+</html>

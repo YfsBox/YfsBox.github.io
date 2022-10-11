@@ -1,0 +1,1577 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="mit 6.830 数据库系统: lab 2, Yfs&#39;s Box">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>mit 6.830 数据库系统: lab 2 | Yfs&#39;s Box</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+    <link rel="stylesheet" href="/js/prism/prism.css">
+
+    <script src="/libs/jquery/jquery.min.js"></script>
+
+<meta name="generator" content="Hexo 6.0.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+</head>
+
+
+
+   <style>
+    body{
+       background-image: url(https://cdn.jsdelivr.net/gh/Tokisaki-Galaxy/res/site/medias/background.jpg);
+       background-repeat:no-repeat;
+       background-size:cover;
+       background-attachment:fixed;
+    }
+</style>
+
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Yfs&#39;s Box</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>Index</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>Tags</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>Categories</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>Archives</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>About</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>Contact</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>Friends</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="Search" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Yfs&#39;s Box</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			Index
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			Tags
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			Categories
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			Archives
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			About
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			Contact
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			Friends
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2002%2013%2027%2032%201662096452%201662096452674%20eHVRJR%20image-20220902132732522%20.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">mit 6.830 数据库系统: lab 2</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">数据库系统</span>
+                            </a>
+                        
+                            <a href="/tags/mit-6-830/">
+                                <span class="chip bg-color">mit 6.830</span>
+                            </a>
+                        
+                            <a href="/tags/java/">
+                                <span class="chip bg-color">java</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
+                    2022-08-31
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
+                    4.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
+                    18 Min
+                </div>
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <p>总的来说,lab2的难度也不是太大,主要难的在于一些关于迭代器的实现.</p>
+<h2 id="1-总体架构"><a href="#1-总体架构" class="headerlink" title="1.总体架构"></a>1.总体架构</h2><p>lab2中所需要实现的部分并不像lab1那样有那么强的结构性和整体性,相对来说比较零散.总的来说分为<code>Join,Field,Group,Add,Delete</code>等操作,还有bufferpool的置换算法.</p>
+<h3 id="1-Operator-OpIterator为基础的迭代器体系"><a href="#1-Operator-OpIterator为基础的迭代器体系" class="headerlink" title="1) Operator,OpIterator为基础的迭代器体系"></a>1) Operator,OpIterator为基础的迭代器体系</h3><p>其中<code>Opiterator</code>是所有运算操作所需要实现的基本接口,位于最底层,其中的需要实现的函数包含了一些迭代器中最基本的函数,比如说<code>open,close,hasNext,next</code>等.</p>
+<p>而<code>Operator</code>则是以<code>OpIterator</code>为基础所实现的一个抽象类,其中将<code>next,hasNext,close</code>等操作进行实现,其中尤其是<code>next,hasNext</code>理解这部分的实现能够有利于我们知道<code>Opertaor</code>的子类中<code>FetchNext</code>的作用.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">Tuple</span> next <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token keyword keyword-open">open</span> <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-public">public</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token keyword keyword-open">open</span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">IllegalStateException</span><span class="token punctuation">(</span><span class="token string">"Operator not yet open"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>next <span class="token operator">==</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span>
+            next <span class="token operator">=</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-return">return</span> next <span class="token operator">!=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+<span class="token keyword keyword-public">public</span> <span class="token class-name">Tuple</span> <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span>
+            <span class="token class-name">NoSuchElementException</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>next <span class="token operator">==</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            next <span class="token operator">=</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>next <span class="token operator">==</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span>
+                <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token class-name">Tuple</span> result <span class="token operator">=</span> next<span class="token punctuation">;</span>
+        next <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-return">return</span> result<span class="token punctuation">;</span>
+ <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在其中有两个变量<code>next</code>和open,其中open是一个表示是否已经开启的flag,这个flag的真假将会影响到<code>hasNext</code>等操作的执行,也就是该迭代器的状态.<code>next</code>则用于保存<code>fetchNext</code>的结果,当调用next的时候,可以认为是将next中储存的<code>FetchNext</code>的结果取出,如果next中没有储存的结果,就通过调用<code>FetchNext</code>取出一个来,然后再取出.而<code>hasNext</code>则是通过检查当前next有没有存储的结果来实现的,如果没有则尝试能不能<code>FetchNext</code>出一个结果,只有在没有储存的next结果并且取不出一个新的next的时候,hasNext为false.</p>
+<p>在这里面<code>fetchNext</code>是一个抽象方法,通常用于在继承Operator的类中实现,比如说<code>Filter,Join</code>等.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token keyword keyword-abstract">abstract</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span>
+            <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<p>结合<code>hasNext,next</code>以及后来派生类的实现,可以将这个模型概括为:</p>
+<ul>
+<li>变量next是一个缓冲区(size为1).</li>
+<li>next从缓冲区中取走一个值,如果没有就通过fetchNext拉一个值,再取出.</li>
+<li>hasNext则检查该缓冲区有没有值,如果没有,就看能不能拉出来一个,如果拉取不出来,则就false.</li>
+<li>在派生类中,往往又会有operator的操作对象,可能是一个关系,也可能是两个关系,通过派生类中的关系及其操作类型,fetchNext将返回一个Tuple提供给next.</li>
+</ul>
+<p>所以在lab中,只有实现了fetchNext方法,才算是实现了一个完整的迭代器.</p>
+<p>这种迭代器的设计方式看似比较别扭,但是其巧妙之处在于,可以使不同的迭代器共用相同的next和hasnext,只需要实现不同的fetchNext即可,降低了代码的耦合度.</p>
+<h3 id="2-join-field"><a href="#2-join-field" class="headerlink" title="2)join,field"></a>2)join,field</h3><p>这一部分操作的基础为断言(<code>Predicate</code>).用来表示的是,像“a == b,a &gt; b,a != b”等条件式.而在于数据库所需要的关系运算中,这种二元运算就往往需要在关系中进行,因此“二元”变成了关系中的两个<code>filed</code>.因此一个<code>Predicate</code>的基类的数据成员如下,恰好对应了二元条件表达式:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> field_<span class="token punctuation">;</span> <span class="token comment">//对应了关系中的某一列的所有field</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Op</span> op_<span class="token punctuation">;</span> <span class="token comment">//描述=,!=,&gt;等操作符</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Field</span> operand_<span class="token punctuation">;</span> <span class="token comment">//只用来对应一个Field</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p><code>JoinPredicate</code>与<code>Predicate</code>的实现和功能类似,但是其中最主要的区别在于其数据成员中,包含的field的部分是两个表示field的索引,因此<code>JoinPredicate</code>的比较对象是关系中的两个列整体进行OP操作,而<code>Predacate</code>则用于将关系的一个列和一个固定的field进行比较.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> field1_<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> field2_<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Predicate<span class="token punctuation">.</span>Op</span> op_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>因此,<code>JoinPredicate</code>用于实现<code>Join</code>,而<code>Predicate</code>用于实现<code>filter</code>.</p>
+<h3 id="3-Aggregate"><a href="#3-Aggregate" class="headerlink" title="3)Aggregate"></a>3)Aggregate</h3><p>首先是<code>Aggregator</code>,这是一个接口,这个接口是对于聚类函数的抽象,比如说<code>MIN,MAX,SUM,AVG</code>等.此外还包括<code>mergeTupleIntoGroup</code>这个函数,因此每当有一个新的Tuple加入,聚类操作的结果就要发生变化.而关于迭代器的实现,将结合被聚类关系进行操作,也就是说,这个迭代器用于遍历被聚类关系上的一个个元组,每当<code>next</code>遍历一次,就要执行<code>mergeTupleIntoGroup</code>进行更新.而<code>StringAggregator</code>和<code>IntegerAggregator</code>是两个<code>Aggregator</code>的派生类,</p>
+<p><code>Aggregate</code>则是一个<code>Operator</code>类,其中关于迭代器的实现仍然遵循上面所说的模式,具体来说就是<strong>根据InterAggregator或者StringAggregator的迭代器进行实现</strong>.</p>
+<h3 id="4-insert-delete"><a href="#4-insert-delete" class="headerlink" title="4)insert,delete"></a>4)insert,delete</h3><p>这一部分遵循<code>HeapPage-&gt;HeapFile-&gt;BufferPool</code>的层次,<code>BuferPool</code>所提供的关于insert/delete是最外层的接口,BufferPool会调用HeapFile中的insert/delete,然后再将改变的page在BufferPool更新,HeapFile中的insert和delete都需要读取Page,但这个时候借助BufferPool的getPage来读取,对于其中需要求改的Page,则进一步地调用HeapPage中的insert/delete.</p>
+<h2 id="2-实现过程"><a href="#2-实现过程" class="headerlink" title="2.实现过程"></a>2.实现过程</h2><h3 id="1-Exercise-1"><a href="#1-Exercise-1" class="headerlink" title="1) Exercise 1"></a>1) Exercise 1</h3><p>关于<code>Predicate</code>类的实现,其中需要补全的几个部分主要是一些关于Set和Get的函数,比较简单不再多说,其中需要实现<code>filter</code>函数,该函数的作用在于给定一个Tuple,将其与<code>Predicate</code>中的<code>operand_</code>(也就是固定的被比较的域)进行比较,这个函数直接将Tuple中对应的field获取,然后调用compare函数进行比较即可.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token function">filter</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> t<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+		<span class="token class-name">Field</span> field_t <span class="token operator">=</span> t<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span>field_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token keyword keyword-return">return</span> field_t<span class="token punctuation">.</span><span class="token function">compare</span><span class="token punctuation">(</span>op_<span class="token punctuation">,</span>operand_<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//operand_就是被比较的对象</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>然后基于<code>Predicate</code>实现<code>Fielter</code>,这个类的作用在于对一个给定的关系,将其根据<code>Predicate</code>执行过滤操作.除了几个简单的get,set操作之外,还有有关于迭代器的部分,其中最重要的是fetchNext,结合上面所说的next,hasNext和fetchNext的关系,实现如下:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">,</span>
+            <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>child_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token class-name">Tuple</span> tuple <span class="token operator">=</span> child_<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>predicate_<span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>tuple<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword keyword-return">return</span> tuple<span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里的filter有两个数据成员,一个用来描述filter所需要满足的条件<code>Predicate</code>,另一个表示作用对象child_,更具体地说,是一个用来操作关系的迭代器.这里的fetchNext基于<code>child_</code>的迭代器实现,不过多了<code>predicate_</code>的filter操作,直到找到下一个符合要求的才会返回,如果没有就返回null.</p>
+<p>关于其他部分的实现:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">TupleDesc</span> <span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+       <span class="token keyword keyword-return">return</span> child_<span class="token punctuation">.</span><span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>
+   <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">,</span>
+           <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+       <span class="token keyword keyword-super">super</span><span class="token punctuation">.</span><span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//自己对应的迭代器</span>
+       child_<span class="token punctuation">.</span><span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//child的迭代器</span>
+   <span class="token punctuation">}</span>
+   <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+       child_<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token keyword keyword-super">super</span><span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>
+   <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">rewind</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+       <span class="token comment">//child_.rewind();</span>
+       <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>由于这是一个基于child_的迭代器所实现的迭代器,所以在<code>open,close,rewind</code>等操作中,需要开启/关闭的迭代器既包含<code>child_</code>所对应的迭代器,也包含它自己的迭代器,对于TupleDesc来说,过滤操作不改变关系自身的模式,只是根据条件筛选出一部分Tuple而已,因此和child的TupleDesc相同.</p>
+<p><code>Join</code>部分的目标在于,根据给定的<code>JoinPredicate</code>将两个关系中的一部分Tuple进行合并.关于合并两个Tuple的操作如下</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">Tuple</span> <span class="token function">joinTuples</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> tuple1<span class="token punctuation">,</span><span class="token class-name">Tuple</span> tuple2<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//根据是否符合某个条件将两者合并</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>joinPredicate_<span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span>tuple1<span class="token punctuation">,</span>tuple2<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token class-name">TupleDesc</span> tupleDesc <span class="token operator">=</span> <span class="token class-name">TupleDesc</span><span class="token punctuation">.</span><span class="token function">merge</span><span class="token punctuation">(</span>tuple1<span class="token punctuation">.</span><span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>tuple2<span class="token punctuation">.</span><span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">Tuple</span> tuple <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Tuple</span><span class="token punctuation">(</span>tupleDesc<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token keyword keyword-int">int</span> fieldNum_1 <span class="token operator">=</span> tuple1<span class="token punctuation">.</span><span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">numFields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>fieldNum_2 <span class="token operator">=</span> tuple2<span class="token punctuation">.</span><span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">numFields</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> fieldNum_1<span class="token punctuation">;</span>i <span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                tuple<span class="token punctuation">.</span><span class="token function">setField</span><span class="token punctuation">(</span>i<span class="token punctuation">,</span>tuple1<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> fieldNum_2<span class="token punctuation">;</span>i <span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                tuple<span class="token punctuation">.</span><span class="token function">setField</span><span class="token punctuation">(</span>fieldNum_1 <span class="token operator">+</span> i<span class="token punctuation">,</span>tuple2<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword keyword-return">return</span> tuple<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>首先判断两个Tuple是否符合<code>Predicate</code>的要求,否则直接返回null.对于符合条件的,先得出合并后的TupleDesc,然后得出两个tuple的所有field,然后通过setField进行设置,最终返回.</p>
+<p>而其中关于<code>fetchNext</code>的实现是比较烧脑的,实现如下.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>currTuple1_ <span class="token operator">!=</span> <span class="token keyword keyword-null">null</span> <span class="token operator">||</span> child1_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>currTuple1_ <span class="token operator">==</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>child1_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    currTuple1_ <span class="token operator">=</span> child1_<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+                    <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>child2_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span>child1_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+                    child2_<span class="token punctuation">.</span><span class="token function">rewind</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    currTuple1_ <span class="token operator">=</span> child1_<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span><span class="token keyword keyword-else">else</span><span class="token punctuation">{</span>
+                    <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>child2_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                currTuple2_ <span class="token operator">=</span> child2_<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token class-name">Tuple</span> tuple <span class="token operator">=</span> <span class="token function">joinTuples</span><span class="token punctuation">(</span>currTuple1_<span class="token punctuation">,</span>currTuple2_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>tuple <span class="token operator">!=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                    <span class="token keyword keyword-return">return</span> tuple<span class="token punctuation">;</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="2-Exercise-2"><a href="#2-Exercise-2" class="headerlink" title="2) Exercise 2"></a>2) Exercise 2</h3><p>在此以<code>StringAggregator</code>为例.</p>
+<p><code>GpMap</code>中,每个key对应加入的Tuple中的不同的group Field,其中value则是group Filed下的所有的StringField的集合.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> gbfield_<span class="token punctuation">;</span> <span class="token comment">//group所根据的field index</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Type</span> gbfieldtype_<span class="token punctuation">;</span> <span class="token comment">//上面索引中所对应的数据类型,也就是group域的数值类型</span>
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> afield_<span class="token punctuation">;</span> <span class="token comment">//聚合函数所对应的的field index</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Op</span> what_<span class="token punctuation">;</span> <span class="token comment">//聚合函数的类型</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Field</span><span class="token punctuation">,</span><span class="token class-name">ArrayList</span><span class="token punctuation">&lt;</span><span class="token class-name">StringField</span><span class="token punctuation">&gt;</span><span class="token punctuation">&gt;</span></span> <span class="token class-name">GpMap_</span><span class="token punctuation">;</span> <span class="token comment">//每一个group field对应一个StringField的序列</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> desc_<span class="token punctuation">;</span> <span class="token comment">//代表聚类结果的TupleDesc</span>
+
+<span class="token keyword keyword-public">public</span> <span class="token class-name">StringAggregator</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> gbfield<span class="token punctuation">,</span> <span class="token class-name">Type</span> gbfieldtype<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> afield<span class="token punctuation">,</span> <span class="token class-name">Op</span> what<span class="token punctuation">)</span>  <span class="token keyword keyword-throws">throws</span> <span class="token class-name">IllegalArgumentException</span><span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+       <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>what<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span><span class="token class-name">Op</span><span class="token punctuation">.</span>COUNT<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+           <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">IllegalArgumentException</span><span class="token punctuation">(</span><span class="token string">"the what not COUNT in StringAggregator"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token punctuation">}</span>
+       gbfield_ <span class="token operator">=</span> gbfield<span class="token punctuation">;</span>
+       gbfieldtype_ <span class="token operator">=</span> gbfieldtype<span class="token punctuation">;</span>
+       afield_ <span class="token operator">=</span> afield<span class="token punctuation">;</span>
+       what_ <span class="token operator">=</span> what<span class="token punctuation">;</span>
+       desc_ <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+       <span class="token class-name">GpMap_</span> <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Field</span><span class="token punctuation">,</span><span class="token class-name">ArrayList</span><span class="token punctuation">&lt;</span><span class="token class-name">StringField</span><span class="token punctuation">&gt;</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>其中<code>TupleDesc</code>的实现主要区分好两种情况,一种是一个field的情况,这种情况通常是<code>gbfield_</code>为-1或者该索引不存在的情况,除此之外则是两个field的情况.关于<code>mergeTupleIntoGroup</code>这个函数主要的作用在于将一个特定的Tuple加入到该类维护的容器(GpMap)中,在这里仍然注意对于gpfield两种情况的区分,如果gpfield是-1的话,则map中对应的key为null.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">mergeTupleIntoGroup</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> tup<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">NoSuchElementException</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        <span class="token function">setTupleDesc</span><span class="token punctuation">(</span>tup<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Field</span> gpfield<span class="token punctuation">;</span>
+        <span class="token class-name">StringField</span> afield<span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>gbfield_ <span class="token operator">!=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            gpfield <span class="token operator">=</span> tup<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span>gbfield_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>gpfield <span class="token operator">==</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">(</span><span class="token string">"not have the gbfield in tup from mergeTupleIntoGroup"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+            gpfield <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        afield <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">StringField</span><span class="token punctuation">)</span> tup<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span>afield_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token class-name">GpMap_</span><span class="token punctuation">.</span><span class="token function">containsKey</span><span class="token punctuation">(</span>gpfield<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token class-name">GpMap_</span><span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>gpfield<span class="token punctuation">,</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">StringField</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token class-name">GpMap_</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>gpfield<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>afield<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//最后加入到group feild为key的StringFeild序列中.</span>
+    <span class="token punctuation">}</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>此外,StringAggregator需要有一个完整的迭代器的实现.这个迭代器是基于GpMap这个“容器”进行实现的.其数据成员如下:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">StringAggregator</span> aggregator_<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Field</span><span class="token punctuation">&gt;</span></span> gvalueIt_<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Field</span> currGroup_<span class="token punctuation">;</span>
+
+<span class="token keyword keyword-public">public</span> <span class="token class-name">StringAggregatorOpIterator</span><span class="token punctuation">(</span><span class="token class-name">StringAggregator</span> saggregator<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      aggregator_ <span class="token operator">=</span> saggregator<span class="token punctuation">;</span>
+      gvalueIt_ <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+      currGroup_ <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+ <span class="token punctuation">}</span>
+<span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">{</span>
+      gvalueIt_ <span class="token operator">=</span> <span class="token class-name"><span class="token namespace">aggregator_<span class="token punctuation">.</span></span>GpMap_</span><span class="token punctuation">.</span><span class="token function">keySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      currGroup_ <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+ <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>aggregator</code>指的是该迭代器所属的<code>StringAggregator</code>,<code>gvalueIt</code>则是aggregator中的<code>GpMap</code>中key的迭代器,迭代器中每一项也就对应一个group.因此该迭代器每次遍历的单位就是一个group.其中关于next的实现如下:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">Tuple</span> <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">NoSuchElementException</span> <span class="token punctuation">{</span>
+            <span class="token class-name">Tuple</span> tuple <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+            tuple <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Tuple</span><span class="token punctuation">(</span>aggregator_<span class="token punctuation">.</span>desc_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            currGroup_ <span class="token operator">=</span> gvalueIt_<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">IntField</span> intfield <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">IntField</span><span class="token punctuation">(</span><span class="token class-name"><span class="token namespace">aggregator_<span class="token punctuation">.</span></span>GpMap_</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>currGroup_<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>aggregator_<span class="token punctuation">.</span>gbfield_ <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token operator">&amp;&amp;</span> <span class="token class-name"><span class="token namespace">aggregator_<span class="token punctuation">.</span></span>GpMap_</span><span class="token punctuation">.</span><span class="token function">containsKey</span><span class="token punctuation">(</span><span class="token keyword keyword-null">null</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//这个时候就只会固定在第一个null为key的里面</span>
+                tuple<span class="token punctuation">.</span><span class="token function">setField</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>intfield<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+                tuple<span class="token punctuation">.</span><span class="token function">setField</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>currGroup_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                tuple<span class="token punctuation">.</span><span class="token function">setField</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span>intfield<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword keyword-return">return</span> tuple<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-public">public</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-return">return</span> gvalueIt_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>其中返回的Tuple的desc再<code>aggregator</code>中就已经确定,其中value,直接通过<code>aggregator_.GpMap_.get(currGroup_).size()</code>即可获得.至于<code>hasNext</code>的实现,只要还有next group就可以,因此也就是返回<code>gvalueIt_.hasNext()</code>.</p>
+<p>在练习2中<code>Aggregate</code>仍然是一个<code>operator</code>,其基本模式与上面的<code>Fielter,Join</code>基本一样.其作用在于对于某个给定的关系执行某种聚类操作.数据成员如下:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">OpIterator</span> child_<span class="token punctuation">;</span> <span class="token comment">//执行聚类操作的关系</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Aggregator</span> aggregator_<span class="token punctuation">;</span> <span class="token comment">//代表聚类操作</span>
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> gfield_<span class="token punctuation">;</span> <span class="token comment">//关系中的group field</span>
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> afield_<span class="token punctuation">;</span> <span class="token comment">//关系中的aggregate field</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">Aggregator<span class="token punctuation">.</span>Op</span> aop_<span class="token punctuation">;</span> <span class="token comment">//aggregator操作的类型</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> desc_<span class="token punctuation">;</span> <span class="token comment">//返回Tuple的描述符</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">OpIterator</span> opIt_<span class="token punctuation">;</span> <span class="token comment">//aggregator中的迭代器</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这里的思路,主要在于将child_中的Tuple一个个Merge到aggregator中,然后借助该aggregator的迭代器实现<code>fetchNext</code>等迭代器的操作.其中<code>fetchNext</code>实现如下:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        <span class="token comment">//return null;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>opIt_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-return">return</span> opIt_<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span>
+            <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        child_<span class="token punctuation">.</span><span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>opIt_ <span class="token operator">==</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token class-name">MergeToAggregator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            opIt_ <span class="token operator">=</span> aggregator_<span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        opIt_<span class="token punctuation">.</span><span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-super">super</span><span class="token punctuation">.</span><span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        opIt_<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        child_<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-super">super</span><span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>当<code>opIt_</code>被填充好后,直接根据<code>opIt_</code>的next实现即可.<code>open</code>的实现中,需要对<code>opIt_</code>进行初始化,其中MergeToAggregator用于将<code>child_</code>这个关系中的Tuple一个个地加入到<code>aggregator</code>中.</p>
+<h3 id="3-Exercise-3"><a href="#3-Exercise-3" class="headerlink" title="3) Exercise 3"></a>3) Exercise 3</h3><p>练习3中,需要实现对某个表进行insert/delete操作,其实现遵循<code>HeapPage-&gt;HeapFile-&gt;BufferPool</code>自底向上的线索.在<code>HeapPage</code>中:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">insertTuple</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> t<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
+    <span class="token comment">// some code goes here</span>
+    <span class="token comment">// not necessary for lab1</span>
+    <span class="token class-name">TupleDesc</span> tupleDesc <span class="token operator">=</span> t<span class="token punctuation">.</span><span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">getNumEmptySlots</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span> <span class="token operator">||</span> <span class="token operator">!</span>tupleDesc<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>td<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//外部调用时需要进行检查</span>
+        <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">DbException</span><span class="token punctuation">(</span><span class="token string">"cant insert tuple to HeapPage"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-int">int</span> k<span class="token punctuation">;</span> <span class="token comment">//找出一个空闲位置</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>k <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>k <span class="token operator">&lt;</span> numSlots <span class="token punctuation">;</span> k <span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">isSlotUsed</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    t<span class="token punctuation">.</span><span class="token function">resetRecordId</span><span class="token punctuation">(</span>pid<span class="token punctuation">,</span>k<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    tuples<span class="token punctuation">[</span>k<span class="token punctuation">]</span> <span class="token operator">=</span> t<span class="token punctuation">;</span>
+    <span class="token function">markSlotUsed</span><span class="token punctuation">(</span>k<span class="token punctuation">,</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在这里插入一个insert需要遍历bitmap中的每一个bit,当遇到空闲位置则插入,插入时需要对Tuple中的Record进行重置,从而适应最终插入的位置,设置对应的tuples,最终还需要标记Used.关于delete的操作与此类似,不同的是直接定位出要删除的Tuple的位置,然后直接将SlotUsed进行设置即可.在<code>HeapPage</code>中还有一些关于Dirty的操作,这用于<code>BufferPool</code>中的flush,evit等操作.其实现比较简单.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java">   <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">markDirty</span><span class="token punctuation">(</span><span class="token keyword keyword-boolean">boolean</span> dirty<span class="token punctuation">,</span> <span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+<span class="token comment">// not necessary for lab1</span>
+       isdirty_ <span class="token operator">=</span> dirty<span class="token punctuation">;</span>
+       <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>dirty<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+           lastTid_ <span class="token operator">=</span> tid<span class="token punctuation">;</span>
+       <span class="token punctuation">}</span>
+   <span class="token punctuation">}</span>
+   <span class="token keyword keyword-public">public</span> <span class="token class-name">TransactionId</span> <span class="token function">isDirty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       <span class="token comment">// some code goes here</span>
+<span class="token comment">// Not necessary for lab1</span>
+       <span class="token comment">//return lastTid_;</span>
+       <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>isdirty_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+           <span class="token keyword keyword-return">return</span> lastTid_<span class="token punctuation">;</span>
+       <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+           <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+       <span class="token punctuation">}</span>
+   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>在<code>HeapFile</code>中,delete操作比较简单,将某个Tuple对应的PageId提取出来后,然后借助<code>BufferPool.getPage</code>读取出来该页,然后调用该页的deletTuple即可.而insert相对而言比较复杂.其实现如下:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> <span class="token function">insertTuple</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Tuple</span> t<span class="token punctuation">)</span>
+            <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        <span class="token comment">// not necessary for lab1</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> list <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">HeapPage</span> result <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+        <span class="token class-name">RecordId</span> recordId <span class="token operator">=</span> t<span class="token punctuation">.</span><span class="token function">getRecordId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-int">int</span> pageNum <span class="token operator">=</span> <span class="token function">numPages</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>i<span class="token punctuation">;</span>
+        <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span>pageNum<span class="token punctuation">;</span> i <span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token class-name">HeapPageId</span> pageId <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HeapPageId</span><span class="token punctuation">(</span>heapId_<span class="token punctuation">,</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">HeapPage</span> page <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HeapPage</span><span class="token punctuation">)</span> <span class="token class-name">Database</span><span class="token punctuation">.</span><span class="token function">getBufferPool</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getPage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>pageId<span class="token punctuation">,</span><span class="token class-name">Permissions</span><span class="token punctuation">.</span>READ_WRITE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>page<span class="token punctuation">.</span><span class="token function">getNumEmptySlots</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                page<span class="token punctuation">.</span><span class="token function">insertTuple</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                result <span class="token operator">=</span> page<span class="token punctuation">;</span>
+                <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>i <span class="token operator">&gt;=</span> pageNum<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//需要增加新的页,前面的已经写满了</span>
+            <span class="token keyword keyword-byte">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> data <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token keyword keyword-byte">byte</span><span class="token punctuation">[</span><span class="token class-name">BufferPool</span><span class="token punctuation">.</span><span class="token function">getPageSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+            <span class="token class-name">HeapPageId</span> heapPageId <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HeapPageId</span><span class="token punctuation">(</span>heapId_<span class="token punctuation">,</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token class-name">HeapPage</span> newPgae <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HeapPage</span><span class="token punctuation">(</span>heapPageId<span class="token punctuation">,</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            newPgae<span class="token punctuation">.</span><span class="token function">insertTuple</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token function">writePage</span><span class="token punctuation">(</span>newPgae<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            result <span class="token operator">=</span> newPgae<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        list<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-return">return</span> list<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>需要遍历该PageFile中当前已有的Page,当遍历到仍然有空位的Page就执行insert,如果当前已有的Page中并没有空余的,就创建一个Page,然后将其插入到新的Page中,并将这个Page写入到该文件.为什么返回值是<code>List</code>或者<code>ArrayList</code>呢?这个返回值用于被<code>BufferPool</code>获取,当BufferPool获取后,就知道哪些页发生了更新的动作,进而将BufferPool中当前已有的对应的Page进行更新.其中BufferPool中关于insertTuple和deleteTuple的操作是基于HeapFile的insert/delete实现的.最后将返回的<code>List&lt;page&gt;</code>进行更新(调用<code>updatePagePool</code>).</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-void">void</span> <span class="token function">updatePagePool</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> pagelist<span class="token punctuation">,</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">{</span>
+    <span class="token keyword keyword-int">int</span> size <span class="token operator">=</span> pagelist<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> <span class="token number">0</span> <span class="token punctuation">;</span> i <span class="token operator">&lt;</span> size<span class="token punctuation">;</span> i <span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token class-name">HeapPage</span> page <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HeapPage</span><span class="token punctuation">)</span> pagelist<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        page<span class="token punctuation">.</span><span class="token function">markDirty</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">,</span>tid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-int">int</span> hashcode <span class="token operator">=</span> page<span class="token punctuation">.</span>pid<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//注意是要得出pid的hashcode</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pages_<span class="token punctuation">.</span><span class="token function">containsKey</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token class-name">Page</span> oldPage <span class="token operator">=</span> pages_<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            oldPage <span class="token operator">=</span> page<span class="token punctuation">;</span> <span class="token comment">//更新</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+            <span class="token comment">//暂且先不考虑超出的情况</span>
+            <span class="token keyword keyword-if">if</span><span class="token punctuation">(</span>pages_<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> maxPageNum_<span class="token punctuation">)</span>  <span class="token punctuation">{</span>
+                <span class="token function">evictPage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            pages_<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">,</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>关于<code>flushPage,flushAllPages</code>的实现,这里这里获取该Page对应的文件后,根据isDirty进行writePage即可.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-synchronized">synchronized</span>  <span class="token keyword keyword-void">void</span> <span class="token function">flushPage</span><span class="token punctuation">(</span><span class="token class-name">PageId</span> pid<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">IOException</span> <span class="token punctuation">{</span>
+    <span class="token comment">// some code goes here</span>
+    <span class="token comment">// not necessary for lab1</span>
+    <span class="token keyword keyword-int">int</span> tableId <span class="token operator">=</span> pid<span class="token punctuation">.</span><span class="token function">getTableId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">HeapFile</span> file <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HeapFile</span><span class="token punctuation">)</span> <span class="token class-name">Database</span><span class="token punctuation">.</span><span class="token function">getCatalog</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getDatabaseFile</span><span class="token punctuation">(</span>tableId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-int">int</span> hashCode <span class="token operator">=</span> pid<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pages_<span class="token punctuation">.</span><span class="token function">containsKey</span><span class="token punctuation">(</span>hashCode<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token class-name">HeapPage</span> page <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HeapPage</span><span class="token punctuation">)</span> pages_<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>hashCode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>page<span class="token punctuation">.</span><span class="token function">isDirty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            file<span class="token punctuation">.</span><span class="token function">writePage</span><span class="token punctuation">(</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span> <span class="token comment">//写入</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="4-Exercise-4"><a href="#4-Exercise-4" class="headerlink" title="4) Exercise 4"></a>4) Exercise 4</h3><p>实现<code>Delete,Insert</code>操作,这里的实现仍然遵循<code>Fielter,Join</code>等模式,实现<code>open,close,fetchNext</code>等.两者的实现差不多,只说明Insert.</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">TransactionId</span> tid_<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">OpIterator</span> child_<span class="token punctuation">;</span> 
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> tableId_<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> desc_<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-boolean">boolean</span> isNext_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>数据成员如上,这个迭代器用于将<code>child_</code>中的所有Tuple插入到tableId对应的表中,需要特别注意它的next的意义,一个next操作则表示将整个<code>child_</code>插入到table中.其返回Tuple的类型只有一个field,表示的是成功插入的Tuple的数量.</p>
+<p>下面是<code>fetchNext</code>的实现:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
+    <span class="token comment">// some code goes here</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>isNext_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-int">int</span> cnt  <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>child_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token class-name">Tuple</span> tuple <span class="token operator">=</span> child_<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-boolean">boolean</span> insertOk <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-try">try</span> <span class="token punctuation">{</span>
+            <span class="token class-name">Database</span><span class="token punctuation">.</span><span class="token function">getBufferPool</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">insertTuple</span><span class="token punctuation">(</span>tid_<span class="token punctuation">,</span>tableId_<span class="token punctuation">,</span>tuple<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-catch">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            insertOk <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>insertOk<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            cnt <span class="token operator">+=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token class-name">Tuple</span> result <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Tuple</span><span class="token punctuation">(</span>desc_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">IntField</span> field <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">IntField</span><span class="token punctuation">(</span>cnt<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    result<span class="token punctuation">.</span><span class="token function">setField</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>field<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    isNext_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> result<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>如果之前已经通过fetchNext执行过一次插入了,就返回null,这告知上面的hasNext是false的.在近插入时则遍历child,逐个借助insertTuple进行插入,最终返回插入后的结果.这里的insert则是借助<code>BufferPool</code>的insert接口实现的.</p>
+<h3 id="5-Exercise-5"><a href="#5-Exercise-5" class="headerlink" title="5) Exercise 5"></a>5) Exercise 5</h3><p>最后这一部分主要是<code>BufferPool</code>中关于置换算法的实现,这里的实现采用FIFO的置换方法,实现起来非常简单:</p>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//增加的新的数据成员</span>
+<span class="token keyword keyword-private">private</span> <span class="token class-name">LinkedList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> fifoQueue_<span class="token punctuation">;</span>
+<span class="token comment">//evitPage实现</span>
+<span class="token keyword keyword-private">private</span> <span class="token keyword keyword-synchronized">synchronized</span>  <span class="token keyword keyword-void">void</span> <span class="token function">evictPage</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
+        <span class="token comment">// some code goes here</span>
+        <span class="token comment">// not necessary for lab1</span>
+        <span class="token keyword keyword-int">int</span> hashcode <span class="token operator">=</span> fifoQueue_<span class="token punctuation">.</span><span class="token function">pop</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">HeapPage</span> page <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HeapPage</span><span class="token punctuation">)</span> pages_<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">HeapPageId</span> pageId <span class="token operator">=</span> page<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-try">try</span> <span class="token punctuation">{</span>
+            <span class="token function">flushPage</span><span class="token punctuation">(</span>pageId<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-catch">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> e<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"flushPage error in evictPage from pagepool"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        pages_<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//移除</span>
+    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>fifoQueue_</code>在每次有新的Page加入后都会在里面加入新的Page.注意对于驱逐出来的Page注意flush到File中.</p>
+<h2 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h2><p>lab2中讲opertaor定义为迭代器的形式,此外其中next和hasNext的处理很精妙,这使得派生类都可以共用next,hasNext,只需要重写fetchNext,open等.</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        Author:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">yfs</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        Link:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="http://example.com/2022/083150518.html">http://example.com/2022/083150518.html</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        Reprint policy:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    All articles in this blog are used except for special statements
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    reprint polocy. If reproduced, please indicate source
+                    <a href="/about" target="_blank">yfs</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>Copied successfully, please follow the reprint policy of this article</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">more</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">数据库系统</span>
+                                </a>
+                            
+                                <a href="/tags/mit-6-830/">
+                                    <span class="chip bg-color">mit 6.830</span>
+                                </a>
+                            
+                                <a href="/tags/java/">
+                                    <span class="chip bg-color">java</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+            <div class="card">
+                <a href="/2022/09031431.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2003%2014%2003%2023%201662185003%201662185003945%206StjNP%20image-20220903140323748%20.png" class="responsive-img" alt="mit 6.830 数据库系统: lab 3">
+                        
+                        <span class="card-title">mit 6.830 数据库系统: lab 3</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            这一部分,只论练习的话不难,只用了一晚上+一上午就完成了,虽然也参考了一点别人的博客,毕竟执行与优化的很多工作已经给我们做好了,但是执行与优化这一部分还是非常复杂的.
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-09-03
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">数据库系统</span>
+                    </a>
+                    
+                    <a href="/tags/mit-6-830/">
+                        <span class="chip bg-color">mit 6.830</span>
+                    </a>
+                    
+                    <a href="/tags/java/">
+                        <span class="chip bg-color">java</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Next&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/082824296.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2028%2015%2005%2004%201661670304%201661670304966%20cSRWY2%20C75108C80FDD8D424833D43F3A4F3289%20.jpg" class="responsive-img" alt="DDIA:Chapter 6 Patitioning">
+                        
+                        <span class="card-title">DDIA:Chapter 6 Patitioning</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            DDIA,即《数据密集型应用系统设计》,是分布式系统领域的经典.
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-08-28
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
+                    </a>
+                    
+                    <a href="/tags/DDIA/">
+                        <span class="chip bg-color">DDIA</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;TOC</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2022</span>
+            
+            <span id="year">2022</span>
+            <a href="/about" target="_blank">yfs</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;<span id="busuanzi_value_site_pv"
+                    class="white-color"></span>&nbsp;次
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;<span id="busuanzi_value_site_uv"
+                    class="white-color"></span>&nbsp;人
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/YfsBox" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:1027342142@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1027342142" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1027342142" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<script src="/js/prism/prism.js" async></script>
+<link rel="stylesheet" href="/css/prism.css">
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;Search</span>
+            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+	
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+    <script type="text/javascript">
+        //只在桌面版网页启用特效
+        var windowWidth = $(window).width();
+        if (windowWidth > 768) {
+            document.write('<script type="text/javascript" src="/js/sakura.js"><\/script>');
+        }
+        </script>
+        
+
+</body>
+
+</html>

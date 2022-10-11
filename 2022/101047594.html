@@ -1,0 +1,1344 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="CMU 15-445:PROJECT #1 - BUFFER POOL, Yfs&#39;s Box">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>CMU 15-445:PROJECT #1 - BUFFER POOL | Yfs&#39;s Box</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+    <link rel="stylesheet" href="/js/prism/prism.css">
+
+    <script src="/libs/jquery/jquery.min.js"></script>
+
+<meta name="generator" content="Hexo 6.0.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+</head>
+
+
+
+   <style>
+    body{
+       background-image: url(https://cdn.jsdelivr.net/gh/Tokisaki-Galaxy/res/site/medias/background.jpg);
+       background-repeat:no-repeat;
+       background-size:cover;
+       background-attachment:fixed;
+    }
+</style>
+
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Yfs&#39;s Box</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>Index</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>Tags</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>Categories</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>Archives</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>About</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>Contact</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>Friends</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="Search" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Yfs&#39;s Box</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			Index
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			Tags
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			Categories
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			Archives
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			About
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			Contact
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			Friends
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2018%2049%2056%201665398996%201665398996966%20v7t3c5%20image-20221010184956813%20.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">CMU 15-445:PROJECT #1 - BUFFER POOL</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/c/">
+                                <span class="chip bg-color">c++</span>
+                            </a>
+                        
+                            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">数据库系统</span>
+                            </a>
+                        
+                            <a href="/tags/CMU-15-445/">
+                                <span class="chip bg-color">CMU 15-445</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
+                    2022-10-10
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
+                    3.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
+                    12 Min
+                </div>
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <p>这一部分,应该算是CMU 15-445中比较简单的一个lab吧,由于之前我做过mit 6.830系列的lab,所以在做这一部分的lab时,其基本的模式与架构还是能够比较快地理解并上手的,不过关于buffer pool这一部分和mit 6.830的simpledb之间还是有些差别.</p>
+<p>关于CMU 15-445,project 0太简单了,没什么好说的,所以直接从project 1开始.</p>
+<h2 id="1-实验环境"><a href="#1-实验环境" class="headerlink" title="1.实验环境"></a>1.实验环境</h2><p>我是采用了Clion+docker的实验环境.在环境配置方面参考了文章:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/458293882">CMU15445 docker+clion开发环境搭建</a>.</p>
+<p>docker的作用不必多少,我的电脑是mac m1,感觉一些需要的工具安装起来不太方便,所以直接考虑采用linux下的环境.</p>
+<p>关于IDE的话,我本人还是比较钟爱Clion的,我认为它相比vscode有更加智能且稳定的自动补全,而且Clion对于Cmake项目的支持很全面,甚至还以将不符合Clang-Tidy规范的代码引入到Warn,简直方便极了.此外相比将很多操作用命令行实现,Clion的图形界面十分强大,许多原本需要用命令行实现的操作,在Clion点个按钮就可以.如下图所示:</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2020%2020%2004%201665404404%201665404404124%20a5gsjb%20image-20221010202004010%20.png" alt="image-20221010202004010" style="zoom: 33%;">
+
+<p>关于调试也是非常方便的,网上的大佬关于c++程序的调试的建议就是使用gdb,Clion的调试器是可以设置为gdb的,相当于与底层调用了gdb但是我们可以以图形化的形式去进行操作,相比直接使用gdb设置断点和显示变量以及查看内存,都方便了不少.</p>
+<p>此外Clion这个IDE颜值也很高,感觉在下面这种环境下coding还是颇为赏心悦目的.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2020%2027%2022%201665404842%201665404842145%20V3IVd1%20image-20221010202722018%20.png" alt="image-20221010202722018" style="zoom: 25%;">
+
+<h2 id="2-实现过程及其细节"><a href="#2-实现过程及其细节" class="headerlink" title="2.实现过程及其细节"></a>2.实现过程及其细节</h2><h3 id="1-LRUReplacer"><a href="#1-LRUReplacer" class="headerlink" title="1) LRUReplacer"></a>1) LRUReplacer</h3><p>首先在<code>LRUReplacer</code>中,在BufferPoolManagerInstance中会有一个数据对象replacer_,这个类对象用于没有空闲页的时候,会将采用其中<code>replacer</code>从中置换一个页,<code>replacer</code>会维护一个<code>BufferPoolManagerInstance</code>中<code>pages_</code>的子集,<strong>并且是没有其中没有经过pin的page</strong>.具体而言<code>replacer</code>中,我实现的数据结构如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>mutex latch_<span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>frame_id_t<span class="token operator">&gt;</span> frames_<span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>frame_id_t<span class="token punctuation">,</span> frameIt<span class="token operator">&gt;</span> itmap_<span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> size_t capacity_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>其中最核心的部分在于<code>frames_</code>,对于LRU这种对于操作主要集中于首尾的算法来说,使用list可以达到比较低的开销.其中的内容是<code>frame_id_t</code>一个整型数,该整型数对应了<code>BufferPoolManagerInstance</code>中<code>pages_</code>数组中的一个索引,也就对应课程中所说的一个<code>页框</code>.这也体现了一个replacer总是归属于一个<code>BufferPoolManagerInstance</code>的.更多细节在<code>BufferPoolManagerInstance</code>后面再说.</p>
+<p>至于<code>itmap_</code>则是起到了一个优化的作用,避免对<code>frames_</code>进行遍历.</p>
+<p><code>latch_</code>是我比较疑惑的一个地方,我认为其实没有必要实现它,因为我在后面<code>BufferPoolManagerInstance</code>的实现中也会用大锁把它保护起来,并且每个<code>replacer</code>都是只属于一个<code>BufferPoolManagerInstance</code>的,当然加上了肯定也不算错,但是不加绝对拿不了满分,因为LRU的测试用例中有一个<code>ConcurrencyTest</code>,会对LRURplacer进行单独的多线程测试.</p>
+<p>关于LRU算法的实现,可以参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/133480542">LRU代码实现,C++实现</a>.</p>
+<p>LRU算法的一个核心点在于:<strong>最近最少使用</strong>.</p>
+<p>那么在我的实现中,我是根据在list中的位置体现这一点的,当一个frame加入时,会加入到list的头部,当需要选择牺牲页进行移除时,则从尾部移除.</p>
+<p>其中关于需要实现的方法,有三个:Victim,Unpin,Pin.首先梳理一下这几个API的基本任务:</p>
+<ul>
+<li>Victim:提出一个牺牲页.</li>
+<li>Pin,当一个页的引用计数(pin_count)从0到1时调用,将其从replacer中移除.</li>
+<li>Unpin,当一个页的引用计数(pin_count)清0时,调用,加入到replacer.</li>
+</ul>
+<p>其中的具体实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">LRUReplacer</span><span class="token double-colon punctuation">::</span><span class="token function">Victim</span><span class="token punctuation">(</span>frame_id_t <span class="token operator">*</span>frame_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  std<span class="token double-colon punctuation">::</span>lock_guard<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">gaurd</span><span class="token punctuation">(</span>latch_<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//上锁,基于RAII机制的锁.</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>frames_<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+    <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token operator">*</span>frame_id <span class="token operator">=</span> frames_<span class="token punctuation">.</span><span class="token function">back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-auto">auto</span> fit <span class="token operator">=</span> itmap_<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span><span class="token operator">*</span>frame_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  frames_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>fit<span class="token operator">-&gt;</span>second<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  itmap_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>fit<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这一部分的实现很简单,如果是空的,直接返回false就好,否则就返回尾部元素到<code>frame_id</code>中,然后在<code>itmaps_,frames_</code>中进行移除就可以了,最终返回true.</p>
+<p>关于Pin的实现相对简单,基本上只包含对于<code>itmap_,frames_</code>的移除操作.下面稍微说明一下UnPin:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">LRUReplacer</span><span class="token double-colon punctuation">::</span><span class="token function">Unpin</span><span class="token punctuation">(</span>frame_id_t frame_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  std<span class="token double-colon punctuation">::</span>lock_guard<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">gaurd</span><span class="token punctuation">(</span>latch_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-auto">auto</span> fit <span class="token operator">=</span> itmap_<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>frame_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>fit <span class="token operator">!=</span> itmap_<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>frames_<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> capacity_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    itmap_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>frames_<span class="token punctuation">.</span><span class="token function">back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    frames_<span class="token punctuation">.</span><span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  frames_<span class="token punctuation">.</span><span class="token function">push_front</span><span class="token punctuation">(</span>frame_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  itmap_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span> <span class="token operator">=</span> frames_<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>如果这一页之前就已经存在了,那么就不做任何处理,如果已经超出了容量大小,那么就将末尾项移除,最后将<code>frame_id</code>加入到队列的头部,并加入<code>itmap_</code>的记录.此外还有一个<code>Size</code>API也是需要我们实现的,并且也需要上锁,我之前关于这个犯过一个错误如下(在Unpin中):</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">size_t <span class="token class-name">LRUReplacer</span><span class="token double-colon punctuation">::</span><span class="token function">Size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  std<span class="token double-colon punctuation">::</span>lock_guard<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">gaurd</span><span class="token punctuation">(</span>latch_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> frames_<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>  
+<span class="token comment">//下面是Unpin函数中的代码</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">Size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> capacity_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+   itmap_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>frames_<span class="token punctuation">.</span><span class="token function">back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   frames_<span class="token punctuation">.</span><span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>这样很显然就死锁了!</p>
+<p>最后我们发现<code>itmap_</code>这个数据结构的设置果然节省了不少遍历的操作,原本需要我们进行遍历list查找整个某个项是否存在,或者需要定位到某个<code>frame_id</code>在list中的迭代器进行删除(毕竟list不支持以元素的值为基础的erase,一般是定位到对应的迭代器然后erase)的操作都方便了许多.</p>
+<h3 id="2-BufferPoolManagerInstance"><a href="#2-BufferPoolManagerInstance" class="headerlink" title="2) BufferPoolManagerInstance"></a>2) BufferPoolManagerInstance</h3><p>这一部分对应了task 2,是这个project中最复杂的部分.</p>
+<p>仍然从基本的数据成员着手进行分析:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Page <span class="token operator">*</span>pages_<span class="token punctuation">;</span>
+DiskManager <span class="token operator">*</span>disk_manager_ <span class="token function">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span>__unused__<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+LogManager <span class="token operator">*</span>log_manager_ <span class="token function">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span>__unused__<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>page_id_t<span class="token punctuation">,</span> frame_id_t<span class="token operator">&gt;</span> page_table_<span class="token punctuation">;</span>
+Replacer <span class="token operator">*</span>replacer_<span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>frame_id_t<span class="token operator">&gt;</span> free_list_<span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>mutex latch_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>pages_</code>是一个数组,每个Page代表一个固定大小的内存块,buffer是位于disk之上的一层缓存,可以大大减少我们在访问数据时访问disk的次数,将disk中某一个page的内容读取到一个Page下对应的内存缓冲区中,后来对于该page的读写都会直接访问这一块内存缓冲区而不是访问disk.在bustub中关于Page的定义还是比较简洁的,其数据成员如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-char">char</span> data_<span class="token punctuation">[</span>PAGE_SIZE<span class="token punctuation">]</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+page_id_t page_id_ <span class="token operator">=</span> INVALID_PAGE_ID<span class="token punctuation">;</span>
+<span class="token keyword keyword-int">int</span> pin_count_ <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-bool">bool</span> is_dirty_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>其中对应内存缓冲区(存储页的实际内容),page_id(page_id和磁盘中位置存在某种关系),引用计数,是否是脏页.至于其他的API会结合后面的实现进行说明.此外关于<code>Page</code>和<code>BufferPoolManagerInstance</code>的关系,后者是前者的友元,也就是说后者可以访问和修改前者的private,这在后续的实现中是常用的.</p>
+<p>关于<code>disk_manager</code>的话,不必多说,毕竟disk才是Page内容的源泉,当需要从disk中读取Page内容或者将Page的内容进行刷盘时,都需要调用它.</p>
+<p><code>page_table_</code>的作用类似于前面的<code>itmap_</code>,<code>frame_id</code>只能说是一个<code>BufferPoolManagerInstance</code>的内部细节,在外部都是通过<code>page_id_t</code>来进行访问的(后面我们需要实现的API都有page_id作为参数),提供page_id到frame_id可以省去很多不必要的遍历查找.</p>
+<p><code>replacer_</code>的话,也不必多说了,感觉前面说的挺清楚了.</p>
+<p><code>free_list</code>_是<code>pages_</code>的一个子集,也就是<code>page_</code>数组中还没有与一个具体的page进行绑定的部分.</p>
+<p>当我们需要将一个新分配的Page加入到bufferpool中时,我们首先考虑有没有空闲的Page(也就是<code>free_list_</code>中有没有可用的),如果<code>free_list_</code>为空,那么就需要调用<code>replacer_</code>寻求一个可置换页.对于这些操作,我将其写到了函数<code>FindFreePage</code>中:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">BufferPoolManagerInstance</span><span class="token double-colon punctuation">::</span><span class="token function">FindFreePage</span><span class="token punctuation">(</span>frame_id_t <span class="token operator">*</span>frame_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>free_list_<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  <span class="token comment">// 调用replacer_-&gt;Victim,如果是脏页则需要刷盘.</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> vicok <span class="token operator">=</span> replacer_<span class="token operator">-&gt;</span><span class="token function">Victim</span><span class="token punctuation">(</span>frame_id<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">!</span>vicok<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    page_id_t rpg_id <span class="token operator">=</span> pages_<span class="token punctuation">[</span><span class="token operator">*</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">GetPageId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pages_<span class="token punctuation">[</span><span class="token operator">*</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">IsDirty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      disk_manager_<span class="token operator">-&gt;</span><span class="token function">WritePage</span><span class="token punctuation">(</span>rpg_id<span class="token punctuation">,</span> pages_<span class="token punctuation">[</span><span class="token operator">*</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">GetData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      pages_<span class="token punctuation">[</span><span class="token operator">*</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>is_dirty_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    page_table_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>rpg_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>  <span class="token comment">// 从free_list_移除一项,并将该项返回到frame_id中.</span>
+    <span class="token operator">*</span>frame_id <span class="token operator">=</span> free_list_<span class="token punctuation">.</span><span class="token function">front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    free_list_<span class="token punctuation">.</span><span class="token function">pop_front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>关于task 2需要实现的API,首先说明一下<code>NewPgImp</code>.此API的作用在于在disk上创建一个新的page,并且将该page加入到该buffer pool中.既然涉及到需要新加入一个page,那么就需要考虑一下几种情况:</p>
+<ul>
+<li>如果page_中全部pin住了怎么办? 什么也不做,直接返回nullptr.</li>
+<li>否则,就调用上面提到的FindFreePage,返回一个可用的frame_id.</li>
+</ul>
+<p>后续的操作就如下所示了:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token operator">*</span>page_id <span class="token operator">=</span> <span class="token function">AllocatePage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 分配一个page,返回其page_id</span>
+<span class="token function">ResetPage</span><span class="token punctuation">(</span>rframe_id<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">//清空前面FindFreePage获取的frame_id对应的Page的内容(将Page的元数据及内存缓冲区初始化)</span>
+pages_<span class="token punctuation">[</span>rframe_id<span class="token punctuation">]</span><span class="token punctuation">.</span>page_id_ <span class="token operator">=</span> <span class="token operator">*</span>page_id<span class="token punctuation">;</span>  <span class="token comment">// 设置page_id</span>
+pages_<span class="token punctuation">[</span>rframe_id<span class="token punctuation">]</span><span class="token punctuation">.</span>pin_count_ <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>  <span class="token comment">//设置引用计数</span>
+replacer_<span class="token operator">-&gt;</span><span class="token function">Pin</span><span class="token punctuation">(</span>rframe_id<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">//Pin住</span>
+page_table_<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">make_pair</span><span class="token punctuation">(</span><span class="token operator">*</span>page_id<span class="token punctuation">,</span> rframe_id<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">//加入到page_table</span>
+<span class="token keyword keyword-return">return</span> pages_ <span class="token operator">+</span> rframe_id<span class="token punctuation">;</span>  <span class="token comment">//返回地址</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>至于<code>FetchPgImp</code>的实现与之颇为相似,最主要的差别就是,<code>FetchPgImp</code>需要检查该page_id是否存在,如果存在就直接将地址返回,否则就用<code>FindFreePage</code>找一个空闲frame或者置换frame,然后设置该frame对应Page的属性(需要设置pin_count为1),此外还需要从diskmanager中载入内容,如下所示.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">disk_manager_<span class="token operator">-&gt;</span><span class="token function">ReadPage</span><span class="token punctuation">(</span>page_id<span class="token punctuation">,</span> pages_<span class="token punctuation">[</span>r_fid<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">GetData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>关于<code>FlushPgImp</code>和<code>FlushAllPgsImp</code>的实现则比较简单,分这几部:</p>
+<ul>
+<li>判断page是否存在,没有就返回.</li>
+<li>根据该page是否dirty,如果是dirty就刷盘,并将dirty设置为false.</li>
+</ul>
+<p><code>UnpinPgImp</code>的实现和replacer中的Unpin一定要区分开,前者的Unpin用于将bufferpool中的某个page的引用计数-1(如果减到0,则需要进行replacer_-&gt;Unpin),这表示某个线程已经结束了对该page的占用,并且还会将线程是否将该page进行修改表示在<code>is_dirty</code>这个变量里,因此需要注意的是<strong>对于page中关于dirty变量的设置,不可以直接赋值</strong>,而是应该“或”,因为如果只是简单地赋值的话,比如说thread_1调用了Unpin,其中<code>is_dirty</code>为true,后面有一个thread_2也调用了Unpin,但是<code>is_dirty</code>为false,那么最终该page的dirty就是false,相当于之前进行的修改都无效了.因而在后面的很多刷盘操作中都被忽略了.</p>
+<p>其中的具体实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">BufferPoolManagerInstance</span><span class="token double-colon punctuation">::</span><span class="token function">UnpinPgImp</span><span class="token punctuation">(</span>page_id_t page_id<span class="token punctuation">,</span> <span class="token keyword keyword-bool">bool</span> is_dirty<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  std<span class="token double-colon punctuation">::</span>lock_guard<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">guard</span><span class="token punctuation">(</span>latch_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-auto">auto</span> page_it <span class="token operator">=</span> page_table_<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>page_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>page_it <span class="token operator">==</span> page_table_<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span> 
+  <span class="token punctuation">}</span>
+  frame_id_t frame_id <span class="token operator">=</span> page_it<span class="token operator">-&gt;</span>second<span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>pin_count_ <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>pin_count_<span class="token operator">--</span><span class="token punctuation">;</span>
+  pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>is_dirty_ <span class="token operator">|=</span> is_dirty<span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>pin_count_ <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    replacer_<span class="token operator">-&gt;</span><span class="token function">Unpin</span><span class="token punctuation">(</span>frame_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><code>DeletePgImp</code>则用于将某一个page从bufferpool及其replacer中完全移除(如果被pin住,就什么也不做,直接返回),如果是脏页,则需要刷盘,然后进行相关的移除操作,移除<code>page_table_</code>对应的项,对于<code>pages_</code>将对应的frame项执行<code>ResetPage</code>,然后将该frame加入到<code>free_list_</code>中,还需要调用<code>replacer_-&gt;Pin</code>(这里的Pin的作用在于将该frame项从replacer中移除).</p>
+<p>关于<code>ResetPage</code>的实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">BufferPoolManagerInstance</span><span class="token double-colon punctuation">::</span><span class="token function">ResetPage</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> frame_id_t <span class="token operator">&amp;</span>frame_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>page_id_ <span class="token operator">=</span> INVALID_PAGE_ID<span class="token punctuation">;</span>
+  pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>pin_count_ <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+  pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>is_dirty_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">ResetMemory</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="3-ParallelBufferPoolManager"><a href="#3-ParallelBufferPoolManager" class="headerlink" title="3) ParallelBufferPoolManager"></a>3) ParallelBufferPoolManager</h3><p>这一部分的实现算是最简单的一部分了.</p>
+<blockquote>
+<p><strong>为什么需要ParallelBufferPoolManager?</strong></p>
+<p>简而言之,设计ParallelBufferPoolManager可以减少对于锁的竞争,进而对于很多操作都可以节约时间开销.比如说,我们假设有两种情况:(1) 一个page容量为1000的BufferPoolManagerInstance. (2) 一个ParallelBufferPoolManager其中包含20个page容量为50的BufferPoolManagerInstance.</p>
+<p>由于一个BufferPoolManagerInstance就有一把锁,所以第一种情况有1个锁,第二种情况有20个锁.在多线程的情景下,竞争20个锁的情况下,其压力肯定要比竞争1个要小的多.</p>
+</blockquote>
+<p>具体展开ParallelBufferPoolManager的设计思路,它维护了一个固定数量的BufferPoolManagerInstance集合,ParallelBufferPoolManager会根据需要访问的page_id映射到某一个BufferPoolManagerInstance中,在这里映射方式采用取模的方式.如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">BufferPoolManager <span class="token operator">*</span><span class="token class-name">ParallelBufferPoolManager</span><span class="token double-colon punctuation">::</span><span class="token function">GetBufferPoolManager</span><span class="token punctuation">(</span>page_id_t page_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-auto">auto</span> ins_id <span class="token operator">=</span> page_id <span class="token operator">%</span> num_instances_<span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> instances_<span class="token punctuation">[</span>ins_id<span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>之后<code>FetchPgImp,UnpinPgImp,DeletePgImp</code>等API都是先通过<code>GetBufferPoolManager</code>返回对应的对象,然后再调用对应的api的.</p>
+<p>唯有<code>NewPgImp</code>稍微复杂一点,实现方式和前面的有些不同.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Page <span class="token operator">*</span><span class="token class-name">ParallelBufferPoolManager</span><span class="token double-colon punctuation">::</span><span class="token function">NewPgImp</span><span class="token punctuation">(</span>page_id_t <span class="token operator">*</span>page_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  std<span class="token double-colon punctuation">::</span>lock_guard<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">guard</span><span class="token punctuation">(</span>latch_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-auto">auto</span> start <span class="token operator">=</span> next_instance_<span class="token punctuation">;</span>
+  Page <span class="token operator">*</span>page <span class="token operator">=</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    page <span class="token operator">=</span> instances_<span class="token punctuation">[</span>next_instance_<span class="token punctuation">]</span><span class="token operator">-&gt;</span><span class="token function">NewPage</span><span class="token punctuation">(</span>page_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    next_instance_ <span class="token operator">=</span> <span class="token punctuation">(</span>next_instance_ <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">%</span> num_instances_<span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>page <span class="token operator">!=</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>next_instance_ <span class="token operator">==</span> start<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-return">return</span> page<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>采用一种类似于轮询的方式,保证每次都能从不同的起点开始轮询,轮询过程中如果有结果就返回,如果没有结果就返回nullptr.</p>
+<h2 id="3-一些trick"><a href="#3-一些trick" class="headerlink" title="3.一些trick"></a>3.一些trick</h2><h2 id="4-踩过的坑"><a href="#4-踩过的坑" class="headerlink" title="4.踩过的坑"></a>4.踩过的坑</h2>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        Author:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">yfs</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        Link:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="http://example.com/2022/101047594.html">http://example.com/2022/101047594.html</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        Reprint policy:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    All articles in this blog are used except for special statements
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    reprint polocy. If reproduced, please indicate source
+                    <a href="/about" target="_blank">yfs</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>Copied successfully, please follow the reprint policy of this article</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">more</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/c/">
+                                    <span class="chip bg-color">c++</span>
+                                </a>
+                            
+                                <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">数据库系统</span>
+                                </a>
+                            
+                                <a href="/tags/CMU-15-445/">
+                                    <span class="chip bg-color">CMU 15-445</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="far fa-dot-circle"></i>&nbsp;Current
+            </div>
+            <div class="card">
+                <a href="/2022/101047594.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2018%2049%2056%201665398996%201665398996966%20v7t3c5%20image-20221010184956813%20.png" class="responsive-img" alt="CMU 15-445:PROJECT #1 - BUFFER POOL">
+                        
+                        <span class="card-title">CMU 15-445:PROJECT #1 - BUFFER POOL</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            大概做了两天左右,作此文记录一下.
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-10-10
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/c/">
+                        <span class="chip bg-color">c++</span>
+                    </a>
+                    
+                    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">数据库系统</span>
+                    </a>
+                    
+                    <a href="/tags/CMU-15-445/">
+                        <span class="chip bg-color">CMU 15-445</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Next&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/100459346.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2004%2023%2053%2053%201664898833%201664898833745%209qqSq1%20image-20221004235353596%20.png" class="responsive-img" alt="modern c++学习笔记">
+                        
+                        <span class="card-title">modern c++学习笔记</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            主要学习一些c++ 11/14/17的新特性,整理一些重要的点,参考了《Effective Modern C++》和《现代C++教程》.
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-10-04
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/c/">
+                        <span class="chip bg-color">c++</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;TOC</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2022</span>
+            
+            <span id="year">2022</span>
+            <a href="/about" target="_blank">yfs</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;<span id="busuanzi_value_site_pv"
+                    class="white-color"></span>&nbsp;次
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;<span id="busuanzi_value_site_uv"
+                    class="white-color"></span>&nbsp;人
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/YfsBox" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:1027342142@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1027342142" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1027342142" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<script src="/js/prism/prism.js" async></script>
+<link rel="stylesheet" href="/css/prism.css">
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;Search</span>
+            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+	
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+    <script type="text/javascript">
+        //只在桌面版网页启用特效
+        var windowWidth = $(window).width();
+        if (windowWidth > 768) {
+            document.write('<script type="text/javascript" src="/js/sakura.js"><\/script>');
+        }
+        </script>
+        
+
+</body>
+
+</html>
