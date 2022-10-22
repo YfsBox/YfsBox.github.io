@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    16.9k
+                    17.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    71 Min
+                    72 Min
                 </div>
                 
 
@@ -519,6 +519,7 @@
 <p>allocator是容器实现的基础,但是allocator不一定是分配内存,也可以分配磁盘.</p>
 <p>分配器很多时候是一个
 <code>template class</code>,其中有一些主要的接口,这些接口主要有:<code>allocator,deallocator,constructor,destroy</code>等.</p>
+<p><strong>可以说是实现STL的过程中的第一步,因为要考虑为容器中的数据分配空间的问题.</strong></p>
 <h3 id="最简易的allocator实现.">1)最简易的allocator实现.</h3>
 <p>下面是一个简单的实现,我们来对其源代码进行分析.</p>
 <p>在一个简易的STL实现中,分配器文件的代码主要有两个部分:一个是模版类allocator,另一个是实现的模版函数(下面代码段中所示).而
@@ -547,7 +548,7 @@
     <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">_destroy</span><span class="token punctuation">(</span>T<span class="token operator">*</span> ptr<span class="token punctuation">)</span> <span class="token punctuation">{</span>
         ptr<span class="token operator">-&gt;</span><span class="token operator">~</span><span class="token function">T</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//调用析构函数.</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>所以总体来看这些接口并不复杂,只是做了一层很薄的封装而已.</p>
+<p>所以总体来看这些接口并不复杂,只是做了一层很薄的封装而已.这四个接口分别代表分配,释放,析构,构造.前两者只涉及到内存空间的分配,后两者则在已有的内存上进行对象的操作.</p>
 <p>下面是allocator的简易实现.可见,除了简单的调用了前面实现的函数接口.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">T</span><span class="token operator">&gt;</span>
 <span class="token keyword keyword-class">class</span> <span class="token class-name">allocator</span> <span class="token punctuation">{</span>
@@ -576,6 +577,11 @@
         <span class="token keyword keyword-return">return</span> <span class="token function">size_type</span><span class="token punctuation">(</span>UINT_MAX <span class="token operator">/</span> <span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>T<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<blockquote>
+<p><strong>当创建一个新的对象时,分配器发生什么?</strong></p>
+<p>首先调用allocate申请内存空间,并返回指针,然后调用construct将对象构建在已经分配好的内存中.</p>
+<p>如果析构的话,首先会调用destroy执行此对象的析构函数,最后再调用dallocator将已经分配的内存释放.</p>
+</blockquote>
 <h3 id="sgi-stl中allocator的实现">2) SGI STL中allocator的实现</h3>
 <p>其中分别介绍 <code>alocator和alloc</code>
 <code>allocator</code>只是多了层很薄的封装,实现的效率不高,也不是
@@ -614,9 +620,8 @@
 <code>placement new</code>实现.</p>
 <blockquote>
 <p><code>placement new</code>指的是,相比一般的
-<code>new</code>,此操作用于在<strong>已经分配的内存</strong>上创建对象.</p>
-<p>一般语法为:</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">A <span class="token operator">*</span>p <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token punctuation">(</span>mem<span class="token punctuation">)</span> A<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<code>new</code>,此操作用于在<strong>已经分配的内存</strong>上创建对象.一般语法为:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token operator">&gt;</span>A <span class="token operator">*</span>p <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token punctuation">(</span>mem<span class="token punctuation">)</span> A<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 </blockquote>
 <p>而关于
 <code>destory</code>的实现则是比较复杂的.主要有两个版本,一个是<strong>直接基于一个指针</strong>,另一个是<strong>借助两个迭代器</strong>.</p>
