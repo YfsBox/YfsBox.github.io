@@ -502,23 +502,16 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>我早就听说mit
-6.830的后半部分的难度会比前面难很多,但是似乎也没有想象中的难,虽然我的lab4可以暂时通过测试,但是希望后面的lab5中不会暴漏出隐藏的bug.此外这一部分的难点我认为在于Lock
-Manager的实现,以及Bufferpool的一些lock,evict,commit操作中的细节.但是其中的很多问题都在《概念》中有所涉及,我阅读了相关的章节,感觉因此lab的难度也降低了一些,思路也清楚了一些.</p>
-<h2 id="实现基础">1.实现基础</h2>
-<h3 id="两段锁协议">1) 两段锁协议</h3>
-<p>简而言之,两段锁就是将一个事务lock和unlock的时机划分为两个阶段,第一个阶段只能上锁,第二个阶段只能解锁,而当第一个阶段转换到第二个阶段的标志性事件又是什么呢?可以认为是获得最后一个锁的时刻,也可以认为是发生第一个解锁的时刻.</p>
+                <p>我早就听说mit 6.830的后半部分的难度会比前面难很多,但是似乎也没有想象中的难,虽然我的lab4可以暂时通过测试,但是希望后面的lab5中不会暴漏出隐藏的bug.此外这一部分的难点我认为在于Lock Manager的实现,以及Bufferpool的一些lock,evict,commit操作中的细节.但是其中的很多问题都在《概念》中有所涉及,我阅读了相关的章节,感觉因此lab的难度也降低了一些,思路也清楚了一些.</p>
+<h2 id="1-实现基础"><a href="#1-实现基础" class="headerlink" title="1.实现基础"></a>1.实现基础</h2><h3 id="1-两段锁协议"><a href="#1-两段锁协议" class="headerlink" title="1) 两段锁协议"></a>1) 两段锁协议</h3><p>简而言之,两段锁就是将一个事务lock和unlock的时机划分为两个阶段,第一个阶段只能上锁,第二个阶段只能解锁,而当第一个阶段转换到第二个阶段的标志性事件又是什么呢?可以认为是获得最后一个锁的时刻,也可以认为是发生第一个解锁的时刻.</p>
 <p>两阶段锁可以保证<code>confilict serializability</code>,保证调度的依赖图是无环的.如果不使用两段锁协议可能出现下面图中的问题:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2006%2015%2005%2046%201662447946%201662447946111%20KQBmn3%20image-20220906150545993%20.png" alt="image-20220906150545993" style="zoom: 33%;"></p>
-<p>图中,理想的结果应该是A+B = 900 + 1100 =
-2000,图中的问题在于在事务1进行写B之前,却被事务B抢到了B的共享锁,这个时候T1对B进行写的操作还没有完成就进行了读.因此这种情况就呈现了异一种T1事务被一分为二,中间穿插了T2的情况,因此总的来说,两段锁协议还是对于事务的原子性进行了控制.倘若使用了两段锁协议的话,将导致T1先执行,T2后执行的效果.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2006%2015%2005%2046%201662447946%201662447946111%20KQBmn3%20image-20220906150545993%20.png" alt="image-20220906150545993" style="zoom: 33%;">
+
+<p>图中,理想的结果应该是A+B = 900 + 1100 = 2000,图中的问题在于在事务1进行写B之前,却被事务B抢到了B的共享锁,这个时候T1对B进行写的操作还没有完成就进行了读.因此这种情况就呈现了异一种T1事务被一分为二,中间穿插了T2的情况,因此总的来说,两段锁协议还是对于事务的原子性进行了控制.倘若使用了两段锁协议的话,将导致T1先执行,T2后执行的效果.</p>
 <p>此外两段锁协议还是避免不了级联回滚和死锁的问题.在此不再多说.</p>
-<p>下面说一说在test样例中的情况,其实我认为在test中对于事务的操作已经可以保证二段锁协议,因此即使不在Lock
-Manager中实现两段锁协议,也是可以通过测试.首先说,unlock只会在commit和abort时集中发生,也就是说,一个事务释放锁的动作确实是集中发生的,之后只要可以保证在调用commit中的release
-all时不发生acquire,就可以证明实现了二段锁协议.</p>
+<p>下面说一说在test样例中的情况,其实我认为在test中对于事务的操作已经可以保证二段锁协议,因此即使不在Lock Manager中实现两段锁协议,也是可以通过测试.首先说,unlock只会在commit和abort时集中发生,也就是说,一个事务释放锁的动作确实是集中发生的,之后只要可以保证在调用commit中的release all时不发生acquire,就可以证明实现了二段锁协议.</p>
 <p>而在测试中确实都是在commit前保证锁已经都获取了,所以commit或者abort的过程中没有穿插着锁的acquire.</p>
-<h3 id="bufferpool的相关操作">2) BufferPool的相关操作</h3>
-<p>一个由于这里的锁都是Page级别的,在这里需要将Lock,flush,recover,evict相互联系起来.</p>
+<h3 id="2-BufferPool的相关操作"><a href="#2-BufferPool的相关操作" class="headerlink" title="2) BufferPool的相关操作"></a>2) BufferPool的相关操作</h3><p>一个由于这里的锁都是Page级别的,在这里需要将Lock,flush,recover,evict相互联系起来.</p>
 <p>全局的<code>BufferPool</code>内部持有一个<code>Lock Manager</code>,这个用来执行有关于锁的获取与释放等操作.</p>
 <p>其中有关于<code>flush,recover</code>部分,这种操作在<code>simpleDB</code>只保证在commit和abort这两种情况下发生,相比于《数据库系统概念》中提到的在evicit时进行flush是由一些出入的.与之相配合的是,<code>BufferPool</code>不会踢出任何脏页,因此如果一连串的操作都是需要对页进行修改的情况应该怎么处理呢?这个时候岂不就会导致BufferPool中无页可踢了吗.在该lab中的实现只是简单地抛出一个异常.</p>
 <p>在这里的<code>BufferPool</code>的的evict的选择,可以是一个正在被事务所读取的Page,因为单纯的读取操作并不会对Page中的数据进行修改,毕竟evict策略主要注意的问题还是踢出的页,是否会导致正在执行的修改操作丢失.</p>
@@ -533,16 +526,16 @@ all时不发生acquire,就可以证明实现了二段锁协议.</p>
 <li>如果此时某事务想要上排他锁,但是此时确实该事务的共享锁,则会进行锁升级,升级为排他锁.</li>
 </ul>
 <p>在《概念》中,pin和lock是紧接着发生的,unpin和unlock也是.</p>
-<h2 id="实验过程">2.实验过程</h2>
-<h3 id="exercise-125">Exercise 1,2,5</h3>
-<p>这一部分主要是LockManager的实现,主要参考了《数据库系统概念》.这个类主要主要包括,四个功能:接收锁请求,处理锁的Acquire,释放锁.其中的数据成员如下:</p>
+<h2 id="2-实验过程"><a href="#2-实验过程" class="headerlink" title="2.实验过程"></a>2.实验过程</h2><h3 id="Exercise-1-2-5"><a href="#Exercise-1-2-5" class="headerlink" title="Exercise 1,2,5"></a>Exercise 1,2,5</h3><p>这一部分主要是LockManager的实现,主要参考了《数据库系统概念》.这个类主要主要包括,四个功能:接收锁请求,处理锁的Acquire,释放锁.其中的数据成员如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">ConcurrentMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">,</span><span class="token class-name">LinkedList</span><span class="token punctuation">&lt;</span><span class="token class-name">LockRequest</span><span class="token punctuation">&gt;</span><span class="token punctuation">&gt;</span></span> lockTable_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">ConcurrentMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">,</span><span class="token class-name">LockState</span><span class="token punctuation">&gt;</span></span> lockStates_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 <p><code>lockTable_</code>用来记录manager所接受的请求,其中的每个key对应一个Page的hashcode,<code>lockStates_</code>记录每个数据(Page)的锁状态.其构造函数也就是初始化两个空的map.此外还有两个内部类:<code>LockState,LockRequest</code>,分别表示一个Page的锁状态和锁请求.前者的数据成员为<code>lockType_,tid_,shardCnt_</code>,分别是上锁的类型,持有锁的事务,对于共享锁的计数,这个共享锁计数在锁升级的时候需要用到.而<code>LockRequest_</code>的数据成员除了locktype,tid还有一个seq_,这个用来全局地唯一标识一个请求,也方便了调用者从<code>lockTable_</code>中索引出这个请求.</p>
 <p>关于<code>lockState</code>的状态,也就是锁的类型,有三种:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-enum">enum</span> <span class="token class-name">LockType</span> <span class="token punctuation">{</span>
     SHARED_TYPE<span class="token punctuation">,</span>EXCLUSIVE_TYPE<span class="token punctuation">,</span>NULL_TYPE
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
 <p>其中锁的容斥规则如下:</p>
 <ul>
 <li>当前为NULL_TYPE,上SHARED_TYPE和EXCLUSIVE_TYPE都可以.</li>
@@ -562,6 +555,7 @@ all时不发生acquire,就可以证明实现了二段锁协议.</p>
     lockTable_<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">LockRequest</span><span class="token punctuation">(</span>lockType<span class="token punctuation">,</span>tid<span class="token punctuation">,</span>seqno<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> seqno<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>主要就是生成新的LockRequest加入到对应的list中.对于<code>AcquireLock</code>这个函数,首先需要将该锁和当前状态进行比对,通过LockState中的方法<code>canAcquire</code>.其中关于canAcquire的内部实现,就如同前面所说明的加锁规则一样.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-synchronized">synchronized</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token class-name">AcquireLock</span><span class="token punctuation">(</span><span class="token class-name">PageId</span> pageId<span class="token punctuation">,</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span><span class="token class-name">Permissions</span> perm<span class="token punctuation">,</span><span class="token keyword keyword-long">long</span> seqno<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-int">int</span> hashcode <span class="token operator">=</span> pageId<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -586,6 +580,7 @@ all时不发生acquire,就可以证明实现了二段锁协议.</p>
         <span class="token keyword keyword-return">return</span> isfound<span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>当判断好之后,遍历该Page对应的list,根据是否返找到返回true或者false.其实这一部分的实现有一些冗余.关于释放锁的实现,要容易得多,首先定位到该pageHash的list,找到该tid对应的之后就进行移除,如果影响当前的锁状态,则还需要对锁的状态进行更新.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-synchronized">synchronized</span> <span class="token keyword keyword-void">void</span> <span class="token class-name">ReleaseLock</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> pageHash<span class="token punctuation">,</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-int">int</span> hashcode <span class="token operator">=</span> pageHash<span class="token punctuation">;</span>
@@ -613,9 +608,11 @@ all时不发生acquire,就可以证明实现了二段锁协议.</p>
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>比较需要注意的是关于锁状态的更新,如果正是该事务所持有的互斥锁,直接当前锁状态更新为NULL,当前事务也是null,对于共享锁的判断则有点麻烦,如果当前锁的数量为1,就设置为null,否则将共享锁的计数-1.</p>
 <p>说明玩<code>LockManger</code>的类之后,下面来看一下在<code>BufferPool</code>中如何调用.首先是在<code>BufferPool</code>中加入一个LockManager对象.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">LockManager</span> lockManager_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
 <p>在<code>getPage</code>中加入,在从<code>pages_</code>中获取该Page中,加入请求锁和获取锁的过程.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-long">long</span> requestSeq <span class="token operator">=</span> <span class="token class-name"><span class="token namespace">lockManager_<span class="token punctuation">.</span></span>AddRequest</span><span class="token punctuation">(</span>pid<span class="token punctuation">,</span>tid<span class="token punctuation">,</span>perm<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-long">long</span> start <span class="token operator">=</span> <span class="token class-name">System</span><span class="token punctuation">.</span><span class="token function">currentTimeMillis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -625,16 +622,17 @@ all时不发生acquire,就可以证明实现了二段锁协议.</p>
         <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这里的实现比较简单,只是采用简单的轮询的,每一个while循环就不断地<code>AcquireLock</code>,直到获取加锁的许可为止,并且在每一轮循环中都会通过获取时间,来判断当前的时间有没有超时,如果超时则判断为死锁.然后抛出异常.到这里只是实现了最最简陋的死锁判断.</p>
 <p>关于练习1中所需要的<code>unsafeReleasePage</code>和<code>holdsLock</code>则是直接调用<code>LockManager</code>中的相关接口即可.</p>
-<p>下面来看一下在练习2中所提到的一些特殊情况,首先是在新追加一个Page后,需要对这个新的Page立刻上锁,如果不上锁的话,容易造成data
-race:</p>
+<p>下面来看一下在练习2中所提到的一些特殊情况,首先是在新追加一个Page后,需要对这个新的Page立刻上锁,如果不上锁的话,容易造成data race:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">HeapPageId</span> heapPageId <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HeapPageId</span><span class="token punctuation">(</span>heapId_<span class="token punctuation">,</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token class-name">HeapPage</span> newPgae <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HeapPage</span><span class="token punctuation">(</span>heapPageId<span class="token punctuation">,</span><span class="token class-name">HeapPage</span><span class="token punctuation">.</span><span class="token function">createEmptyPageData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 newPgae<span class="token punctuation">.</span><span class="token function">insertTuple</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token function">writePage</span><span class="token punctuation">(</span>newPgae<span class="token punctuation">)</span><span class="token punctuation">;</span>
 newPgae <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">HeapPage</span><span class="token punctuation">)</span> <span class="token class-name">Database</span><span class="token punctuation">.</span><span class="token function">getBufferPool</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getPage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>heapPageId<span class="token punctuation">,</span><span class="token class-name">Permissions</span><span class="token punctuation">.</span>READ_ONLY<span class="token punctuation">)</span><span class="token punctuation">;</span>
 result <span class="token operator">=</span> newPgae<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>上面这段代码出现在<code>HeapFile</code>在insert时,需要追加新的page的情况,这个时候在在最终返回该page前,调用getPage确保该事务已经加上了新Page的锁.</p>
 <p>此外在<code>insertTuple</code>,对于一个page,如果没有可写的空间,那么可以考虑立刻将这个page上的这个锁去掉,这是一种违背两阶段锁的情况,但是由于确实在持有该锁期间,也没有对该Page作出任何的更新,所以在此直接释放掉也没有什么关系,这算是唯一违背两段锁协议的地方.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token class-name">HeapPageId</span> pageId <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HeapPageId</span><span class="token punctuation">(</span>heapId_<span class="token punctuation">,</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -647,9 +645,9 @@ result <span class="token operator">=</span> newPgae<span class="token punctuati
 <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
     <span class="token class-name">Database</span><span class="token punctuation">.</span><span class="token function">getBufferPool</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">unsafeReleasePage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>pageId<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//将这个锁释放掉</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在上面实现中,起初我们只需要读取其中的空闲数,所以这个时候只是<code>READ_ONLY</code>,如果判断可写,然后再调用<code>getPage</code>并且权限为<code>READ_WRITE</code>,将权限升级为<code>READ_WRITE</code>.</p>
-<h3 id="exercise-3">Exercise 3</h3>
-<p>这一步主要是对置换策略的改变:</p>
+<h3 id="Exercise-3"><a href="#Exercise-3" class="headerlink" title="Exercise 3"></a>Exercise 3</h3><p>这一步主要是对置换策略的改变:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-synchronized">synchronized</span>  <span class="token keyword keyword-void">void</span> <span class="token function">evictPage</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
     <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> fifoIterator <span class="token operator">=</span> fifoQueue_<span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>fifoIterator<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -663,10 +661,10 @@ result <span class="token operator">=</span> newPgae<span class="token punctuati
     <span class="token punctuation">}</span>
     <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">DbException</span><span class="token punctuation">(</span><span class="token string">"no undirty page to evict"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>主要是为了防止将脏页踢出的的情况,如果将脏页踢出的话,如果该页正在被某个事务进行写操作,但是写操作还没有完成,这个时候如果就将该page踢出,并flush文件中的话,会造成当前事务正在进行的写有所丢失.若没有找到Dirty页,就抛出异常.</p>
 <p>关于<code>Dirty</code>相关的接口.在之前的lab中就进行了实现.不再多说.</p>
-<h3 id="exercise-4">Exercise 4</h3>
-<p>这里主要是对于<code>Commit</code>或者<code>Abort</code>的处理.其中</p>
+<h3 id="Exercise-4"><a href="#Exercise-4" class="headerlink" title="Exercise 4"></a>Exercise 4</h3><p>这里主要是对于<code>Commit</code>或者<code>Abort</code>的处理.其中</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">transactionComplete</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token keyword keyword-boolean">boolean</span> commit<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token comment">// some code goes here</span>
     <span class="token comment">// not necessary for lab1|lab2</span>
@@ -685,6 +683,7 @@ result <span class="token operator">=</span> newPgae<span class="token punctuati
     <span class="token punctuation">}</span>
     <span class="token class-name"><span class="token namespace">lockManager_<span class="token punctuation">.</span></span>ReleaseAllLocks</span><span class="token punctuation">(</span>tid<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>主要就是在释放锁之前,究竟是要<code>flushPages</code>还是<code>RecoverPages</code>.如果是<code>flushPages</code>就直接写到disk中,否则就是<code>RecoverPages</code>,其实现相对来说比较复杂.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-synchronized">synchronized</span> <span class="token keyword keyword-void">void</span> <span class="token class-name">RecoverPages</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">IOException</span> <span class="token punctuation">{</span>
     <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> pageIt <span class="token operator">=</span> pages_<span class="token punctuation">.</span><span class="token function">values</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -704,9 +703,9 @@ result <span class="token operator">=</span> newPgae<span class="token punctuati
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>只是相对来说借助的是HeapPage的<code>getBeforeImage</code>方法,这个方法获取的是数据修改前的旧数据,将旧数据Page写入该文件即可.至于更多细节,以及何时将该Page的旧数据进行设置.比如说在<code>Page.insertTuple</code>中需要对某一页真正进行写操作时,会调用<code>setBeforeImage</code>保存旧数据.当然,这只是一种临时性的做法,所以不能完整地作出事务级别的回滚,因此与其说这里回滚到该事务执行之前的状态,还不如说只是回滚到上次修改的状态.真正的abort回滚还得靠日志,也就是会在lab6中进行实现.</p>
-<h2 id="小结">4.小结</h2>
-<p>都说lab4是比较难的,但是也并没有我想像的那么难,因为这一部分主要在于实现一个<code>Lock Manager</code>,而对于<code>Lock Manager</code>的实现在不少数据库的书籍中都有讲解,我在这里的实现主要是参考了《数据库系统概念》和《数据库系统实现》这两本书,虽然最终也可以稳定地通过test,但是我认为我的<code>Lock Manager</code>的实现,还是存在一定的问题的,比如说释放锁时,关于对于当前状态是共享锁的情况,此外,我认为我没有真正实现两段锁协议.关于请求的处理以及获取锁的许可,也存在冗余.</p>
+<h2 id="4-小结"><a href="#4-小结" class="headerlink" title="4.小结"></a>4.小结</h2><p>都说lab4是比较难的,但是也并没有我想像的那么难,因为这一部分主要在于实现一个<code>Lock Manager</code>,而对于<code>Lock Manager</code>的实现在不少数据库的书籍中都有讲解,我在这里的实现主要是参考了《数据库系统概念》和《数据库系统实现》这两本书,虽然最终也可以稳定地通过test,但是我认为我的<code>Lock Manager</code>的实现,还是存在一定的问题的,比如说释放锁时,关于对于当前状态是共享锁的情况,此外,我认为我没有真正实现两段锁协议.关于请求的处理以及获取锁的许可,也存在冗余.</p>
 <p>除了<code>Lock Manager</code>之外,剩余的主要是一些比较琐碎的部分,对于置换策略的调整,我认为无脑地驱逐脏页不如《数据库系统概念》中所提到的pin和unpin的方法,因为脏页只能说明写过,不能说明正在写.</p>
 <p>关于abort的恢复,这里只是使用了一种临时的方法,真正的方法还是得看后面的lab6.总的来说,这一部分先告一段落,开始冲lab5.</p>
 

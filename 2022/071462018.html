@@ -498,24 +498,19 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="前言">0.前言</h2>
-<p>久仰mit
-6.824的威名,上个学期的时候我就一直想抽空学一学,但是一直没有抽出太多时间.假期打算好好做做.</p>
+                <h2 id="0-前言"><a href="#0-前言" class="headerlink" title="0.前言"></a>0.前言</h2><p>久仰mit 6.824的威名,上个学期的时候我就一直想抽空学一学,但是一直没有抽出太多时间.假期打算好好做做.</p>
 <p>至于做这个实验的语言基础方面,我在大二下学期只接触过一点点go语言,没有写过太多,在lab中我把中途遇到的一些问题写到了另一篇博客中,也算是0的基础吧.</p>
-<p>除此之外,在多线程/进程编程和网络方面,当时做计网编程作业时也遇到过类似的,当时x老师布置了一个实现基于分布式系统的ipv6
-DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是一些设计的想法感觉在这里的lab
-1还是可以用上的.而且最近也在学习用c++写一个webserver程序(被死锁折磨qaq......)感觉也是有不少东西是相通的.</p>
+<p>除此之外,在多线程/进程编程和网络方面,当时做计网编程作业时也遇到过类似的,当时x老师布置了一个实现基于分布式系统的ipv6 DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是一些设计的想法感觉在这里的lab 1还是可以用上的.而且最近也在学习用c++写一个webserver程序(被死锁折磨qaq……)感觉也是有不少东西是相通的.</p>
 <p>在真正动手编程之前,读了一下<code>MapReduce</code>的论文,只读了前一半,至于对做这个实验来说,感觉足够了.</p>
-<h2 id="基本框架和思路">1.基本框架和思路</h2>
-<p>其框架结构图基本上是遵循论文中的架构的.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2022%2058%2050%201657810730%201657810730893%20hI0nGA%20image-20220714225850817%20.png" alt="image-20220714225850817" style="zoom: 33%;"></p>
+<h2 id="1-基本框架和思路"><a href="#1-基本框架和思路" class="headerlink" title="1.基本框架和思路"></a>1.基本框架和思路</h2><p>其框架结构图基本上是遵循论文中的架构的.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2022%2058%2050%201657810730%201657810730893%20hI0nGA%20image-20220714225850817%20.png" alt="image-20220714225850817" style="zoom: 33%;">
+
 <p>但是若论实现,不同的人肯定还是有不同的实现方式吧,往细节处追究还是会有不小的差别的.</p>
-<h2 id="具体实现">2.具体实现</h2>
-<h3 id="mastercoordinator">1) master(coordinator)</h3>
-<p>从总体上看的话,master相当于一个接收处理rpc请求的服务器,这些请求也正是来自于那些<code>worker</code>.所以说其主要部分就是实现一些rpc函数.</p>
+<h2 id="2-具体实现"><a href="#2-具体实现" class="headerlink" title="2.具体实现"></a>2.具体实现</h2><h3 id="1-master-coordinator"><a href="#1-master-coordinator" class="headerlink" title="1) master(coordinator)"></a>1) master(coordinator)</h3><p>从总体上看的话,master相当于一个接收处理rpc请求的服务器,这些请求也正是来自于那些<code>worker</code>.所以说其主要部分就是实现一些rpc函数.</p>
 <p>但是master还有个重要的任务在于,追踪在线的<code>worker</code>,并且记录整个<code>MapReduce</code>任务的状态.所以说还需要一些数据结构,来保存这些信息,并且这些信息还应该在处理rpc的过程中改变.</p>
 <p>就像论文中所说:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2023%2009%2052%201657811392%201657811392330%20LmWIQi%20image-20220714230952253%20.png" alt="论文片段" style="zoom:33%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2014%2023%2009%2052%201657811392%201657811392330%20LmWIQi%20image-20220714230952253%20.png" alt="论文片段" style="zoom:33%;">
+
 <p>其实我的在实现时,和它还是有一些区别的.我在记录状态时,不仅仅记录了非空闲<code>worker</code>的状态.·<code>master</code>的总体数据结构如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> Coordinator <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
 	<span class="token comment">// Your definitions here.</span>
@@ -532,17 +527,20 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	mutex      sync<span class="token punctuation">.</span>Mutex <span class="token comment">//锁</span>
 	wg         sync<span class="token punctuation">.</span>WaitGroup
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>最初我在考虑记录任务完成的情况,只是考虑使用一个表示完成数量的变量,但现在之所以考虑使用<code>map</code>是与我所设计的容错机制有关的,会在后面再详细说明.其中这里map的key是每个<code>worker</code>的编号,这个编号是每个<code>worker</code>进程的pid,关于<code>worker</code>状态,则有相应的数据结构进行描述:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> workerState <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
 	tasktype <span class="token builtin">int</span> <span class="token comment">//记录最近一次所处理任务的类型，只在任务分配时更新</span>
 	tid      <span class="token builtin">int</span> <span class="token comment">//最近处理任务类型的编号</span>
 	deadtime <span class="token builtin">int64</span> <span class="token comment">//倒计时,当过期时判定该worker为crash</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>为什么要考虑使用<code>tasktype</code>和<code>tid</code>这一对变量呢?这用于,当检查到某个<code>worker</code>宕机的时候,可以因此确定其最近所处理的任务类型和任务编号,然后再根据<code>mapfinishM</code>或者<code>mapfinishR</code>来判断这个宕机<code>worker</code>所处理的任务有没有完成,如果已经完成了,就此作罢,否则就将其重新加入到分配队列<code>maplist</code>或者<code>reducelist</code>,将该任务重新等待分配.</p>
 <p>说完这些,看一下RPC函数:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">ReplyTask</span><span class="token punctuation">(</span>args <span class="token operator">*</span>AskTaskArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>Task<span class="token punctuation">)</span> <span class="token builtin">error</span>
 <span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">GetFinishSig</span><span class="token punctuation">(</span>args <span class="token operator">*</span>Task<span class="token punctuation">,</span> reply <span class="token operator">*</span>FinishReply<span class="token punctuation">)</span> <span class="token builtin">error</span>
 <span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">BeatReponse</span><span class="token punctuation">(</span>args <span class="token operator">*</span>BeatArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>BeatReply<span class="token punctuation">)</span> <span class="token builtin">error</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
 <p>其中<code>ReplyTask</code>用来为<code>worker</code>分配任务,<code>GetFinishSig</code>则用于接收完成任务的<code>worker</code>的通知,进而对相关的状态信息进行变化.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">ReplyTask</span><span class="token punctuation">(</span>args <span class="token operator">*</span>AskTaskArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>Task<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
 	wid <span class="token operator">:=</span> args<span class="token punctuation">.</span>Wid
@@ -593,6 +591,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	c<span class="token punctuation">.</span>mutex<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>首先来看一下这个rpc参数和返回值的数据结构:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-type">type</span> AskTaskArgs <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
 	Wid <span class="token builtin">int</span> <span class="token comment">//该worker的编号</span>
@@ -603,6 +602,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	Nreduce   <span class="token builtin">int</span> <span class="token comment">//任务数量</span>
 	FilesTask <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span> <span class="token comment">//任务对应的处理文件</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中的<code>Wid</code>作用在于因为需要更新<code>worker</code>的状态,更新为最近处理的任务.而返回值,除了任务类型和任务编号,还有对应的文件.</p>
 <p>代码看上去有点长,但是大体上可以分为四个分支:</p>
 <ul>
@@ -637,6 +637,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	<span class="token punctuation">}</span>
 	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>主要分为两种不同的任务,也就是<code>Map</code>和<code>Reduce</code>两种情况,首先检查此任务之前是否已经完成,如果之前就已经完成则将不继续处理,否则就设置该任务的finishmap为1,如果是<code>Map</code>就将生成的文件追加到<code>interFiles</code>中.对于<code>FinishReply</code>,其实并没有派上什么用场.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">BeatReponse</span><span class="token punctuation">(</span>args <span class="token operator">*</span>BeatArgs<span class="token punctuation">,</span> reply <span class="token operator">*</span>BeatReply<span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
 	<span class="token comment">//fmt.Println("A worker ping the coordinator......")</span>
@@ -659,6 +660,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	<span class="token punctuation">}</span>
 	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这里核心在于更新<code>worker</code>状态中的时间,不过我把总任务终止的判断也写在这里了,这看上去不太好,似乎把这一部分放到<code>GetFinishSig</code>中是更符合人直觉的,但是我认为放到<code>BeatReponse</code>有一个优点就在于,每个在线的<code>worker</code>都会通过心跳包来和<code>master</code>交互,因而每个<code>worker</code>都可以通过心跳包的响应得出退出的信号.如果在<code>GetFinishSig</code>中实现的话,只有当时完成任务的<code>worker</code>才可以得知<code>master</code>shut的信号,就难以做到通知所有<code>worker</code>了.此外还有一个问题,就是<code>master</code>应当等待其他<code>worker</code>退出后,自己再退出,在这里的实现上,我做的方式比较笨,我是通过<code>sleep</code>等待来实现的,让<code>master</code>sleep的时间长一些,这样一般就能保证其他的<code>worker</code>已经都退出了.如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">bool</span> <span class="token punctuation">{</span>
 	ret <span class="token operator">:=</span> <span class="token boolean">false</span>
@@ -671,6 +673,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	<span class="token punctuation">}</span>
 	<span class="token keyword keyword-return">return</span> ret
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>之后是关于<code>crash</code>的判断,这一部分并不是一个rpc请求,而是分出一个单独的线程运行.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>c <span class="token operator">*</span>Coordinator<span class="token punctuation">)</span> <span class="token function">CheckCrash</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token builtin">error</span> <span class="token punctuation">{</span>
 	<span class="token keyword keyword-for">for</span> <span class="token punctuation">{</span>
@@ -721,11 +724,11 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	<span class="token punctuation">}</span>
 	<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这一部分的设计,简而言之就是周期性地检查<code>mapWorker</code>.如果其中某个节点的已经过期了,就判断为此<code>worker</code>宕机,所以这个时候就跟绝<code>workerState</code>中记录的其所处理的<code>task</code>的状态,其中这个任务记录的是这个<code>worker</code>最近一次处理的任务类型和tid,所以这个任务有可能早已运行完了,也可能正在运行.所以对于这个响应的任务,首先判断<code>待分配任务队列</code>里有没有,这个队列里的任务一定是还没有完成的,需要分配的.除此之外,还需要判断这个任务有没有完成,如果已经完成所以就免了.最后如果符合“(待分配队列中没有&amp;&amp;未完成)”的任务,才会加入到<code>待分配队列</code>中.最后,对于这个<code>worker</code>再`<code>mapWorker</code>中对应的项,也将会被移除.</p>
+
+<p>这一部分的设计,简而言之就是周期性地检查<code>mapWorker</code>.如果其中某个节点的已经过期了,就判断为此<code>worker</code>宕机,所以这个时候就跟绝<code>workerState</code>中记录的其所处理的<code>task</code>的状态,其中这个任务记录的是这个<code>worker</code>最近一次处理的任务类型和tid,所以这个任务有可能早已运行完了,也可能正在运行.所以对于这个响应的任务,首先判断<code>待分配任务队列</code>里有没有,这个队列里的任务一定是还没有完成的,需要分配的.除此之外,还需要判断这个任务有没有完成,如果已经完成所以就免了.最后如果符合“(待分配队列中没有&amp;&amp;未完成)”的任务,才会加入到<code>待分配队列</code>中.最后,对于这个<code>worker</code>再``mapWorker`中对应的项,也将会被移除.</p>
 <p>由于这是一个单独的线程,所以对于其退出的判断也需要点讲究,所以每次还会检查<code>isShut</code>是否为真,否则就会返回.</p>
 <p>至此,关于<code>master</code>的主干部分就说完了.</p>
-<h3 id="worker">2) worker</h3>
-<p><code>worker</code>的实现相对比较复杂.</p>
+<h3 id="2-worker"><a href="#2-worker" class="headerlink" title="2) worker"></a>2) worker</h3><p><code>worker</code>的实现相对比较复杂.</p>
 <p><code>worker</code>相比<code>master</code>来说,只需要记录与自己有关的数据和信息就行了.对于一个<code>worker</code>来说,其全局性的信息如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-const">const</span> <span class="token punctuation">(</span> <span class="token comment">//表示状态机的状态</span>
 	IdleState     <span class="token operator">=</span> <span class="token number">0</span>
@@ -743,8 +746,10 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	funcR      <span class="token keyword keyword-func">func</span><span class="token punctuation">(</span><span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token builtin">string</span> <span class="token comment">//Reduce对应的处理函数</span>
 	mutex      sync<span class="token punctuation">.</span>Mutex <span class="token comment">//锁</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>为了便于实现,我对于<code>worker</code>采用了状态机的模式来进行处理,不过也不算非常规范的状态机.其中</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2013%2050%2043%201657864243%201657864243457%20ZJqHqi%20image-20220715135043336%20.png" alt="image-20220715135043336" style="zoom:33%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2013%2050%2043%201657864243%201657864243457%20ZJqHqi%20image-20220715135043336%20.png" alt="image-20220715135043336" style="zoom:33%;">
+
 <p>对于各个状态:</p>
 <ul>
 <li>IdleState,就是初始状态,出于此状态时发送任务请求,如果没有任务仍然保持在Idle否则,进入Mapping或者Reducing.</li>
@@ -787,6 +792,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 		<span class="token keyword keyword-break">break</span>
 	<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>此外<code>running</code>是一个状态机的主线程,如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>w <span class="token operator">*</span>worker<span class="token punctuation">)</span> <span class="token function">running</span><span class="token punctuation">(</span>wg <span class="token operator">*</span>sync<span class="token punctuation">.</span>WaitGroup<span class="token punctuation">)</span> <span class="token builtin">bool</span> <span class="token punctuation">{</span>
 	<span class="token keyword keyword-defer">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -808,6 +814,7 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	<span class="token punctuation">}</span>
 	<span class="token keyword keyword-return">return</span> <span class="token boolean">false</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这里之所以对于IdleState状态时,进行sleep处理,是为了防止空闲状态出现过多无用的任务请求和响应包.当处于<code>EndState</code>状态时,这个线程就会终止,这也就意味着整个<code>worker</code>将要终止.</p>
 <p><strong>下面是关于<code>worker</code>中心跳请求的实现</strong></p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>w <span class="token operator">*</span>worker<span class="token punctuation">)</span> <span class="token function">beatRequest</span><span class="token punctuation">(</span>wg <span class="token operator">*</span>sync<span class="token punctuation">.</span>WaitGroup<span class="token punctuation">)</span> <span class="token builtin">bool</span> <span class="token punctuation">{</span>
@@ -845,7 +852,8 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 	<span class="token punctuation">}</span>
 	<span class="token keyword keyword-return">return</span> <span class="token boolean">false</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>心跳线程主要就是一个loop,所以这一部分是作为一个额外的<code>goroutine</code>存在的,与<code>running</code>作为并行的.这个loop中每隔3s进行一次,每一轮首先要获取当前时间这是RPC请求中的重要参数,除此之外,参数中还需要这个<code>worker</code>的编号与状态.这个编号用于使<code>master</code>定位此心跳对应的状态表,而这个状态则与容错的处理有关.</p>
+
+<p>心跳线程主要就是一个loop,所以这一部分是作为一个额外的<code> goroutine</code>存在的,与<code>running</code>作为并行的.这个loop中每隔3s进行一次,每一轮首先要获取当前时间这是RPC请求中的重要参数,除此之外,参数中还需要这个<code>worker</code>的编号与状态.这个编号用于使<code>master</code>定位此心跳对应的状态表,而这个状态则与容错的处理有关.</p>
 <p>当RPC接收到请求之后,其中我们关闭机制是通过心跳包来进行通知的,所以对于reply的判断中一个<code>IsShut</code>将会决定是否将要退出.</p>
 <p>除此之外,还有两个相对比较简单的RPC调用.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>w <span class="token operator">*</span>worker<span class="token punctuation">)</span> <span class="token function">AskForTask</span><span class="token punctuation">(</span><span class="token punctuation">)</span> Task <span class="token punctuation">{</span>
@@ -868,22 +876,22 @@ DNS服务的作业,我花了一些时间去做,虽然实现效果不好,但是�
 
 	<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>前者用于当<code>worker</code>处于空闲状态时,向<code>master</code>请求任务.后者用于<code>worker</code>完成一个任务时(处于完成状态)时,将任务进行通知,其中参数是一个<code>Task</code>结构体类型,这个结构体描述了一个任务.其中对于<code>w.taskFinish</code>的设置会出现在处理完<code>Map</code>和<code>Reduce</code>末尾的部分,可以将这个数据成员理解为<strong>最近一次所完成的任务</strong>.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">//Map和Reduce相应的处理函数中,末尾对taskFinish进行设置</span>
 w<span class="token punctuation">.</span>taskFinish<span class="token punctuation">.</span>Tid <span class="token operator">=</span> rid
 w<span class="token punctuation">.</span>taskFinish<span class="token punctuation">.</span>TaskType <span class="token operator">=</span> ReduceTask
 w<span class="token punctuation">.</span>taskFinish<span class="token punctuation">.</span>FilesTask <span class="token operator">=</span> <span class="token function">append</span><span class="token punctuation">(</span>w<span class="token punctuation">.</span>taskFinish<span class="token punctuation">.</span>FilesTask<span class="token punctuation">,</span> oname<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="测试">3.测试</h2>
-<p>测试结果并不完美,对于<code>crash test</code>之前的测试用例可以达到100%的正确率.</p>
-<p>但是对于<code>crash test</code>会存在一定的问题,偶尔也会出错,正确率一般在95%以上.</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2023%2023%2009%2017%201658588957%201658588957672%20xu8Tux%20DD781F2F36F93AD7AFAC3781FD05EB4A%20.jpg" alt="DD781F2F36F93AD7AFAC3781FD05EB4A">
-<figcaption aria-hidden="true">DD781F2F36F93AD7AFAC3781FD05EB4A</figcaption>
-</figure>
-<h2 id="简单地复盘">4. 简单地复盘</h2>
-<p>我认为这个系统的设计,其中最核心的部分就在于心跳(状态跟踪),分配,容错.</p>
-<h2 id="我的遗憾">5.我的遗憾</h2>
 
+
+
+
+
+<h2 id="3-测试"><a href="#3-测试" class="headerlink" title="3.测试"></a>3.测试</h2><p>测试结果并不完美,对于<code>crash test</code>之前的测试用例可以达到100%的正确率.</p>
+<p>但是对于<code>crash test</code>会存在一定的问题,偶尔也会出错,正确率一般在95%以上.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2023%2023%2009%2017%201658588957%201658588957672%20xu8Tux%20DD781F2F36F93AD7AFAC3781FD05EB4A%20.jpg" alt="DD781F2F36F93AD7AFAC3781FD05EB4A"></p>
+<h2 id="4-简单地复盘"><a href="#4-简单地复盘" class="headerlink" title="4. 简单地复盘"></a>4. 简单地复盘</h2><p>我认为这个系统的设计,其中最核心的部分就在于心跳(状态跟踪),分配,容错.</p>
+<h2 id="5-我的遗憾"><a href="#5-我的遗憾" class="headerlink" title="5.我的遗憾"></a>5.我的遗憾</h2>
                 
             </div>
             <hr/>

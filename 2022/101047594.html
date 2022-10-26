@@ -502,28 +502,23 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>这一部分,应该算是CMU 15-445中比较简单的一个lab吧,由于之前我做过mit
-6.830系列的lab,所以在做这一部分的lab时,其基本的模式与架构还是能够比较快地理解并上手的,不过关于buffer
-pool这一部分和mit 6.830的simpledb之间还是有些差别.</p>
-<p>关于CMU 15-445,project 0太简单了,没什么好说的,所以直接从project
-1开始.</p>
-<h2 id="实验环境">1.实验环境</h2>
-<p>我是采用了Clion+docker的实验环境.在环境配置方面参考了文章:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/458293882">CMU15445
-docker+clion开发环境搭建</a>.</p>
-<p>docker的作用不必多少,我的电脑是mac
-m1,感觉一些需要的工具安装起来不太方便,所以直接考虑采用linux下的环境.</p>
+                <p>这一部分,应该算是CMU 15-445中比较简单的一个lab吧,由于之前我做过mit 6.830系列的lab,所以在做这一部分的lab时,其基本的模式与架构还是能够比较快地理解并上手的,不过关于buffer pool这一部分和mit 6.830的simpledb之间还是有些差别.</p>
+<p>关于CMU 15-445,project 0太简单了,没什么好说的,所以直接从project 1开始.</p>
+<h2 id="1-实验环境"><a href="#1-实验环境" class="headerlink" title="1.实验环境"></a>1.实验环境</h2><p>我是采用了Clion+docker的实验环境.在环境配置方面参考了文章:<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/458293882">CMU15445 docker+clion开发环境搭建</a>.</p>
+<p>docker的作用不必多少,我的电脑是mac m1,感觉一些需要的工具安装起来不太方便,所以直接考虑采用linux下的环境.</p>
 <p>关于IDE的话,我本人还是比较钟爱Clion的,我认为它相比vscode有更加智能且稳定的自动补全,而且Clion对于Cmake项目的支持很全面,甚至还以将不符合Clang-Tidy规范的代码引入到Warn,简直方便极了.此外相比将很多操作用命令行实现,Clion的图形界面十分强大,许多原本需要用命令行实现的操作,在Clion点个按钮就可以.如下图所示:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2020%2020%2004%201665404404%201665404404124%20a5gsjb%20image-20221010202004010%20.png" alt="image-20221010202004010" style="zoom: 33%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2020%2020%2004%201665404404%201665404404124%20a5gsjb%20image-20221010202004010%20.png" alt="image-20221010202004010" style="zoom: 33%;">
+
 <p>关于调试也是非常方便的,网上的大佬关于c++程序的调试的建议就是使用gdb,Clion的调试器是可以设置为gdb的,相当于与底层调用了gdb但是我们可以以图形化的形式去进行操作,相比直接使用gdb设置断点和显示变量以及查看内存,都方便了不少.</p>
 <p>此外Clion这个IDE颜值也很高,感觉在下面这种环境下coding还是颇为赏心悦目的.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2020%2027%2022%201665404842%201665404842145%20V3IVd1%20image-20221010202722018%20.png" alt="image-20221010202722018" style="zoom: 25%;"></p>
-<h2 id="实现过程及其细节">2.实现过程及其细节</h2>
-<h3 id="lrureplacer">1) LRUReplacer</h3>
-<p>首先在<code>LRUReplacer</code>中,在BufferPoolManagerInstance中会有一个数据对象replacer_,这个类对象用于没有空闲页的时候,会将采用其中<code>replacer</code>从中置换一个页,<code>replacer</code>会维护一个<code>BufferPoolManagerInstance</code>中<code>pages_</code>的子集,<strong>并且是没有其中没有经过pin的page</strong>.具体而言<code>replacer</code>中,我实现的数据结构如下:</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2010%2020%2027%2022%201665404842%201665404842145%20V3IVd1%20image-20221010202722018%20.png" alt="image-20221010202722018" style="zoom: 25%;">
+
+<h2 id="2-实现过程及其细节"><a href="#2-实现过程及其细节" class="headerlink" title="2.实现过程及其细节"></a>2.实现过程及其细节</h2><h3 id="1-LRUReplacer"><a href="#1-LRUReplacer" class="headerlink" title="1) LRUReplacer"></a>1) LRUReplacer</h3><p>首先在<code>LRUReplacer</code>中,在BufferPoolManagerInstance中会有一个数据对象replacer_,这个类对象用于没有空闲页的时候,会将采用其中<code>replacer</code>从中置换一个页,<code>replacer</code>会维护一个<code>BufferPoolManagerInstance</code>中<code>pages_</code>的子集,<strong>并且是没有其中没有经过pin的page</strong>.具体而言<code>replacer</code>中,我实现的数据结构如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>mutex latch_<span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>frame_id_t<span class="token operator">&gt;</span> frames_<span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>frame_id_t<span class="token punctuation">,</span> frameIt<span class="token operator">&gt;</span> itmap_<span class="token punctuation">;</span>
 <span class="token keyword keyword-const">const</span> size_t capacity_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中最核心的部分在于<code>frames_</code>,对于LRU这种对于操作主要集中于首尾的算法来说,使用list可以达到比较低的开销.其中的内容是<code>frame_id_t</code>一个整型数,该整型数对应了<code>BufferPoolManagerInstance</code>中<code>pages_</code>数组中的一个索引,也就对应课程中所说的一个<code>页框</code>.这也体现了一个replacer总是归属于一个<code>BufferPoolManagerInstance</code>的.更多细节在<code>BufferPoolManagerInstance</code>后面再说.</p>
 <p>至于<code>itmap_</code>则是起到了一个优化的作用,避免对<code>frames_</code>进行遍历.</p>
 <p><code>latch_</code>是我比较疑惑的一个地方,我认为其实没有必要实现它,因为我在后面<code>BufferPoolManagerInstance</code>的实现中也会用大锁把它保护起来,并且每个<code>replacer</code>都是只属于一个<code>BufferPoolManagerInstance</code>的,当然加上了肯定也不算错,但是不加绝对拿不了满分,因为LRU的测试用例中有一个<code>ConcurrencyTest</code>,会对LRURplacer进行单独的多线程测试.</p>
@@ -548,6 +543,7 @@ std<span class="token double-colon punctuation">::</span>unordered_map<span clas
   itmap_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>fit<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这一部分的实现很简单,如果是空的,直接返回false就好,否则就返回尾部元素到<code>frame_id</code>中,然后在<code>itmaps_,frames_</code>中进行移除就可以了,最终返回true.</p>
 <p>关于Pin的实现相对简单,基本上只包含对于<code>itmap_,frames_</code>的移除操作.下面稍微说明一下UnPin:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">LRUReplacer</span><span class="token double-colon punctuation">::</span><span class="token function">Unpin</span><span class="token punctuation">(</span>frame_id_t frame_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -563,6 +559,7 @@ std<span class="token double-colon punctuation">::</span>unordered_map<span clas
   frames_<span class="token punctuation">.</span><span class="token function">push_front</span><span class="token punctuation">(</span>frame_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
   itmap_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span> <span class="token operator">=</span> frames_<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>如果这一页之前就已经存在了,那么就不做任何处理,如果已经超出了容量大小,那么就将末尾项移除,最后将<code>frame_id</code>加入到队列的头部,并加入<code>itmap_</code>的记录.此外还有一个<code>Size</code>API也是需要我们实现的,并且也需要上锁,我之前关于这个犯过一个错误如下(在Unpin中):</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">size_t <span class="token class-name">LRUReplacer</span><span class="token double-colon punctuation">::</span><span class="token function">Size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   std<span class="token double-colon punctuation">::</span>lock_guard<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">gaurd</span><span class="token punctuation">(</span>latch_<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -573,10 +570,10 @@ std<span class="token double-colon punctuation">::</span>unordered_map<span clas
    itmap_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>frames_<span class="token punctuation">.</span><span class="token function">back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
    frames_<span class="token punctuation">.</span><span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这样很显然就死锁了!</p>
 <p>最后我们发现<code>itmap_</code>这个数据结构的设置果然节省了不少遍历的操作,原本需要我们进行遍历list查找整个某个项是否存在,或者需要定位到某个<code>frame_id</code>在list中的迭代器进行删除(毕竟list不支持以元素的值为基础的erase,一般是定位到对应的迭代器然后erase)的操作都方便了许多.</p>
-<h3 id="bufferpoolmanagerinstance">2) BufferPoolManagerInstance</h3>
-<p>这一部分对应了task 2,是这个project中最复杂的部分.</p>
+<h3 id="2-BufferPoolManagerInstance"><a href="#2-BufferPoolManagerInstance" class="headerlink" title="2) BufferPoolManagerInstance"></a>2) BufferPoolManagerInstance</h3><p>这一部分对应了task 2,是这个project中最复杂的部分.</p>
 <p>仍然从基本的数据成员着手进行分析:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Page <span class="token operator">*</span>pages_<span class="token punctuation">;</span>
 DiskManager <span class="token operator">*</span>disk_manager_ <span class="token function">__attribute__</span><span class="token punctuation">(</span><span class="token punctuation">(</span>__unused__<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -585,11 +582,13 @@ std<span class="token double-colon punctuation">::</span>unordered_map<span clas
 Replacer <span class="token operator">*</span>replacer_<span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>frame_id_t<span class="token operator">&gt;</span> free_list_<span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>mutex latch_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p><code>pages_</code>是一个数组,每个Page代表一个固定大小的内存块,buffer是位于disk之上的一层缓存,可以大大减少我们在访问数据时访问disk的次数,将disk中某一个page的内容读取到一个Page下对应的内存缓冲区中,后来对于该page的读写都会直接访问这一块内存缓冲区而不是访问disk.在bustub中关于Page的定义还是比较简洁的,其数据成员如下所示:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-char">char</span> data_<span class="token punctuation">[</span>PAGE_SIZE<span class="token punctuation">]</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
 page_id_t page_id_ <span class="token operator">=</span> INVALID_PAGE_ID<span class="token punctuation">;</span>
 <span class="token keyword keyword-int">int</span> pin_count_ <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-bool">bool</span> is_dirty_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中对应内存缓冲区(存储页的实际内容),page_id(page_id和磁盘中位置存在某种关系),引用计数,是否是脏页.至于其他的API会结合后面的实现进行说明.此外关于<code>Page</code>和<code>BufferPoolManagerInstance</code>的关系,后者是前者的友元,也就是说后者可以访问和修改前者的private,这在后续的实现中是常用的.</p>
 <p>关于<code>disk_manager</code>的话,不必多说,毕竟disk才是Page内容的源泉,当需要从disk中读取Page内容或者将Page的内容进行刷盘时,都需要调用它.</p>
 <p><code>page_table_</code>的作用类似于前面的<code>itmap_</code>,<code>frame_id</code>只能说是一个<code>BufferPoolManagerInstance</code>的内部细节,在外部都是通过<code>page_id_t</code>来进行访问的(后面我们需要实现的API都有page_id作为参数),提供page_id到frame_id可以省去很多不必要的遍历查找.</p>
@@ -613,9 +612,8 @@ page_id_t page_id_ <span class="token operator">=</span> INVALID_PAGE_ID<span cl
   <span class="token punctuation">}</span>
   <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>关于task
-2需要实现的API,首先说明一下<code>NewPgImp</code>.此API的作用在于在disk上创建一个新的page,并且将该page加入到该buffer
-pool中.既然涉及到需要新加入一个page,那么就需要考虑一下几种情况:</p>
+
+<p>关于task 2需要实现的API,首先说明一下<code>NewPgImp</code>.此API的作用在于在disk上创建一个新的page,并且将该page加入到该buffer pool中.既然涉及到需要新加入一个page,那么就需要考虑一下几种情况:</p>
 <ul>
 <li>如果page_中全部pin住了怎么办? 什么也不做,直接返回nullptr.</li>
 <li>否则,就调用上面提到的FindFreePage,返回一个可用的frame_id.</li>
@@ -628,8 +626,10 @@ pages_<span class="token punctuation">[</span>rframe_id<span class="token punctu
 replacer_<span class="token operator">-&gt;</span><span class="token function">Pin</span><span class="token punctuation">(</span>rframe_id<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">//Pin住</span>
 page_table_<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">make_pair</span><span class="token punctuation">(</span><span class="token operator">*</span>page_id<span class="token punctuation">,</span> rframe_id<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">//加入到page_table</span>
 <span class="token keyword keyword-return">return</span> pages_ <span class="token operator">+</span> rframe_id<span class="token punctuation">;</span>  <span class="token comment">//返回地址</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>至于<code>FetchPgImp</code>的实现与之颇为相似,最主要的差别就是,<code>FetchPgImp</code>需要检查该page_id是否存在,如果存在就直接将地址返回,否则就用<code>FindFreePage</code>找一个空闲frame或者置换frame,然后设置该frame对应Page的属性(需要设置pin_count为1),此外还需要从diskmanager中载入内容,如下所示.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">disk_manager_<span class="token operator">-&gt;</span><span class="token function">ReadPage</span><span class="token punctuation">(</span>page_id<span class="token punctuation">,</span> pages_<span class="token punctuation">[</span>r_fid<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">GetData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
 <p>关于<code>FlushPgImp</code>和<code>FlushAllPgsImp</code>的实现则比较简单,分这几部:</p>
 <ul>
 <li>判断page是否存在,没有就返回.</li>
@@ -654,6 +654,7 @@ page_table_<span class="token punctuation">.</span><span class="token function">
   <span class="token punctuation">}</span>
   <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p><code>DeletePgImp</code>则用于将某一个page从bufferpool及其replacer中完全移除(如果被pin住,就什么也不做,直接返回),如果是脏页,则需要刷盘,然后进行相关的移除操作,移除<code>page_table_</code>对应的项,对于<code>pages_</code>将对应的frame项执行<code>ResetPage</code>,然后将该frame加入到<code>free_list_</code>中,还需要调用<code>replacer_-&gt;Pin</code>(这里的Pin的作用在于将该frame项从replacer中移除).</p>
 <p>关于<code>ResetPage</code>的实现如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">BufferPoolManagerInstance</span><span class="token double-colon punctuation">::</span><span class="token function">ResetPage</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> frame_id_t <span class="token operator">&amp;</span>frame_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -662,13 +663,11 @@ page_table_<span class="token punctuation">.</span><span class="token function">
   pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span>is_dirty_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
   pages_<span class="token punctuation">[</span>frame_id<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">ResetMemory</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="parallelbufferpoolmanager">3) ParallelBufferPoolManager</h3>
-<p>这一部分的实现算是最简单的一部分了.</p>
+
+<h3 id="3-ParallelBufferPoolManager"><a href="#3-ParallelBufferPoolManager" class="headerlink" title="3) ParallelBufferPoolManager"></a>3) ParallelBufferPoolManager</h3><p>这一部分的实现算是最简单的一部分了.</p>
 <blockquote>
 <p><strong>为什么需要ParallelBufferPoolManager?</strong></p>
-<p>简而言之,设计ParallelBufferPoolManager可以减少对于锁的竞争,进而对于很多操作都可以节约时间开销.比如说,我们假设有两种情况:(1)
-一个page容量为1000的BufferPoolManagerInstance. (2)
-一个ParallelBufferPoolManager其中包含20个page容量为50的BufferPoolManagerInstance.</p>
+<p>简而言之,设计ParallelBufferPoolManager可以减少对于锁的竞争,进而对于很多操作都可以节约时间开销.比如说,我们假设有两种情况:(1) 一个page容量为1000的BufferPoolManagerInstance. (2) 一个ParallelBufferPoolManager其中包含20个page容量为50的BufferPoolManagerInstance.</p>
 <p>由于一个BufferPoolManagerInstance就有一把锁,所以第一种情况有1个锁,第二种情况有20个锁.在多线程的情景下,竞争20个锁的情况下,其压力肯定要比竞争1个要小的多.</p>
 </blockquote>
 <p>具体展开ParallelBufferPoolManager的设计思路,它维护了一个固定数量的BufferPoolManagerInstance集合,ParallelBufferPoolManager会根据需要访问的page_id映射到某一个BufferPoolManagerInstance中,在这里映射方式采用取模的方式.如下:</p>
@@ -676,6 +675,7 @@ page_table_<span class="token punctuation">.</span><span class="token function">
   <span class="token keyword keyword-auto">auto</span> ins_id <span class="token operator">=</span> page_id <span class="token operator">%</span> num_instances_<span class="token punctuation">;</span>
   <span class="token keyword keyword-return">return</span> instances_<span class="token punctuation">[</span>ins_id<span class="token punctuation">]</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>之后<code>FetchPgImp,UnpinPgImp,DeletePgImp</code>等API都是先通过<code>GetBufferPoolManager</code>返回对应的对象,然后再调用对应的api的.</p>
 <p>唯有<code>NewPgImp</code>稍微复杂一点,实现方式和前面的有些不同.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Page <span class="token operator">*</span><span class="token class-name">ParallelBufferPoolManager</span><span class="token double-colon punctuation">::</span><span class="token function">NewPgImp</span><span class="token punctuation">(</span>page_id_t <span class="token operator">*</span>page_id<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -694,32 +694,25 @@ page_table_<span class="token punctuation">.</span><span class="token function">
   <span class="token punctuation">}</span>
   <span class="token keyword keyword-return">return</span> page<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>采用一种类似于轮询的方式,保证每次都能从不同的起点开始轮询,轮询过程中如果有结果就返回,如果没有结果就返回nullptr.</p>
-<h2 id="一些trick">3.一些trick</h2>
-<p>最近刚刚粗读了一点关于<code>modern c++</code>的内容,正好这个项目也是通过c++
-17实现的.</p>
-<h3 id="锁">1) 锁</h3>
-<p>在此我使用了<code>std::lock_guard</code>,配合一般的<code>std::mutex</code>可以实现RAII机制的上锁与解锁.使用起来还是非常方便的.</p>
+<h2 id="3-一些trick"><a href="#3-一些trick" class="headerlink" title="3.一些trick"></a>3.一些trick</h2><p>最近刚刚粗读了一点关于<code>modern c++</code>的内容,正好这个项目也是通过c++ 17实现的.</p>
+<h3 id="1-锁"><a href="#1-锁" class="headerlink" title="1) 锁"></a>1) 锁</h3><p>在此我使用了<code>std::lock_guard</code>,配合一般的<code>std::mutex</code>可以实现RAII机制的上锁与解锁.使用起来还是非常方便的.</p>
 <p>我关于锁的控制粒度是比较粗的,一般都是函数粒度的.比如说像上面的<code>NewPgImp</code>中的运用.</p>
-<h3 id="尽量延迟变量出现的时间">2) 尽量延迟变量出现的时间</h3>
-<p>这个条例出现在《Effective
-C++》中的第26条.其中我的<code>NewPgImp</code>(BufferManagerInstance)中就体现了这一点,因为该函数需要在占用一个frame的空间,所以在此之前需要检查是否有可用的空闲frame或者可置换的frame,如果没有就什么也不多,直接返回<code>nullptr</code>,如果在此之前将<code>allocate</code>调用,则就造成浪费.</p>
-<h3 id="list和map的搭配使用">3) list和map的搭配使用</h3>
-<p>在这个project中,其中<code>relacer_</code>有这样的数据结构搭配,如下代码所示.相比单独使用list,这样虽然增加了编程的复杂度,因为需要额外增加对于map部分的增,删,改,但是却大大增加了遍历或者查找的便利性.</p>
+<h3 id="2-尽量延迟变量出现的时间"><a href="#2-尽量延迟变量出现的时间" class="headerlink" title="2) 尽量延迟变量出现的时间"></a>2) 尽量延迟变量出现的时间</h3><p>这个条例出现在《Effective C++》中的第26条.其中我的<code>NewPgImp</code>(BufferManagerInstance)中就体现了这一点,因为该函数需要在占用一个frame的空间,所以在此之前需要检查是否有可用的空闲frame或者可置换的frame,如果没有就什么也不多,直接返回<code>nullptr</code>,如果在此之前将<code>allocate</code>调用,则就造成浪费.</p>
+<h3 id="3-list和map的搭配使用"><a href="#3-list和map的搭配使用" class="headerlink" title="3) list和map的搭配使用"></a>3) list和map的搭配使用</h3><p>在这个project中,其中<code>relacer_</code>有这样的数据结构搭配,如下代码所示.相比单独使用list,这样虽然增加了编程的复杂度,因为需要额外增加对于map部分的增,删,改,但是却大大增加了遍历或者查找的便利性.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>frame_id_t<span class="token operator">&gt;</span> frames_<span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>frame_id_t<span class="token punctuation">,</span> frameIt<span class="token operator">&gt;</span> itmap_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 <p>其中在<code>BufferManagerInstance</code>中也存在类似的使用情况:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Page <span class="token operator">*</span>pages_<span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>page_id_t<span class="token punctuation">,</span> frame_id_t<span class="token operator">&gt;</span> page_table_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 <p>如果没有<code>page_table_</code>,对于一个给定的page_id将必须通过遍历<code>pages_</code>数组来实现.</p>
-<h2 id="踩过的坑">4.踩过的坑</h2>
-<h3 id="成员函数中的静态变量">1) 成员函数中的静态变量</h3>
-<p>关于<code>ParallelBufferPoolManager</code>中的<code>NewPgImp</code>中的<code>next_instance_</code>变量,我最初是以一个成员函数中的static变量实现的,但是由于static变量会在整个程序的类中是共享的,所以不能表示每个类都独有一个<code>next_instance_</code>变量.</p>
+<h2 id="4-踩过的坑"><a href="#4-踩过的坑" class="headerlink" title="4.踩过的坑"></a>4.踩过的坑</h2><h3 id="1-成员函数中的静态变量"><a href="#1-成员函数中的静态变量" class="headerlink" title="1) 成员函数中的静态变量"></a>1) 成员函数中的静态变量</h3><p>关于<code>ParallelBufferPoolManager</code>中的<code>NewPgImp</code>中的<code>next_instance_</code>变量,我最初是以一个成员函数中的static变量实现的,但是由于static变量会在整个程序的类中是共享的,所以不能表示每个类都独有一个<code>next_instance_</code>变量.</p>
 <p>所以最终我采用了设置<code>next_instance</code>为类中的成员数据.</p>
-<h3 id="一些关于clang-tidy的坑">2) 一些关于Clang-tidy的坑</h3>
-<p>如果存在某些Clang-tidy的规范不符合的话,提交到gradescope上之后会显示超时,所以超时其实不一定是死锁或者死循环的原因,最好好好检查一下代码风格的规范问题.</p>
-<h3 id="打印日志对程序运行的影响">3) 打印日志对程序运行的影响</h3>
-<p>当进行测试或者提交上时,尤其是提交时,注释掉日志打印,因为这会给程序的运行带来很大的影响,会拖慢程序,一些原本可以通过的测试点,如果加上日志打印可能就运行不正确了.</p>
+<h3 id="2-一些关于Clang-tidy的坑"><a href="#2-一些关于Clang-tidy的坑" class="headerlink" title="2) 一些关于Clang-tidy的坑"></a>2) 一些关于Clang-tidy的坑</h3><p>如果存在某些Clang-tidy的规范不符合的话,提交到gradescope上之后会显示超时,所以超时其实不一定是死锁或者死循环的原因,最好好好检查一下代码风格的规范问题.</p>
+<h3 id="3-打印日志对程序运行的影响"><a href="#3-打印日志对程序运行的影响" class="headerlink" title="3) 打印日志对程序运行的影响"></a>3) 打印日志对程序运行的影响</h3><p>当进行测试或者提交上时,尤其是提交时,注释掉日志打印,因为这会给程序的运行带来很大的影响,会拖慢程序,一些原本可以通过的测试点,如果加上日志打印可能就运行不正确了.</p>
 
                 
             </div>
