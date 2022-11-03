@@ -477,14 +477,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    47
+                    1.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    1 Min
+                    6 Min
                 </div>
                 
 
@@ -502,14 +502,140 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="相关基础知识">1. 相关基础知识</h2>
-<p>相关基础知识见另一篇博客</p>
-<h2 id="reference">Reference</h2>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/538928744">Two Phase
-Locking(二阶段锁)</a></p>
-<p>Transaction management:可串行性(serializability)
-https://zhuanlan.zhihu.com/p/57579023</p>
-<p>《数据库系统概念》</p>
+                <h2 id="相关基础知识">1.相关基础知识</h2>
+<p>相关基础知识见另一篇博客<a href="">并发控制小叙</a></p>
+<h2 id="代码实现">2.代码实现</h2>
+<p>这一部分需要实现的API有这么几个:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token function">LockShared</span><span class="token punctuation">(</span>Transaction <span class="token operator">*</span>txn<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> RID <span class="token operator">&amp;</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-bool">bool</span> <span class="token function">LockExclusive</span><span class="token punctuation">(</span>Transaction <span class="token operator">*</span>txn<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> RID <span class="token operator">&amp;</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-bool">bool</span> <span class="token function">LockUpgrade</span><span class="token punctuation">(</span>Transaction <span class="token operator">*</span>txn<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> RID <span class="token operator">&amp;</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-bool">bool</span> <span class="token function">Unlock</span><span class="token punctuation">(</span>Transaction <span class="token operator">*</span>txn<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> RID <span class="token operator">&amp;</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>下面简要说明一下其实现的思路:</p>
+<h4 id="lockshared">LockShared:</h4>
+<p>(1)先判断事务隔离级别和两阶段锁状态是否合法,否则设置为ABORT后返回.</p>
+<p>(2)构造读请求,并追加到队列.</p>
+<p>(3)如果该事务已经有了读锁或者写锁,那么处理对应的读请求后,返回.如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">IsSharedLocked</span><span class="token punctuation">(</span>rid<span class="token punctuation">)</span> <span class="token operator">||</span> txn<span class="token operator">-&gt;</span><span class="token function">IsExclusiveLocked</span><span class="token punctuation">(</span>rid<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>upgrading_ <span class="token operator">=</span> self_txn_id<span class="token punctuation">;</span>
+  request_it<span class="token operator">-&gt;</span>granted_ <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+  lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>cv_<span class="token punctuation">.</span><span class="token function">notify_all</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ol start="4" type="1">
+<li>之后结合条件变量进行等待,当符合授予条件时,退出等待.</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> can_grant <span class="token operator">=</span> <span class="token function">CanGrant</span><span class="token punctuation">(</span>txn<span class="token punctuation">,</span> rid<span class="token punctuation">,</span> LockOpType<span class="token double-colon punctuation">::</span>SHARED_OP<span class="token punctuation">,</span> request_it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span><span class="token operator">!</span>can_grant<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>cv_<span class="token punctuation">.</span><span class="token function">wait</span><span class="token punctuation">(</span>guard<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetState</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> TransactionState<span class="token double-colon punctuation">::</span>ABORTED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>cv_<span class="token punctuation">.</span><span class="token function">notify_all</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-throw">throw</span> <span class="token function">TransactionAbortException</span><span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetTransactionId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> AbortReason<span class="token double-colon punctuation">::</span>DEADLOCK<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  can_grant <span class="token operator">=</span> <span class="token function">CanGrant</span><span class="token punctuation">(</span>txn<span class="token punctuation">,</span> rid<span class="token punctuation">,</span> LockOpType<span class="token double-colon punctuation">::</span>SHARED_OP<span class="token punctuation">,</span> request_it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在这里使用了条件变量进行等待,当检测到该事务被ABORTED时,对应的是后面死锁预防所做的处理,也就是被终止和抢占年轻事务.</p>
+<ol start="5" type="1">
+<li>最后授予成功,进行如下处理:</li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">txn<span class="token operator">-&gt;</span><span class="token function">GetSharedLockSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">emplace</span><span class="token punctuation">(</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>upgrading_ <span class="token operator">=</span> self_txn_id<span class="token punctuation">;</span>
+request_it<span class="token operator">-&gt;</span>granted_ <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>cv_<span class="token punctuation">.</span><span class="token function">notify_all</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="lockexclusive">LockExclusive</h4>
+<p>这一部分的实现,基本上和LockShared的实现是比着葫芦画瓢的.最主要的区别在于<strong>事务隔离级别上的处理</strong>.其中LockShared增加了<code>IsolationLevel::READ_UNCOMMITTED</code>的判断,如果出现此事务隔离状态,LockShared就会将其视为错误,不去处理它,该事务被设置为ABORT,并且返回一个异常.然而对于LockExclusive并不涉及类似的处理.</p>
+<h4 id="lockupgrade">LockUpgrade</h4>
+<ol type="1">
+<li><p>仍然是对于两阶段锁状态的判断.</p></li>
+<li><p>如果先前该事务已经有排他锁了,那么就可以直接返回了.</p></li>
+<li><p>遍历锁请求表队列,找出已经授予的共享锁,如果一个都找不到,就返回错误.</p></li>
+<li><p>将找到的所有该事务已经授予的共享锁从队列中移除.</p></li>
+<li><p>构造一个排他锁请求,加入队列,然后陷入等待,知道符合授予条件.</p></li>
+<li><p>最后的处理如下:</p></li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">txn<span class="token operator">-&gt;</span><span class="token function">GetSharedLockSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">erase</span><span class="token punctuation">(</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+txn<span class="token operator">-&gt;</span><span class="token function">GetExclusiveLockSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">emplace</span><span class="token punctuation">(</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>upgrading_ <span class="token operator">=</span> txn<span class="token operator">-&gt;</span><span class="token function">GetTransactionId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+find_it<span class="token operator">-&gt;</span>lock_mode_ <span class="token operator">=</span> LockMode<span class="token double-colon punctuation">::</span>EXCLUSIVE<span class="token punctuation">;</span>
+lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>cv_<span class="token punctuation">.</span><span class="token function">notify_all</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="unlock">UnLock</h4>
+<ol type="1">
+<li><p>移除所有该事务在该RID中的请求.</p></li>
+<li><p>根据锁隔离级别设置Shrinking状态.</p></li>
+<li><p>更新LockSet</p></li>
+</ol>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">txn<span class="token operator">-&gt;</span><span class="token function">GetSharedLockSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">erase</span><span class="token punctuation">(</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+txn<span class="token operator">-&gt;</span><span class="token function">GetExclusiveLockSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">erase</span><span class="token punctuation">(</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<ol start="4" type="1">
+<li>通过条件变量唤醒正在等待的事务.</li>
+</ol>
+<p>其中我踩过一个坑,我最初以为对于ABROT或者COMMIT状态的事务调用UnLock,应该将返回异常.其实不然,通过阅读测试代码,可以发现对于一个被ABORT的事务,除了将其修改的数据及其索引回滚之外,还需要将其所有锁释放,因此Abort函数还是会调用UnLock的,如果不允许ABORT状态成功调用UnLock就会造成事务无法正常回滚(还有遗留的锁).</p>
+<p>下面几个问题打算单独列出来说一下.</p>
+<h4 id="判断锁授予的条件">判断锁授予的条件</h4>
+<p>这一部分主要体现在我对于<code>CanGrant</code>这一个函数的实现,首先需要遵循的一点是,锁管理器不会优先将锁授予给晚到达的请求.因此在一个锁被授予之前应该保证之前的锁请求都已经被授予,这通过遍历锁请求队列可以实现,在我的实现中,每当有一个新的锁请求到来时,我都会将该请求追加到队列的front中,因此通过迭代器++,可以访问到更早的请求.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> reit <span class="token operator">=</span> reqit<span class="token punctuation">;</span> reit <span class="token operator">!=</span> lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>request_queue_<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>reit<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>reit<span class="token operator">-&gt;</span>granted_<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 如果其中有更早的请求就判读为不可授予.</span>
+    can_grant <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-bool">bool</span> is_conflict <span class="token operator">=</span> <span class="token function">IsConflictLock</span><span class="token punctuation">(</span>txn<span class="token punctuation">,</span> <span class="token operator">*</span>reit<span class="token punctuation">,</span> mode<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 锁冲突</span>
+  can_grant <span class="token operator">&amp;=</span> is_conflict<span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>can_grant<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>关于<code>IsConfilictLock</code>,就是简单地根据Shared还是Exclusive,如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">txn_id_t self_txn_id <span class="token operator">=</span> txn<span class="token operator">-&gt;</span><span class="token function">GetTransactionId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>locktype <span class="token operator">==</span> LockOpType<span class="token double-colon punctuation">::</span>SHARED_OP<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token operator">!</span><span class="token punctuation">(</span>request<span class="token punctuation">.</span>txn_id_ <span class="token operator">!=</span> self_txn_id <span class="token operator">&amp;&amp;</span> request<span class="token punctuation">.</span>lock_mode_ <span class="token operator">==</span> LockMode<span class="token double-colon punctuation">::</span>EXCLUSIVE <span class="token operator">&amp;&amp;</span>
+           request<span class="token punctuation">.</span>txn_id_ <span class="token operator">!=</span> INVALID_TXN_ID<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>locktype <span class="token operator">==</span> LockOpType<span class="token double-colon punctuation">::</span>EXCLUSIVE_OP<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span>request<span class="token punctuation">.</span>txn_id_ <span class="token operator">==</span> self_txn_id <span class="token operator">||</span> request<span class="token punctuation">.</span>txn_id_ <span class="token operator">==</span> INVALID_TXN_ID<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>此外,关于这部分还会涉及到死锁的判断与处理.在后面的部分会说.</p>
+<h4 id="死锁的判断与处理">死锁的判断与处理</h4>
+<p>这一部分的实现体现在CanGrant这一个函数中:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> have_abort <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> reit <span class="token operator">=</span> start_it<span class="token punctuation">;</span> reit <span class="token operator">!=</span> lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>request_queue_<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  txn_id_t txn_id <span class="token operator">=</span> reit<span class="token operator">-&gt;</span>txn_id_<span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn_id <span class="token operator">&gt;</span> self_txn_id <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token function">IsConflictLock</span><span class="token punctuation">(</span>txn<span class="token punctuation">,</span> <span class="token operator">*</span>reit<span class="token punctuation">,</span> mode<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    Transaction <span class="token operator">*</span>tmp_txn <span class="token operator">=</span> <span class="token class-name">TransactionManager</span><span class="token double-colon punctuation">::</span><span class="token function">GetTransaction</span><span class="token punctuation">(</span>txn_id<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    tmp_txn<span class="token operator">-&gt;</span><span class="token function">SetState</span><span class="token punctuation">(</span>TransactionState<span class="token double-colon punctuation">::</span>ABORTED<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    have_abort <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    reit <span class="token operator">=</span> lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>request_queue_<span class="token punctuation">.</span><span class="token function">erase</span><span class="token punctuation">(</span>reit<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+    <span class="token operator">++</span>reit<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>have_abort<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  lock_table_<span class="token punctuation">[</span>rid<span class="token punctuation">]</span><span class="token punctuation">.</span>cv_<span class="token punctuation">.</span><span class="token function">notify_all</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>根据比较<code>txn_id_t</code>来判断事务的新老,并且检查是否冲突.如果冲突,无论年轻事务有没有被授予锁,都对其进行ABORT处理,除此之外还需要将其对应的request从请求队列中移除.如果这个过程中有事务因为死锁预防被终止,还会调用条件变量的Notify唤醒正在等待的事务(线程).</p>
+<h4 id="两阶段锁">两阶段锁</h4>
+<h4 id="事务隔离级别的实现">事务隔离级别的实现</h4>
+<p>这一部分需要结合LockManager中的API以及执行器中对于这些API的调用方式来进行说明.</p>
+<p>单纯地看<code>lock_manager.cpp</code>中这几个API的实现,需要考虑到事务隔离级别的地方就这么几个.一个是<code>LockShared</code>中,如果检测到当前事务隔离级别是读未提交,就会将该事务设置为ABORT并且返回异常,这是因此我们在后面关于执行器的实现中,在需要读取一些数据时,在该事务隔离级别之下就根本不会调用<code>LockShared</code>.</p>
+<p>另外一个地方在于UnLock中关于Shrinking状态的设置.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> IsolationLevel<span class="token double-colon punctuation">::</span>REPEATABLE_READ<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  txn<span class="token operator">-&gt;</span><span class="token function">SetState</span><span class="token punctuation">(</span>TransactionState<span class="token double-colon punctuation">::</span>SHRINKING<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>只有允许可重复读的情况下,会设置SHRINKING,因此我们也可以说,只有可重复读的隔离界别是满足两段锁协议的.为了加深理解考虑这么一个场景:</p>
+<pre class="line-numbers language-cp" data-language="cp"><code class="language-cp">T1:			T2:
+read(x)
+				update(x)
+read(x)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="小结">3. 小结</h2>
+<p>终于完工了CMU
+15-445打算抽空再把源代码和测试代码啃一遍,距离寒假还有接近两个月,剩余的各种课程任务重了起来,打算用剩余的时间入门编译原理吧,或者在补一补6.824中分布式的那些论文,还有以前博客中没有填完的坑.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2011%2044%2001%201667447041%201667447041321%20qp6vsh%20image-20221103114401235%20.png" alt="image-20221103114401235">
+<figcaption aria-hidden="true">image-20221103114401235</figcaption>
+</figure>
+<p>感觉还是学到了许多,深化了数据库系统中不少概念的理解,感谢CMU!</p>
 
                 
             </div>
