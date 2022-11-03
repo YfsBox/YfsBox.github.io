@@ -503,16 +503,18 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <p>这一部分,只论练习的话不难,只用了一晚上+一上午就完成了,虽然也参考了一点别人的博客,毕竟执行与优化的很多工作已经给我们做好了,但是执行与优化这一部分还是非常复杂的.</p>
-<h2 id="1-总体架构"><a href="#1-总体架构" class="headerlink" title="1.总体架构"></a>1.总体架构</h2><p>这个实验只需要只需要实现3个类,分别是直方图,table statistics还有JoinOptimiter.但是这并不意味着执行与优化的过程就这么简单.其基本的体系结构如下:</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2004%2000%2000%2057%201662220857%201662220857042%20PrT8iC%20image-20220904000056933%20.png" alt="image-20220904000056933" style="zoom: 50%;">
-
+<h2 id="总体架构">1.总体架构</h2>
+<p>这个实验只需要只需要实现3个类,分别是直方图,table
+statistics还有JoinOptimiter.但是这并不意味着执行与优化的过程就这么简单.其基本的体系结构如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2004%2000%2000%2057%201662220857%201662220857042%20PrT8iC%20image-20220904000056933%20.png" alt="image-20220904000056933" style="zoom: 50%;"></p>
 <p>当数据库使用者使用query语句(比如说sql语句)发起查询时,经过sql解析器的作用,被翻译成了关系代数表达式的形式,此时生成的关系代数与保存的statistics作为共同输入到<code>optimizer</code>中,<code>optimizer</code>负责生成许多等价的表达式,并且为不同的表达式的开销进行评估并相互比较,最终选出一个最优plan执行.上述语言比较笼统,具体到<code>SimpleDB</code>中是这样的.</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2003%2014%2003%2023%201662185003%201662185003945%206StjNP%20image-20220903140323748%20.png" style="zoom: 33%;">
-
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2003%2014%2003%2023%201662185003%201662185003945%206StjNP%20image-20220903140323748%20.png" style="zoom: 33%;"></p>
 <p>在这里,tableStatistics通常会在表add到catalog后,马上创建出tableStatis,这之后才会发生一些parse的行为.对于输入的sql语句,<code>Parser.java</code>中的<code>parseQuery</code>会讲语句翻译成<code>LogicalPlan</code>对象.一个<code>LogicalPlan</code>可以看作是一个操作序列,也可以用一个操作树来表示.</p>
 <p>简述一下图中的执行流的话,在一个查询操作发起之前,假定该表及其<code>statistic</code>已经生成,再生成某个表的<code>statistic</code>时,也就是创建一个该表对应的<code>TableStats</code>对象,在该对象创建的时候,会对该表进行扫描,同事借助直方图对于表中的每个域中的数据信息进行统计,生成的<code>TableStats</code>会登记在一个全局的<code>tableStatsMap</code>中.</p>
 <p>输入一个查询的sql语句后,调用<code>parseQuery</code>进行解析,在这个函数中,首先会创建一个<code>LogicalPlan</code>对象,然后调用该对象的<code>physicalPlan</code>函数,该函数会调用<code>JoinOptimize</code>的实现的最优顺序,最终返回生成的结果,其中<code>DBIterator</code>也就涉及到了在lab2中的东西.</p>
-<h2 id="2-实验过程"><a href="#2-实验过程" class="headerlink" title="2.实验过程"></a>2.实验过程</h2><h3 id="1-Exercise-1"><a href="#1-Exercise-1" class="headerlink" title="1) Exercise 1"></a>1) Exercise 1</h3><p>这一部分的任务是完成直方图,难度不是太大,但是一些细节需要注意.</p>
+<h2 id="实验过程">2.实验过程</h2>
+<h3 id="exercise-1">1) Exercise 1</h3>
+<p>这一部分的任务是完成直方图,难度不是太大,但是一些细节需要注意.</p>
 <p>其中数据成员及构造函数如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> bucketsNum_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> min_<span class="token punctuation">;</span>
@@ -530,7 +532,6 @@
     hightArray_ <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Integer</span><span class="token punctuation">[</span>bucketsNum_<span class="token punctuation">]</span><span class="token punctuation">;</span>
     <span class="token class-name">Arrays</span><span class="token punctuation">.</span><span class="token function">fill</span><span class="token punctuation">(</span>hightArray_<span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>直方图的横轴是一个[min,max]的区间,会将将这个区间划分为<code>bucketNum</code>个range.<code>estimateSelectivity</code>实现如下,其中主要基于<code>getLessSum</code>这个函数.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-double">double</span> <span class="token function">estimateSelectivity</span><span class="token punctuation">(</span><span class="token class-name">Predicate<span class="token punctuation">.</span>Op</span> op<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> v<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token class-name">String</span> opStr <span class="token operator">=</span> op<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -551,7 +552,6 @@
     <span class="token punctuation">}</span>
     <span class="token keyword keyword-return">return</span> sum<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p><code>getLessSum</code>的函数实现如下,这个函数表示的是[min,v),也就是[min,v-1]在整个直方图中所占的贡献,首先对于超出[min,max]的部分进行特判,如果小于min则返回0,大于max则返回1.0.时候获取v所在的索引以及偏移量,然后遍历该index之前的所有range,并且进行累加,最后再加上根据offset得出v在其所在的range中所贡献的比重,最终返回结果.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-double">double</span> <span class="token function">getLessSum</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> v<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>v <span class="token operator">&lt;=</span> min_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -569,7 +569,6 @@
     sum <span class="token operator">+=</span> cnt <span class="token operator">*</span> offset<span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> sum<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>关于index和offset的计算,实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> <span class="token function">getIndex</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>value <span class="token operator">&lt;=</span> min_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -588,9 +587,9 @@
     <span class="token keyword keyword-double">double</span> offset <span class="token operator">=</span> value <span class="token operator">-</span> <span class="token punctuation">(</span>min_ <span class="token operator">+</span> index <span class="token operator">*</span> width<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> offset<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>至于<code>addValue</code>的实现,首先特判v是否超出[min,max]的范围,否则直接返回,并不加入到直方图中,然后获取对应的index,并且将对应的index项+1.其他就没有什么好说的了.</p>
-<h3 id="2-Exercise-2"><a href="#2-Exercise-2" class="headerlink" title="2) Exercise 2"></a>2) Exercise 2</h3><p><code>TableStats</code>的实现是比较复杂的.其中数据成员如下:</p>
+<h3 id="exercise-2">2) Exercise 2</h3>
+<p><code>TableStats</code>的实现是比较复杂的.其中数据成员如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> tableId_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">HeapFile</span> tableFile_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> tableDesc_<span class="token punctuation">;</span>
@@ -600,7 +599,6 @@
 <span class="token keyword keyword-private">private</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">,</span><span class="token class-name">Field</span><span class="token punctuation">&gt;</span></span> minValues_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">,</span><span class="token class-name">IntHistogram</span><span class="token punctuation">&gt;</span></span> intHisMap_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">,</span><span class="token class-name">StringHistogram</span><span class="token punctuation">&gt;</span></span> strHisMap_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p><code>TableStats</code>是为每个表创建的有关于统计信息的数据结构,其中<code>tupleNum</code>表示这个表中的tuple的数量,<code>maxValues_,minValues_</code>,用来统计该Table中每个域的最大值和最小值,其中key代表的是一个field在表中的index.然后再初始化<code>intHisMap_,strHisMap</code>时,会根据已经设置好的<code>maxValues_,minValues_</code>进行设置.这些行为都发生在构造函数中,因此构造函数会涉及到对这个表的扫描,总的来说,会进行两次扫描.由于构造函数比较长,所以就不贴代码了,其过程如下:</p>
 <ul>
 <li>设置<code>tableId_,tableFile_,tableDesc_,ioCostPerPage_</code>.</li>
@@ -613,7 +611,6 @@
     <span class="token keyword keyword-double">double</span> pageNum <span class="token operator">=</span> tableFile_<span class="token punctuation">.</span><span class="token function">numPages</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> <span class="token number">2.0</span> <span class="token operator">*</span> pageNum <span class="token operator">*</span> ioCostPerPage_<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>再<code>estimateSelectivity</code>,这个函数只要获取对应的直方图之后,调用该直方图中的<code>estimateSelectivity</code>即可.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-double">double</span> <span class="token function">estimateSelectivity</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> field<span class="token punctuation">,</span> <span class="token class-name">Predicate<span class="token punctuation">.</span>Op</span> op<span class="token punctuation">,</span> <span class="token class-name">Field</span> constant<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token comment">// some code goes here</span>
@@ -627,13 +624,12 @@
         <span class="token keyword keyword-return">return</span> strh<span class="token punctuation">.</span><span class="token function">estimateSelectivity</span><span class="token punctuation">(</span>op<span class="token punctuation">,</span>stringField<span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>关于<code>estimateTableCardinality</code>的实现更加简单.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-int">int</span> <span class="token function">estimateTableCardinality</span><span class="token punctuation">(</span><span class="token keyword keyword-double">double</span> selectivityFactor<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>selectivityFactor <span class="token operator">*</span> tupleNum_<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="3-Exercise-3"><a href="#3-Exercise-3" class="headerlink" title="3) Exercise 3"></a>3) Exercise 3</h3><p>练习3主要是对于一些估价方式的理解.代码量较小,只涉及到两个函数:</p>
+<h3 id="exercise-3">3) Exercise 3</h3>
+<p>练习3主要是对于一些估价方式的理解.代码量较小,只涉及到两个函数:</p>
 <p>下面是<code>estimateJoinCost</code>函数,该函数用于返回一个Join节点的代价,其中参数card1和card2表示的是这个Join操作中两个Table中的Tuple的数量,cost1和cost2表示两个表的I/O代价,姑且不谈<code>LogicalSubplanJoinNode</code>分支情况,总的估价相当于一个<code>cost1(需要扫描一遍table1)+ card1 * cost2(需要扫描card1遍table2) + card1 * card2(扫描时需要做断言判断所耗费的CPU)</code>.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-double">double</span> <span class="token function">estimateJoinCost</span><span class="token punctuation">(</span><span class="token class-name">LogicalJoinNode</span> j<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> card1<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> card2<span class="token punctuation">,</span>
         <span class="token keyword keyword-double">double</span> cost1<span class="token punctuation">,</span> <span class="token keyword keyword-double">double</span> cost2<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -644,13 +640,11 @@
         <span class="token keyword keyword-return">return</span> cost<span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这也就对应了实验文档中的公式:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//p=t1 join t2 join ... tn</span>
 <span class="token function">scancost</span><span class="token punctuation">(</span>t1<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">scancost</span><span class="token punctuation">(</span>t2<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">joincost</span><span class="token punctuation">(</span>t1 join t2<span class="token punctuation">)</span> <span class="token operator">+</span>
 <span class="token function">scancost</span><span class="token punctuation">(</span>t3<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">joincost</span><span class="token punctuation">(</span><span class="token punctuation">(</span>t1 join t2<span class="token punctuation">)</span> join t3<span class="token punctuation">)</span> <span class="token operator">+</span>
 <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>然后则是<code>estimateTableJoinCardinality</code>的实现,这个函数主要用于estimate两个表Join之后产生的Tuple的数量,这一部分的实现需要根据<code>Predicate.op</code>分情况讨论.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-static">static</span> <span class="token keyword keyword-int">int</span> <span class="token function">estimateTableJoinCardinality</span><span class="token punctuation">(</span><span class="token class-name">Predicate<span class="token punctuation">.</span>Op</span> joinOp<span class="token punctuation">,</span>
                                                <span class="token class-name">String</span> table1Alias<span class="token punctuation">,</span> <span class="token class-name">String</span> table2Alias<span class="token punctuation">,</span> <span class="token class-name">String</span> field1PureName<span class="token punctuation">,</span>
@@ -674,11 +668,14 @@
     <span class="token punctuation">}</span>
     <span class="token keyword keyword-return">return</span> result<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>对于<code>EQUALS</code>的情况,内部还需要根据主键的情况来进行讨论,如果至于一方是主键,那么其返回的元组数不会超出非主键的元组数,比如说table1有主键,而table2没有,那么其返回的结果就不会大于card2,最终返回table2.而对于两方都是主键或者都不是主键的情况,则返回<code>max(card1,card2)</code>.关于不是<code>EQUALS</code>的情况,也就是范围扫描的情况,这里只做了一个粗略的估计,取两者乘积的30%.此外,如果其中的结果小于等于0,那么就返回1.</p>
-<h3 id="4-Exercise-4"><a href="#4-Exercise-4" class="headerlink" title="4) Exercise 4"></a>4) Exercise 4</h3><p>这里主要实现一个用于选出最优顺序的动态规划算法,这个算法在这里就跟求最长单调序列的问题很像.</p>
+<h3 id="exercise-4">4) Exercise 4</h3>
+<p>这里主要实现一个用于选出最优顺序的动态规划算法,这个算法在这里就跟求最长单调序列的问题很像.</p>
 <p>其中该算法的描述如下(该图来自《数据库系统概念第六版》):</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2004%2010%2029%2049%201662258589%201662258589384%202FrXcD%20image-20220904102949236%20.png" alt="image-20220904102949236"></p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2004%2010%2029%2049%201662258589%201662258589384%202FrXcD%20image-20220904102949236%20.png" alt="image-20220904102949236">
+<figcaption aria-hidden="true">image-20220904102949236</figcaption>
+</figure>
 <p>该算法的原理在于,根据长度长短,由短到长地遍历子集,长子集的结果可以根据短子集的结果递推得出,对于某个S子集,可以有若干个划分为两段的方式,S子集中的最低开销方式一定就是其中之一,在这里也就是其中最低开销的划分方式,而每种方式中,都是<code>P1.cost + P2.cost + A的代价</code>,而P1和P2是短于S的子集,在此之前就已经推导出结果,因此可以直接利用.以此类推,直到递推到整个长度的序列,这种算法利用了Join操作作为二元操作可结合的特点,也利用了开销累加的计算方式.总的来说,与其说是给一连串的Join操作排序,不如说是如何利用结合律个这个表达式加括号(只不过这个括号也是有优先级之分的,包含的table越少的括号,优先级越高)进而得出最低开销的方式.</p>
 <p>根据此算法,实现代码如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">LogicalJoinNode</span><span class="token punctuation">&gt;</span></span> <span class="token function">orderJoins</span><span class="token punctuation">(</span><span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">TableStats</span><span class="token punctuation">&gt;</span></span> stats<span class="token punctuation">,</span><span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Double</span><span class="token punctuation">&gt;</span></span> filterSelectivities<span class="token punctuation">,</span> <span class="token keyword keyword-boolean">boolean</span> explain<span class="token punctuation">)</span>
@@ -715,9 +712,9 @@
      <span class="token keyword keyword-return">return</span> resultList<span class="token punctuation">;</span>
  <span class="token punctuation">}</span>
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>简单地说明一下实现,最外层for表示的是,从1到n的遍历,这也是整个动态规划算法的线索,也就是由短到长.在每一个长度对应的循环中首先借助<code>enumerateSubsets</code>来生成一个个在该长度下的子集.然后对这些子集进行遍历,每个子集都对每一种划分方式求解开销,通过<code>computeCostAndCardOfSubplan</code>来实现,然后对结果进行更新,当对一个子集的所有划分方式都尝试完后,就<code>addPlan</code>,表示该子集的下的最优plan已经保存好了,这可以在后来的递推中直接使用.当所有长度的都递推完后,最终长度为n的,就是最优解.</p>
-<h2 id="3-小结"><a href="#3-小结" class="headerlink" title="3.小结"></a>3.小结</h2><p>做了这个lab,也对数据库执行与优化的整体框架有了初步的认识吧,此外也温习了一下好久没碰的动态规划算法.</p>
+<h2 id="小结">3.小结</h2>
+<p>做了这个lab,也对数据库执行与优化的整体框架有了初步的认识吧,此外也温习了一下好久没碰的动态规划算法.</p>
 
                 
             </div>

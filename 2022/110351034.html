@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="UNP:TCP/IP概要及基本socket, Yfs&#39;s Box">
+    <meta name="keywords" content="并发控制小叙, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>UNP:TCP/IP概要及基本socket | Yfs&#39;s Box</title>
+    <title>并发控制小叙 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -328,7 +328,7 @@
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">UNP:TCP/IP概要及基本socket</h1>
+                    <h1 class="description center-align post-title">并发控制小叙</h1>
                 </div>
             </div>
         </div>
@@ -444,16 +444,12 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/linux/">
-                                <span class="chip bg-color">linux</span>
+                            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">数据库系统</span>
                             </a>
                         
-                            <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">
-                                <span class="chip bg-color">网络编程</span>
-                            </a>
-                        
-                            <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
-                                <span class="chip bg-color">计算机网络</span>
+                            <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
+                                <span class="chip bg-color">并发控制</span>
                             </a>
                         
                     </div>
@@ -468,7 +464,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-08-22
+                    2022-11-03
                 </div>
                 
 
@@ -484,7 +480,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    7 Min
+                    6 Min
                 </div>
                 
 
@@ -502,133 +498,87 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>作此文的目的在于,不仅仅在于温习之前计算机网络中有关于传输层的内容,更重要的是,我对于传输层一些原理的理解没有和<code>socket</code>编程联系起来,因此我主要翻阅UNP(v1)来进行学习.希望能够对于socket编程有更深的理解.</p>
-<h2 id="传输层概要">1.传输层概要</h2>
-<p>传输层最主要的两个协议就是<code>tcp,udp</code>.但是还是有许多其他成员的.下面的图很好地体现了一些常用的网络工具,其实现的方式.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2022%2019%2043%2031%201661168611%201661168611934%20ep3aaS%20image-20220822194331854%20.png" alt="image-20220822194331854" style="zoom: 33%;"></p>
-<p>对于<code>udp</code>的不可靠性,不再多说,值得一提的是,它<strong>无连接</strong>的特性对于其<code>socket</code>使用的影响,它可以借助一个创建好的<code>socket</code>和多个服务器通信.</p>
-<p>在<code>tcp</code>的可靠性机制中,其中<strong>超时重传+去重</strong>相得益彰,通过超时的方式能极准确地估测传输的失败,而去重机制又恰恰可以防止因为超时但是传输到达的数据因重传而出错.除此之外,tcp保证防止乱序,在向应用层apply之前,会根据序列号排序.</p>
-<p><code>tcp</code>会利用滑动窗口来进行拥塞控制,这与收发缓冲区息息相关.tcp会告知对端任意时刻缓冲区可用的剩余空间,<strong>从而避免缓冲区溢出</strong>.读出数据则缓冲区可用空间增大,写入则减少.</p>
-<p>接下来结合tcp相关的<code>socket</code>来展现握手过程.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2022%2020%2012%2023%201661170343%201661170343215%207KbXgo%20image-20220822201223127%20.png" alt="image-20220822201223127" style="zoom:50%;"></p>
-<p>在这过程中,<code>connect,accept</code>都是阻塞的.前后两者各发送了一个<code>SYN</code>,成功的情况下,前后两个<code>SYN</code>也前后各有一个<code>ACK</code>确认.</p>
-<blockquote>
-<p>为什么要有三次握手呢?</p>
-<p>The principle reason for the three-way handshake is to prevent old
-duplicate connection initiations from causing confusion.</p>
-<p>以上出自RFC 793.</p>
-</blockquote>
-<p>接下来是有关于TCP连接终止与<code>socket</code>的关系.<strong>tcp连接的中断是由其中任意一方调用<code>close</code>造成的</strong>(如果是异常终止,exit,main返回等行为造成的终止也会造成描述符关闭).</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2022%2020%2030%2019%201661171419%201661171419317%20Ft1BIL%20image-20220822203019237%20.png" alt="image-20220822203019237" style="zoom:50%;"></p>
-<p>需要注意的是:<strong>在只有一个关闭到两个全关闭的期间,仍然可以传送数据</strong>.</p>
-<p>下面结合缓冲区来分析,一个应用进程写入socket的过程.</p>
-<p>如果写入的是tcp的<code>socket</code>,发送向对端可以落实为<strong>write对端的socket</strong>.每个tcp
-socket都有对应的缓冲区,然而缓冲区是有限的,所以写入的时候未必能够保证缓冲区够用而完全写入.在默认的情况下,如果不够用则会将write阻塞.当<code>write</code>返回时,并表明对端已经接收到数据.</p>
-<p>write拷贝到相应的缓冲区socket之后还没有结束.还需要等待对端的确认,当确认到达时,相应的已发送数据才会从缓冲区中移除.</p>
-<p>如果是失败的情况会怎么办呢?尤其是ip和数据链路层出现的损失.这个时候会触发TCP重传.</p>
-<p>而对于<code>udp</code>的发送缓冲区是实际上不存在,而udp缓冲区大小只是发送大小上限.</p>
-<h2 id="socket基础">2. socket基础</h2>
-<p>主要从三个方面:</p>
-<ul>
-<li>socket的地址API,用于标记一端的(ip,port).</li>
-<li>socket的基础功能API:create,listen,read,write等.</li>
-<li>网路信息API,一般有主机名和ip转换,服务名称和端口转换等API.</li>
-</ul>
-<h3 id="socket地址api">1.socket地址API</h3>
-<p>计算机系统在表示信息时,有大端和小端之分,基本上我们使用的PC都是小端的,但手机或者其他设备未必.所以不同类型的机器如果想要通信如何统一呢?</p>
-<p><strong>解决办法就是:总是采用大端法,这是发送方和接收方达成的协议,因此又将大端称为网络字节序</strong></p>
-<p>主要有关于字节序的接口如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;netinet/in.h&gt;</span></span>
-<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token keyword keyword-int">int</span> <span class="token function">htonl</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token keyword keyword-int">int</span> hostlong<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-short">short</span> <span class="token keyword keyword-int">int</span> <span class="token function">htons</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-short">short</span> <span class="token keyword keyword-int">int</span> hostshort<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token keyword keyword-int">int</span> <span class="token function">ntonl</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token keyword keyword-int">int</span> hostlong<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-short">short</span> <span class="token keyword keyword-int">int</span> <span class="token function">ntonl</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-short">short</span> <span class="token keyword keyword-int">int</span> hostshort<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其中h表示主机字节序,n表示网络字节序.</p>
-<p>一般情况下,l表示长的,适合ip地址,s表示短的,适合端口号.</p>
-<h3 id="socket地址">2.socket地址</h3>
-<h4 id="通用socket">1) 通用socket</h4>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;bits/socket.h&gt;</span></span>
-<span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span><span class="token punctuation">{</span>
-  sa_family_t sa_family<span class="token punctuation">;</span><span class="token comment">//地址组类型,通常与其他协议组对应</span>
-  <span class="token keyword keyword-char">char</span> sa_data<span class="token punctuation">[</span><span class="token number">14</span><span class="token punctuation">]</span><span class="token punctuation">;</span><span class="token comment">//存放socket地址值</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+                <h3 id="锁管理器">1) 锁管理器</h3>
+<p>对于数据库系统中的锁,有两个容易令人混淆的概念,一个事<code>latch</code>另一个是<code>lock</code>,两者的区别如下.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2008%2021%2055%201667434915%201667434915232%20lZ0OTs%20image-20221103082155111%20.png" alt="image-20221103082155111" style="zoom:50%;"></p>
+<p>关于Lock的类型分为共享锁和排他锁.</p>
+<p>锁管理器授予锁的条件并非简单地判断是否锁冲突,还会考虑锁请求的先后顺序,之所以考虑这个条件是因为这种情景:假设T2持有共享锁,而T1请求排他锁,T3也请求共享锁.其中请求次序为(T2&gt;T1&gt;T3),如果只是简单地根据锁的互斥条件加锁,就会导致T3有可能先于T1获得锁,如果在考虑有多个事务都需要加互斥锁,这个时候如果T1老是抢不到锁,就会导致“饿死”.因此锁管理器还有一个重要的加锁条件:<strong>在一个事务被授予锁之前,确保之前的请求被授予(处理)</strong>.因此,一个加锁的请求不会被后面的请求阻塞.</p>
+<h3 id="可串行化">2) 可串行化</h3>
+<p>对于一个事务序列,如果存在有一个调度S1等价于另一个S2,那么就可以说该调度S1是可串行化的.</p>
+<p>如何定义“等价”是一个值得考虑的问题.下面有这几种等价的定义方式:</p>
+<h4 id="final-state-serializability">final state serializability</h4>
+<p>不同的调度,其<strong>写操作对相关数据的影响</strong>是相同的.但是对于这种状态的检查是相当困难的,依据定义将输出以及相关的数据进行比对不大现实.所以考虑下面的方法判断是否符合.</p>
+<p>给定两个事务及其调度:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2002%2018%201667437338%201667437338918%20M64rJL%20image-20221103090218838%20.png" alt="image-20221103090218838" style="zoom: 50%;"></p>
+<p>其中额外引入两个辅助事务,一个是T0,主要包含W操作,相当于将相关数据的初始值写入数据库,还有一个事务Tn主要包含R操作,意味着读取数据库相关数据的最终结果.因此根据调度T0,S,Tn的次序,建立数据流图可以得到如下的情况(对应了两种不同的调度S1,S2):</p>
 <figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2006%2017%2017%2003%2024%201655456604%201655456604753%20tgmr0T%20image-20220617170324567%20.png" alt="1">
-<figcaption aria-hidden="true">1</figcaption>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2008%2032%201667437712%201667437712405%20DxQjnU%20image-20221103090832319%20.png" alt="image-20221103090832319">
+<figcaption aria-hidden="true">image-20221103090832319</figcaption>
 </figure>
-<p>其实14字节的sa_data无法容纳多数协议族的地址值,所以有新的通用sokcet地址结构体.</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;bits/socket.h&gt;</span></span>
-<span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr_storage</span><span class="token punctuation">{</span>
-  sa_family_t sa_family<span class="token punctuation">;</span>
-  <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-long">long</span> <span class="token keyword keyword-int">int</span> __ss_align<span class="token punctuation">;</span>
-  <span class="token keyword keyword-char">char</span> __ss_padding<span class="token punctuation">[</span><span class="token number">128</span><span class="token operator">-</span><span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>__ss_align<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h4 id="tcpip协议族地址">2) tcp/ip协议族地址</h4>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr_in</span><span class="token punctuation">{</span>
-    <span class="token function">__SOCKADDR_COMMON</span> <span class="token punctuation">(</span>sin_<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//表示协议族的类型</span>
-    in_port_t sin_port<span class="token punctuation">;</span>         <span class="token comment">/* Port number.  */</span>
-    <span class="token keyword keyword-struct">struct</span> <span class="token class-name">in_addr</span> sin_addr<span class="token punctuation">;</span>        <span class="token comment">/* Internet address.  */</span>
-    <span class="token comment">/* Pad to size of `struct sockaddr'.  */</span>
-    <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-char">char</span> sin_zero<span class="token punctuation">[</span><span class="token keyword keyword-sizeof">sizeof</span> <span class="token punctuation">(</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span><span class="token punctuation">)</span>
-               <span class="token operator">-</span> __SOCKADDR_COMMON_SIZE
-               <span class="token operator">-</span> <span class="token keyword keyword-sizeof">sizeof</span> <span class="token punctuation">(</span>in_port_t<span class="token punctuation">)</span>
-               <span class="token operator">-</span> <span class="token keyword keyword-sizeof">sizeof</span> <span class="token punctuation">(</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">in_addr</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-struct">struct</span> <span class="token class-name">in_addr</span><span class="token punctuation">{</span>
-    in_addr_t s_addr<span class="token punctuation">;</span>
- <span class="token punctuation">}</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr_in6</span><span class="token punctuation">{</span>
-    <span class="token function">__SOCKADDR_COMMON</span> <span class="token punctuation">(</span>sin6_<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//表示协议族类型</span>
-    in_port_t sin6_port<span class="token punctuation">;</span>    <span class="token comment">/* Transport layer port # */</span>
-    <span class="token keyword keyword-uint32_t">uint32_t</span> sin6_flowinfo<span class="token punctuation">;</span> <span class="token comment">/* IPv6 flow information */</span>
-    <span class="token keyword keyword-struct">struct</span> <span class="token class-name">in6_addr</span> sin6_addr<span class="token punctuation">;</span>  <span class="token comment">/* IPv6 address */</span>
-    <span class="token keyword keyword-uint32_t">uint32_t</span> sin6_scope_id<span class="token punctuation">;</span> <span class="token comment">/* IPv6 scope-id */</span>
- <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>由此可见,其中最主要的部分,就是内部有一个表示ip地址的结构体,还有一个端口号(一个16位).</p>
-<p>一般情况下,在使用时,我们需要转化成sockaddr类型才可以代入到其他API中.</p>
-<h4 id="ip转换函数">3) IP转换函数</h4>
-<p>在程序中.对于ip地址的表示适合使用整数.而平时符合人们习惯的是字符串.所以系统提供了一些接口便于转换.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-extern">extern</span> <span class="token class-name">in_addr_t</span> <span class="token function">inet_addr</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>__cp<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//string to int</span>
-<span class="token keyword keyword-extern">extern</span> <span class="token keyword keyword-int">int</span> <span class="token function">inet_aton</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>__cp<span class="token punctuation">,</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">in_addr</span> <span class="token operator">*</span>__inp<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//转化成整型,返回到__inp</span>
-<span class="token keyword keyword-extern">extern</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token function">inet_ntoa</span> <span class="token punctuation">(</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">in_addr</span> __in<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//int to string</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>其实in_addr_t就是一个32位整数.</p>
-<h3 id="基本操作函数">3.基本操作函数</h3>
-<h4 id="基本api">1) 基本API</h4>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/types.h&gt;</span></span>
-<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/socket.h&gt;</span></span>
-<span class="token keyword keyword-int">int</span> <span class="token function">socket</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __domain<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __type<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __protocol<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span>
-<span class="token comment">//协议组,服务类型,protocol一般都设置为0.</span>
-<span class="token keyword keyword-int">int</span> <span class="token function">bind</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__addr<span class="token punctuation">,</span> socklen_t __len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//绑定某个socket</span>
-<span class="token keyword keyword-int">int</span> <span class="token function">listen</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __n<span class="token punctuation">)</span> __THROW<span class="token punctuation">;</span><span class="token comment">//n在linux 2.2之后表示的是处于完全连接数量的上限.</span>
-<span class="token keyword keyword-int">int</span> <span class="token function">accept</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__restrict__ __addr<span class="token punctuation">,</span> socklen_t <span class="token operator">*</span>__restrict__ __addr_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//会将请求链接的addr结构体返回到第二个参数中</span>
-<span class="token keyword keyword-int">int</span> <span class="token function">connect</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> sockfd<span class="token punctuation">,</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>serv_addr<span class="token punctuation">,</span>socklen_t addrlen<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h4 id="读写">2) 读写</h4>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/types.h&gt;</span></span>
-<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/socket.h&gt;</span></span>
-<span class="token comment">//TCP数据读写</span>
-ssize_t <span class="token function">recv</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __flags<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//返回值是接受的长度,有时会小于</span>
-<span class="token comment">//期望的长度</span>
-ssize_t <span class="token function">send</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __flags<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//成功写入时返回长度,否则返回-1设置errno</span>
-<span class="token comment">//UDP数据读写</span>
-ssize_t <span class="token function">sendto</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __flags<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__addr<span class="token punctuation">,</span> socklen_t __addr_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//其中的addr是目的地的addr</span>
-ssize_t <span class="token function">recvfrom</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> __fd<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>__restrict__ __buf<span class="token punctuation">,</span> size_t __n<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> __flags<span class="token punctuation">,</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>__restrict__ __addr<span class="token punctuation">,</span> socklen_t <span class="token operator">*</span>__restrict__ __addr_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//其中的addr是源</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="地址信息函数">4.地址信息函数</h3>
-<p>一般适用于我们需要知道一个连接socket的本端和远端的socket地址.使用下面的这个函数解决问题.</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span><span class="token string">&lt;sys/socket.h&gt;</span></span>
-<span class="token keyword keyword-int">int</span> <span class="token function">getsockname</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> sockfd<span class="token punctuation">,</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>address<span class="token punctuation">,</span>socklen_t <span class="token operator">*</span>address_len<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-int">int</span> <span class="token function">getpeername</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> sockfd<span class="token punctuation">,</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">sockaddr</span> <span class="token operator">*</span>address<span class="token punctuation">,</span>socklen_t <span class="token operator">*</span>address_len<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>前者获取的是socket本端的地址,返回到address中,后者获取的远端的,也是返回到address中.</p>
-<h2 id="muduo中有关于socket的封装">3.muduo中有关于socket的封装</h2>
-<p>在muduo网络库中,关于<code>socket</code>的封装主要包含以下几个部分:</p>
+<p>图引用自知乎(Transaction management:可串行性(serializability)
+https://zhuanlan.zhihu.com/p/57579023)</p>
+<p>如果将不同调度数据流图中无法与Tn中对应的R节点联通的节点移除,所剩的图如果一致,那么可以保证两者实现了final
+state
+serializability.至此我们可以发现这种算法的实现复杂度比较高的,在数据库系统实现中很少采用.</p>
+<h4 id="view-serializability">view serializability</h4>
+<p>上面提到的一致性方式中,会讲事务视为一个黑盒,只关注事务处理的结果而非过程.而view这种串行化方案,则会关心具体的过程.</p>
+<p>对于一个保证了final state
+serializability的事务序列,未必不存在问题.考虑下面的这种情况:</p>
+<p>初始状态是 {x=5,y=5,z=2} .</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2017%2000%201667438220%201667438220307%20qT37YW%20image-20221103091700226%20.png" alt="image-20221103091700226">
+<figcaption aria-hidden="true">image-20221103091700226</figcaption>
+</figure>
+<p>其中可以发现无论是按照T1,T2还是T2,T1都不会违背final state
+serializability,最终z都是1.但是在事务执行的过程中,比如T2,这两种调度在事务2读取x和y的结果是不相同的,前者是{7,7}后者是{5,5}.因此这种现象也就是:<strong>一个事务在不同的调度方案中,中途涉及到的读操作不能保证是一致的.</strong></p>
+<p>对于如何根据前面提到的模型判断<code>view serializability</code>:如果两个数据流图完全一致,那么可以保证view
+serializability.可见,这种串行性更加严格,同时满足final state
+serializability.</p>
+<h4 id="conflict-serializability">conflict serializability</h4>
+<p>倘若将事务对于数据的操作,考虑成一个个对于数据读写的序列,那么破坏ACID的关键原因在于,这些操作的顺序问题,如果某一对操作可以满足可交换律,这对操作可以不收调度顺序的影响.我们将这种操作定义为非冲突操作,否则就是冲突操作.</p>
+<p>如何判断一对事务是否中途呢?</p>
+<blockquote>
+<ol type="1">
+<li>不属于同一个事务.</li>
+<li>其中一个是写操作.</li>
+</ol>
+</blockquote>
+<p>因此对于不同的调度,我们又有冲突等价的概念,如果两者对于冲突操作的调度顺序一样.</p>
+<p>此外对于conflict
+serializability,也有相关的模型用来判断,对于一个调度,我们根据调度中事务之间的依赖关系来构造一个优先图.<strong>如果在图中存在环的话,就是违背conflict
+serializability</strong>的.</p>
+<h3 id="两阶段锁">3) 两阶段锁</h3>
+<p>数据库的理想目标是实现可串行化.其中2PL机制就是为了维护这种性质而设计的.</p>
+<p>简而言之就是将一个事务分为两个阶段,一个growing,一个shrinking.前者只能加锁,一旦出现第一个解锁行为,就会进入shrinking,该阶段不能再上新的锁.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2047%2049%201667440069%201667440069670%20MA8x5l%20image-20221103094749587%20.png" alt="image-20221103094749587">
+<figcaption aria-hidden="true">image-20221103094749587</figcaption>
+</figure>
+<p>实现这种锁协议的目的是为了实现事务的可串行化调度,我们一般追求的是冲突可串行化,也就是前面所说的,可以构造出一个无环有向图.</p>
+<p>关于2PL对于可串行化的保证,证明如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2010%2001%2000%201667440860%201667440860332%205YhQc4%20image-20221103100100248%20.png" alt="image-20221103100100248" style="zoom:50%;"></p>
+<p>上述证明引用了文章<a target="_blank" rel="noopener" href="https://hw311.me/zh/study-notes/database/2019/03/17/transaction-consistency-2PL/">Transaction
+management：两阶段锁(two-phase locking)</a></p>
+<h3 id="事务隔离级别">4) 事务隔离级别</h3>
+<p>提到事务隔离级别,首先考虑数据库系统中所涉及到的几种异常的数据访问情况,事务隔离级别将会深刻地影响锁管理器处理锁的方式以及上锁方式.</p>
+<p>其中有:</p>
 <ul>
-<li>Endian.h封装了字节序转换函数.</li>
-<li>SocketsOps.h/SocketOps.cc,封装了socket相关的系统调用.</li>
-<li>Socket.h/Socket.cc,封装socket file descriptor.</li>
-<li>InetAddress.h/InetAddress.cc将网际地址sockaddr_in(ipv4)封装.</li>
+<li>可重复读:只允许读取已经提交的数据,并且一个事务在多次读取时,中间不允许插入其他事务对该数据的更新.<strong>可以理解为不允许一个事务在多次读取某数据时有其他事务对该数据的更新介入</strong>.</li>
+<li>已提交读:只允许读已经提交了的数据,不要求可重复读.</li>
+<li>未提交读:这种事务的隔离级别下,一个事务的读操作可以随意进行,不考虑其他事务是否在进行一些与之冲突的操作.</li>
+<li>可串行化.前面提到过,一般要求冲突可串行化.</li>
 </ul>
-<h3 id="socketops.h的封装">1)<code>SocketOps.h</code>的封装</h3>
-<h3 id="sokcet.hsocket.cc的实现思路.">2)
-<code>Sokcet.h/Socket.cc</code>的实现思路.</h3>
+<h3 id="死锁预防策略">5) 死锁预防策略</h3>
+<p>在这里只说明一下<code>wound-wait</code>算法.</p>
+<p>《数据库系统概念》中提到,关于对于死锁预防,有两种实现思路,第一种是所有事务开始前就确定某一个不会出现死锁的次序,然后按照该顺序加锁.第二种则使用了抢占和回滚.比如在此要说的<code>wound-wait</code>算法.</p>
+<p>简而言之,这种算法基于对每个事务赋予一个时间戳,该时间戳往往表示的是该事务创建的时间,时间戳大的是年轻事务,小的是年老事务.<strong>在这种算法下,不允许某个年轻事务先于一个年老事务获取对于某个数据的锁,一般实现为,如果一个年老事务在请求某一个锁时发现一个年轻的事务已经将该锁占有,那么年老事务将会终止并抢占此年轻事务</strong>.</p>
+<p>这种算法的缺点在于容易出现不必要的回滚.</p>
+<h2 id="reference">Reference</h2>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/538928744">Two Phase
+Locking(二阶段锁)</a></p>
+<p>Transaction management:可串行性(serializability)
+https://zhuanlan.zhihu.com/p/57579023</p>
+<p>《数据库系统概念》</p>
 
                 
             </div>
@@ -655,7 +605,7 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/082242275.html">http://example.com/2022/082242275.html</a>
+                    <a href="http://example.com/2022/110351034.html">http://example.com/2022/110351034.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -693,16 +643,12 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/linux/">
-                                    <span class="chip bg-color">linux</span>
+                                <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">数据库系统</span>
                                 </a>
                             
-                                <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">
-                                    <span class="chip bg-color">网络编程</span>
-                                </a>
-                            
-                                <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">
-                                    <span class="chip bg-color">计算机网络</span>
+                                <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
+                                    <span class="chip bg-color">并发控制</span>
                                 </a>
                             
                         </div>
@@ -746,28 +692,30 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+                <i class="far fa-dot-circle"></i>&nbsp;Current
+            </div>
             <div class="card">
-                <a href="/2022/082346124.html">
+                <a href="/2022/110351034.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2013%2013%2021%201661231601%201661231601053%208wSq86%20image-20220823131320917%20.png" class="responsive-img" alt="mit 6.824 分布式系统:lab2 raft">
                         
-                        <span class="card-title">mit 6.824 分布式系统:lab2 raft</span>
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="并发控制小叙">
+                        
+                        <span class="card-title">并发控制小叙</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            锁管理器,两阶段锁协议,可串行化,死锁预防等.
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-08-23
-                        </span>
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-11-03
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -776,23 +724,16 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
                         </span>
                     </div>
                 </div>
+
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">分布式系统</span>
+                    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">数据库系统</span>
                     </a>
                     
-                    <a href="/tags/raft/">
-                        <span class="chip bg-color">raft</span>
-                    </a>
-                    
-                    <a href="/tags/mit-6-824/">
-                        <span class="chip bg-color">mit 6.824</span>
-                    </a>
-                    
-                    <a href="/tags/golang/">
-                        <span class="chip bg-color">golang</span>
+                    <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
+                        <span class="chip bg-color">并发控制</span>
                     </a>
                     
                 </div>
@@ -806,23 +747,23 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/082236923.html">
+                <a href="/2022/11017476.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2022%2019%2024%2005%201661167445%201661167445429%208iudUr%20image-20220822192405308%20.png" class="responsive-img" alt="APUE:I/O概要">
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2001%2016%2011%2029%201667290289%201667290289554%20xxEp6e%20image-20221101161129462%20.png" class="responsive-img" alt="CMU 15-445:project #4 - Concurrency Control">
                         
-                        <span class="card-title">APUE:I/O概要</span>
+                        <span class="card-title">CMU 15-445:project #4 - Concurrency Control</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            CMU 15-445终于结束了,在每天投入3~5小时的情况下,做了接近一个月的时间.
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-08-22
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-11-01
                             </span>
                         <span class="publish-author">
                             
@@ -835,12 +776,16 @@ ssize_t <span class="token function">recvfrom</span><span class="token punctuati
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
+                    <a href="/tags/C/">
+                        <span class="chip bg-color">C++</span>
                     </a>
                     
-                    <a href="/tags/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/">
-                        <span class="chip bg-color">系统编程</span>
+                    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">数据库系统</span>
+                    </a>
+                    
+                    <a href="/tags/CMU-15-445/">
+                        <span class="chip bg-color">CMU 15-445</span>
                     </a>
                     
                 </div>

@@ -502,10 +502,15 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>数据库系统的这个实验,我也是早就有计划要做了,但是之前一直在纠结是做CMU 15445还是这个.虽然相对于java,我还是对C++比较熟悉(但还是菜得很),但是我最后还是打算做这个,因为这个实验我感觉难度曲线更加平滑,要做得部分也更加完备,而且测试相对比较方便.况且,我的目的主要还是搞清楚数据库系统底层的设计与实现,语言并不是最重要的,我相信只要通过这个lab把原理和思想搞透彻,我在后来用C++实现数据库就会简单得多.</p>
+                <p>数据库系统的这个实验,我也是早就有计划要做了,但是之前一直在纠结是做CMU
+15445还是这个.虽然相对于java,我还是对C++比较熟悉(但还是菜得很),但是我最后还是打算做这个,因为这个实验我感觉难度曲线更加平滑,要做得部分也更加完备,而且测试相对比较方便.况且,我的目的主要还是搞清楚数据库系统底层的设计与实现,语言并不是最重要的,我相信只要通过这个lab把原理和思想搞透彻,我在后来用C++实现数据库就会简单得多.</p>
 <p>其实数据库系统是个很硬核的方向,但是在我们学校上的数据库课程比较水.</p>
 <p>花了1.5天的时间做完了lab1,比想象中的要顺利,但是据说后面会非常困难.</p>
-<h2 id="1-整体架构"><a href="#1-整体架构" class="headerlink" title="1.整体架构"></a>1.整体架构</h2><p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2028%2014%2058%2034%201661669914%201661669914714%2094L8lq%20347D7818764B5DB548BCCD8201332DD0%20.jpg" alt="347D7818764B5DB548BCCD8201332DD0"></p>
+<h2 id="整体架构">1.整体架构</h2>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2028%2014%2058%2034%201661669914%201661669914714%2094L8lq%20347D7818764B5DB548BCCD8201332DD0%20.jpg" alt="347D7818764B5DB548BCCD8201332DD0">
+<figcaption aria-hidden="true">347D7818764B5DB548BCCD8201332DD0</figcaption>
+</figure>
 <p>从宏观说起,整个db是一个采用单例模式的<code>Database</code>对象.在lab1中这个类里面包含了两个全局性的对象,分别是<code>Catalog</code>和<code>BufferPool</code>(LogFile暂且不计).所以说,<code>Catalog</code>和<code>BufferPool</code>也是采用了单例模式.至于<code>Database</code>的构造函数是比较简单的,主要是对于Catalog和BufferPool进行初始化.关于这两个对象的访问方式如下.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-static">static</span> <span class="token keyword keyword-final">final</span> <span class="token class-name">AtomicReference</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Database</span><span class="token punctuation">&gt;</span></span> _instance <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">AtomicReference</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token class-name">Database</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//在静态区初始化全局对象.</span>
 <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-static">static</span> <span class="token class-name">BufferPool</span> <span class="token function">getBufferPool</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -514,18 +519,19 @@
 <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-static">static</span> <span class="token class-name">Catalog</span> <span class="token function">getCatalog</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     	<span class="token keyword keyword-return">return</span> _instance<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>_catalog<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="1-Catalog"><a href="#1-Catalog" class="headerlink" title="1) Catalog"></a>1) Catalog</h3><p>对于<code>Catalog</code>是一个跟踪全局table及其模式的数据结构,也提供了外界操作访问table的主要接口,比如说add,get等.每一个表都会有一个全局性唯一标识符号tableId.这个也是外界或者其他地方访问table的方式,也就是通过tableId带入到<code>Catalog</code>所提供的接口中.一个表的schema靠一个对应的TupleDesc对象来修饰,此外关于一个table的信息还有名字,其所归属的文件,主键等等.其中基础也是比较复杂的就是一个表对应的文件对象<code>DbFile</code>.</p>
+<h3 id="catalog">1) Catalog</h3>
+<p>对于<code>Catalog</code>是一个跟踪全局table及其模式的数据结构,也提供了外界操作访问table的主要接口,比如说add,get等.每一个表都会有一个全局性唯一标识符号tableId.这个也是外界或者其他地方访问table的方式,也就是通过tableId带入到<code>Catalog</code>所提供的接口中.一个表的schema靠一个对应的TupleDesc对象来修饰,此外关于一个table的信息还有名字,其所归属的文件,主键等等.其中基础也是比较复杂的就是一个表对应的文件对象<code>DbFile</code>.</p>
 <p><code>DbFile</code>在这个lab中是一个<code>interface</code>,lab1中由<code>HeapFile</code>具体实现.每一个<code>HeapFile</code>对象又会有一个<code>TupleDesc</code>对象去修饰,所以在这里说,一个<code>HeapFile</code>对象和一个table是一一对应的.一个<code>HeapFile</code>有会分页,分页操作的主要目的在于便于提供给<code>BufferPool</code>进行操作,每个<code>HeapFile</code>的<code>Page</code>的内容则主要是表中的一个个<code>Tuple</code>(还有Bitmap),因此<code>HeapFile</code>又通过<code>HeapPage</code>对外提供了操作和访问<code>Tuple</code>的接口,在lab1中读取一个个<code>Tuple</code>的接口是由一个迭代器实现的,在迭代器的实现中,还要考虑分页的影响,考虑再分页的情况下,如何给外界提供一个“连续访问”的假象.</p>
 <p>在细说<code>HeapPage</code>,其实在<code>HeapPage</code>的迭代器只是间接地做了对Tuple的访问,它利用了<code>HeapPage</code>对于<code>Tuple</code>的迭代器,<code>HeapPage</code>则是对<code>Tuple</code>对直接的.<code>HeapFile</code>对于<code>HeapPage</code>来说并算是<code>has-a</code>的关系,而是提供了一个使用<code>readPage</code>接口(以PageId从HeapFile检索)new出一个<code>HeapPage</code>对象.之所以不采用<code>has-a</code>将<code>HeapPage</code>作为数据成员的原因在于,那样将会把所有页,也就是整个文件内容都加载到了内存了,但实际上很多时候不会全部用到,因而浪费了大量内存空间,因此这是一种按需读取的思想.</p>
 <p>再往底层看,在看<code>Tuple</code>的实现,每一个Tuple又是一个个Field的集合,因而说对于fields的访问则需要借助对应的<code>Tuple</code>对象,其需要靠<code>TupleDesc</code>进行修饰也不必说了.而关于<code>TupleDesc</code>这个类,每一个<code>HeapFile,HeapPage,Tuple</code>都会有一个对应的<code>TupleDesc</code>去修饰.</p>
 <p>所以至此,对于<code>Catalog</code>这条线,可以简单地总结为:</p>
 <p>Catalog持有多个Table,每个<code>Table</code>底层对应一个<code>HeapFile</code>,每一个<code>Heapfile</code>虽然对应多个<code>HeapPage</code>但不是has的关系,而是按需返回HeapPage.每一个生成的<code>HeapPage</code>则将其含有的Tuple对象作为数据成员,因此提供了对于Tuple直接的迭代器.</p>
-<h3 id="2-BufferPool"><a href="#2-BufferPool" class="headerlink" title="2) BufferPool"></a>2) BufferPool</h3><p>下面梳理<code>BufferPool</code>这条线.还是先说起<code>HeapFile</code>所提供的迭代器,其内部虽然借助了<code>HeapPage</code>对于Tuple的迭代器,但是<code>HeapFileIterator</code>的迭代器并不是直接通过<code>readPage</code>返回的,而是先借助<code>BufferPool</code>的<code>getPage</code>,如果已经有缓存,则直接返回,否则再借助<code>HeapFile</code>的<code>readPage</code>进行返回.其调用关系如下:</p>
+<h3 id="bufferpool">2) BufferPool</h3>
+<p>下面梳理<code>BufferPool</code>这条线.还是先说起<code>HeapFile</code>所提供的迭代器,其内部虽然借助了<code>HeapPage</code>对于Tuple的迭代器,但是<code>HeapFileIterator</code>的迭代器并不是直接通过<code>readPage</code>返回的,而是先借助<code>BufferPool</code>的<code>getPage</code>,如果已经有缓存,则直接返回,否则再借助<code>HeapFile</code>的<code>readPage</code>进行返回.其调用关系如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c">HeapFileIterator<span class="token operator">-&gt;</span>BufferPool<span class="token punctuation">.</span>getPage<span class="token operator">-&gt;</span>HeapFile<span class="token punctuation">.</span>readPage<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
 <p>再看<code>HeapPage</code>,它与<code>BufferPool</code>有紧密的联系,其大小需要靠BufferPool的页大小决定,进而决定了一个<code>HeapPage</code>的bitmap大小和Tuple数量.</p>
-<h3 id="3-各种Id的作用"><a href="#3-各种Id的作用" class="headerlink" title="3) 各种Id的作用"></a>3) 各种Id的作用</h3><p>上面的很多类中都出现了Id这个数据结构,比如PageId,RecordId等,我为这些Id的作用感到比较疑惑.其中牵扯到Id的类有:<code>HeapFile,HeapPage,Tuple,Table</code>.</p>
+<h3 id="各种id的作用">3) 各种Id的作用</h3>
+<p>上面的很多类中都出现了Id这个数据结构,比如PageId,RecordId等,我为这些Id的作用感到比较疑惑.其中牵扯到Id的类有:<code>HeapFile,HeapPage,Tuple,Table</code>.</p>
 <p>其中<code>Table</code>的id被<code>Catalog</code>用于访问,根据tableId从全局的表中检索出特定的某个表,<code>Catalog</code>中一个get某个Table的接口,都是以TableId作为参数进行传递的.</p>
 <p><code>HeapFile</code>也是根据heapId_来进行检索,是区分每个不同文件的索引,通常使用绝对路径的hash值来确定其Id.</p>
 <p><code>HeapPage</code>的Id由两部分组成,分别是<code>tableId</code>和<code>pgNo</code>,由于table和文件一一对应的关系,所以根据tableId可以唯一地标识这个page所在的文件和表(根据Catalog.getDatabaseFile即可得出对应的文件),而pgNo进一步地确定了这个page在文件中所处的页号.所以一个<code>HeapPageId</code>既可以全剧唯一地标识某个页,又可以精确地标识出其位置.其中根据<code>PageId</code>得出的hashCode可以作为<code>BufferPool</code>中一个map的key,这样能够使访问BufferPool中的页更加迅速.在<code>HeapFile</code>的迭代器中,对于页的访问则是通过该Id完成的.</p>
@@ -533,12 +539,12 @@
        tableId_ <span class="token operator">=</span> tableId<span class="token punctuation">;</span>
        pgNo_ <span class="token operator">=</span> pgNo<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p><code>Tuple</code>的Id则是一个<code>RecordId</code>对象,这个对象相当于在<code>PageId</code>外面又加了一层tupleNo,因此可以全局性地标识这个Tuple.</p>
-<h2 id="2-实验过程"><a href="#2-实验过程" class="headerlink" title="2.实验过程"></a>2.实验过程</h2><h3 id="Exercise-1"><a href="#Exercise-1" class="headerlink" title="Exercise 1"></a>Exercise 1</h3><p>这一部分非常简单,很容易就看出来,其实<code>TupleDesc</code>用来修饰<code>Tuple</code>,所以应该是它的一个数据成员,首先把<code>TupleDesc</code>写好是比较自然的实现思路.其中的数据成员,我加入了:</p>
+<h2 id="实验过程">2.实验过程</h2>
+<h3 id="exercise-1">Exercise 1</h3>
+<p>这一部分非常简单,很容易就看出来,其实<code>TupleDesc</code>用来修饰<code>Tuple</code>,所以应该是它的一个数据成员,首先把<code>TupleDesc</code>写好是比较自然的实现思路.其中的数据成员,我加入了:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">TDItem</span><span class="token punctuation">&gt;</span></span> <span class="token class-name">ItermList_</span><span class="token punctuation">;</span> <span class="token comment">//类似于C++中的动态数组</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> fieldNum_<span class="token punctuation">;</span><span class="token comment">//表示数量</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
 <p>由于<code>TupleDesc</code>不过时TDItem的集合,因此也就使用ArrayList存放.其构造函数的实现,只要将两个数组中的内容生成对应的TDItem加入到ArrayList中就可以了.至于剩余的部分,感觉没有什么好说的,大部分都是非常简单的get操作.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">TupleDesc</span><span class="token punctuation">(</span><span class="token class-name">Type</span><span class="token punctuation">[</span><span class="token punctuation">]</span> typeAr<span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token punctuation">[</span><span class="token punctuation">]</span> fieldAr<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//构造函数</span>
         <span class="token comment">// some code goes here</span>
@@ -551,12 +557,10 @@
         fieldNum_ <span class="token operator">=</span> len<span class="token punctuation">;</span>
         <span class="token comment">//PrintItemForTest();</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>然后关于<code>Tuple</code>的实现部分,其数据成员如下.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">RecordId</span> recordId_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> desc_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Field</span><span class="token punctuation">&gt;</span></span> fields_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p>相比之下,增加了fields,因为每一个元组必须要有实际的值的,其实field则是<code>TupleDesc</code>中每一部分实际的值.此外一个元组又被称为一个<code>Record</code>,<code>RecordId</code>用来全局性地对这个元组进行标识.其构造函数如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">Tuple</span><span class="token punctuation">(</span><span class="token class-name">TupleDesc</span> td<span class="token punctuation">)</span> <span class="token punctuation">{</span>
        <span class="token comment">// some code goes here</span>
@@ -567,9 +571,9 @@
            fields_<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token keyword keyword-null">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//初始化动态数组</span>
        <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>当执行完构造函数,其实这个元组还并不完整,其中的值是空的.<code>RecordId</code>也还没有设置好.而<code>RecordId</code>则是通过外界来进行Set的.对于<code>Tuple</code>中的其他实现,也是简单的Set或者Get操作,比较简单不再细说.</p>
-<h3 id="Exercise-2"><a href="#Exercise-2" class="headerlink" title="Exercise 2"></a>Exercise 2</h3><p>这一部分实现<code>Catalog</code>,牢记这个类的使命在于全局性的维护所有的Table.根据其提供的接口<code>addTable</code>的参数,就可以得知Table相关的数据成员.而关于其<code>TupleDesc</code>则通过<code>DbFile</code>得出.得知了有关于Table需要的相关数据后,可以作出一下的实现:</p>
+<h3 id="exercise-2">Exercise 2</h3>
+<p>这一部分实现<code>Catalog</code>,牢记这个类的使命在于全局性的维护所有的Table.根据其提供的接口<code>addTable</code>的参数,就可以得知Table相关的数据成员.而关于其<code>TupleDesc</code>则通过<code>DbFile</code>得出.得知了有关于Table需要的相关数据后,可以作出一下的实现:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"> <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-static">static</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">TableDesc</span> <span class="token keyword keyword-implements">implements</span> <span class="token class-name">Serializable</span> <span class="token punctuation">{</span>
         <span class="token comment">//private TupleDesc desc_;</span>
         <span class="token keyword keyword-private">private</span> <span class="token class-name">String</span> name_<span class="token punctuation">;</span>
@@ -595,7 +599,6 @@
 <span class="token keyword keyword-private">private</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">TableDesc</span><span class="token punctuation">&gt;</span></span> tableDescs_<span class="token punctuation">;</span> <span class="token comment">//每个table的描述符</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">TupleDesc</span><span class="token punctuation">&gt;</span></span> tupleDescs_<span class="token punctuation">;</span> <span class="token comment">//每个table对应的tuple的描述符</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> tableNum_<span class="token punctuation">;</span> <span class="token comment">//总数</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其实在我的实现中还是有些冗余的,可以将tuple也合并到tableDesc_中.在下面的实现中,构造函数只要将这些都设置为空的就可以了.其中内容的添加并不是一开始就初始化进去的,而是在后来调用<code>addTable</code>加入的.关于<code>addTable</code>的实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">addTable</span><span class="token punctuation">(</span><span class="token class-name">DbFile</span> file<span class="token punctuation">,</span> <span class="token class-name">String</span> name<span class="token punctuation">,</span> <span class="token class-name">String</span> pkeyField<span class="token punctuation">)</span> <span class="token punctuation">{</span>
         <span class="token comment">// some code goes here</span>
@@ -609,10 +612,11 @@
 
       tableNum_ <span class="token operator">++</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>除此之外,我认为还有一个地方需要注意.、</p>
 <blockquote>
-<p>param name the name of the table – may be an empty string.  May not be null.  If a name conflict exists, use the last table to be added as the table for a given name.</p>
+<p>param name the name of the table -- may be an empty string. May not
+be null. If a name conflict exists, use the last table to be added as
+the table for a given name.</p>
 </blockquote>
 <p>所以在<code>getTableId</code>这个根据name进行检索的接口中,采用倒序遍历的方式,等到符合要求时,返回结果.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-int">int</span> <span class="token function">getTableId</span><span class="token punctuation">(</span><span class="token class-name">String</span> name<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">NoSuchElementException</span> <span class="token punctuation">{</span>
@@ -624,9 +628,9 @@
         <span class="token punctuation">}</span>
         <span class="token keyword keyword-throw">throw</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">(</span><span class="token class-name">String</span><span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span><span class="token string">"Not %s in tables from getTableId"</span><span class="token punctuation">,</span>name<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>而其中关于Table的迭代器是Integer类型的,代表的tableId,因此如果借助<code>Catalog</code>遍历全局的表时,可以采用这个迭代器,并且再结合tableId为参数的一些get函数返回对应的表的有关的信息.</p>
-<h3 id="Exercise-3"><a href="#Exercise-3" class="headerlink" title="Exercise 3"></a>Exercise 3</h3><p>有关于BufferPool的实现还是比较简单的,其中需要增添的如数据成员及其构造函数如下:</p>
+<h3 id="exercise-3">Exercise 3</h3>
+<p>有关于BufferPool的实现还是比较简单的,其中需要增添的如数据成员及其构造函数如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">,</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> pages_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> maxPageNum_<span class="token punctuation">;</span>
 
@@ -634,7 +638,6 @@
 		pages_ <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">,</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     maxPageNum_ <span class="token operator">=</span> numPages<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>此外lab1中还需要实现getPage,其实现如下.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">Page</span> <span class="token function">getPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">PageId</span> pid<span class="token punctuation">,</span> <span class="token class-name">Permissions</span> perm<span class="token punctuation">)</span>
         <span class="token keyword keyword-throws">throws</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
@@ -655,9 +658,9 @@
         pages_<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">,</span>page<span class="token punctuation">)</span><span class="token punctuation">;</span>
         <span class="token keyword keyword-return">return</span> page<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>首先从pid得出对应的hashcode,然后检查<code>BufferPool</code>的Map中有没有对应的key,如果有,就直接将map中的值返回.否则,会不得从<code>DbFile</code>读取Page,然后设置PageMap的对应value.</p>
-<h3 id="Exercise-4"><a href="#Exercise-4" class="headerlink" title="Exercise 4"></a>Exercise 4</h3><p>关于HeapPageId和RecordId的实现,不再多说,其作用在上面也已经说了.</p>
+<h3 id="exercise-4">Exercise 4</h3>
+<p>关于HeapPageId和RecordId的实现,不再多说,其作用在上面也已经说了.</p>
 <p>在<code>HeapPage</code>中,已经给我们定义好了数据成员:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-final">final</span> <span class="token class-name">HeapPageId</span> pid<span class="token punctuation">;</span> <span class="token comment">//用于表示这个页</span>
 <span class="token keyword keyword-final">final</span> <span class="token class-name">TupleDesc</span> td<span class="token punctuation">;</span> <span class="token comment">// 这个页对应的Tuple描述符</span>
@@ -666,17 +669,14 @@
 <span class="token keyword keyword-final">final</span> <span class="token keyword keyword-int">int</span> numSlots<span class="token punctuation">;</span> <span class="token comment">//Slot的数量</span>
 <span class="token keyword keyword-byte">byte</span><span class="token punctuation">[</span><span class="token punctuation">]</span> oldData<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-final">final</span> <span class="token class-name">Byte</span> oldDataLock<span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-byte">byte</span><span class="token punctuation">)</span> <span class="token number">0</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>关于<code>getNumTuples</code>的实现,是以bit为单位进行计算,首先计算出一个页总共的bit,然后再除以每一个Tuple所占的bit,此外由于bitmap每一个Tuple又有一个对应的bit,所以每一个Tuple在整个Page中所占的Bit就是<code>(td.getSize() * 8 + 1)</code>.最后的结果也就是向下整除的结果了.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> <span class="token function">getNumTuples</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>        
      <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token class-name">BufferPool</span><span class="token punctuation">.</span><span class="token function">getPageSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">*</span><span class="token number">8</span><span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token punctuation">(</span>td<span class="token punctuation">.</span><span class="token function">getSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">8</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p><code>getHeaderSize</code>的实现,要求返回的是字节数.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> <span class="token function">getHeaderSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
        <span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">ceil</span><span class="token punctuation">(</span>numSlots <span class="token operator">*</span> <span class="token number">1.0</span> <span class="token operator">/</span> <span class="token number">8.0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p>下面是<code>getNumEmptySlots``isSlotUsed</code>的实现.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-int">int</span> <span class="token function">getNumEmptySlots</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//根据位图来判断呢？还是根据tuple呢？</span>
         <span class="token comment">// some code goes here</span>
@@ -695,7 +695,6 @@
         <span class="token keyword keyword-int">int</span> bit <span class="token operator">=</span> header<span class="token punctuation">[</span>index<span class="token punctuation">]</span> <span class="token operator">&gt;&gt;</span> offset <span class="token operator">&amp;</span> <span class="token number">0x01</span><span class="token punctuation">;</span>
         <span class="token keyword keyword-return">return</span> bit <span class="token operator">==</span> <span class="token number">1</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>最后迭代器的实现也比较简单的,将Tuple数组中的元素都塞到一个ArrayList中,并且返回其迭代器即可.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Tuple</span><span class="token punctuation">&gt;</span></span> <span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  <span class="token comment">//迭代器的实现怎么做？？</span>
         <span class="token comment">// some code goes here</span>
@@ -707,8 +706,8 @@
         <span class="token punctuation">}</span>
         <span class="token keyword keyword-return">return</span> tuplelist<span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="Exercise-5"><a href="#Exercise-5" class="headerlink" title="Exercise 5"></a>Exercise 5</h3><p>其中数据成员和构造函数如下:</p>
+<h3 id="exercise-5">Exercise 5</h3>
+<p>其中数据成员和构造函数如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">File</span> file_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> tupleDesc_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> heapId_<span class="token punctuation">;</span>
@@ -719,7 +718,6 @@
         heapId_ <span class="token operator">=</span> f<span class="token punctuation">.</span><span class="token function">getAbsoluteFile</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//用来进行唯一的标识</span>
         tupleDesc_ <span class="token operator">=</span> td<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>然后下面是<code>readPage</code>的实现,这个函数主要用于当BufferPool没有将某一页缓存时调用.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">Page</span> <span class="token function">readPage</span><span class="token punctuation">(</span><span class="token class-name">PageId</span> pid<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//从file里面提取出来相应的page</span>
         <span class="token comment">// some code goes here</span>
@@ -743,7 +741,6 @@
         <span class="token punctuation">}</span>
         <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>首先判断其中的<code>pgno</code>是否在合适的范围内,如果越界则返回null.否则利用<code>RandomAccessFile</code>读取出对应的页,首先根据页号,计算出其所属的offset,并且利用<code>seek</code>函数将文件中的游标移动到该偏移处,然后调用<code>raf.read</code>进行读取,将内容读取到<code>byte[]</code>中后,在根据pid生成<code>HeapPageId</code>,进而new出来一个新的<code>HeapPage</code>,并返回.这个函数体现了页是按需加载到内存中的.</p>
 <p>还有关于页数的计算也是需要注意的.对于多余出来的部分而不足<code>getPageSize</code>的部分,是不算一页的无效部分.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-int">int</span> <span class="token function">numPages</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//根据这个文件的大小计算出来即可</span>
@@ -751,7 +748,6 @@
         <span class="token keyword keyword-int">int</span> num <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">)</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">floor</span><span class="token punctuation">(</span>file_<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">1.0</span> <span class="token operator">/</span> <span class="token class-name">BufferPool</span><span class="token punctuation">.</span><span class="token function">getPageSize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
         <span class="token keyword keyword-return">return</span> num<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>对于迭代器的实现,是这个类的重点,首先我们需要明确一下迭代器的核心功能是什么.迭代器是一种对外提供的对某个数据结构进行遍历的接口,我们可以顺着迭代器按照某种顺序将该数据结构(容器)中的元素逐个遍历出来,对外看来这似乎是连续的,但是迭代器所做的抽象正是对外呈现一种可以连续访问的假象,但其实内部未必是连续的.</p>
 <p>这里的迭代器则是要求能够遍历出一个<code>HeapFile</code>中的所有<code>Tuple</code>.每个<code>HeapPage</code>中确实提供了可以对外遍历其中的<code>Tuple</code>的迭代器,因此<code>HeapFile</code>迭代器正是基于每一个page的迭代器在进行一层抽象.其实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-class">class</span> <span class="token class-name">HeapFileIterator</span> <span class="token keyword keyword-implements">implements</span> <span class="token class-name">DbFileIterator</span><span class="token punctuation">{</span>
@@ -825,8 +821,8 @@
         tupleIterator_ <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="Exercise-6"><a href="#Exercise-6" class="headerlink" title="Exercise 6"></a>Exercise 6</h3><p>练习6要求实现<code>SeqScan</code>,也是一个迭代器,对比之前的<code>HeapFileIterator</code>,这个迭代器对应的目标是Table,正如前面所说,Table是<code>HeapFile</code>的上一层抽象,因此<code>SeqScan</code>也是基于<code>HeapFileIterator</code>实现的,也是对外给用户使用的最直接的接口.</p>
+<h3 id="exercise-6">Exercise 6</h3>
+<p>练习6要求实现<code>SeqScan</code>,也是一个迭代器,对比之前的<code>HeapFileIterator</code>,这个迭代器对应的目标是Table,正如前面所说,Table是<code>HeapFile</code>的上一层抽象,因此<code>SeqScan</code>也是基于<code>HeapFileIterator</code>实现的,也是对外给用户使用的最直接的接口.</p>
 <p>其中的数据成员有:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">DbFile</span> dbFile_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">DbFileIterator</span> <span class="token class-name">Iterator_</span><span class="token punctuation">;</span>
@@ -834,7 +830,6 @@
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> tableId_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">String</span> tableAlias_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> tupleDesc_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>构造函数的实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">SeqScan</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> tableid<span class="token punctuation">,</span> <span class="token class-name">String</span> tableAlias<span class="token punctuation">)</span> <span class="token punctuation">{</span>
         <span class="token comment">// some code goes here</span>
@@ -859,9 +854,10 @@
         <span class="token punctuation">}</span>
         tupleDesc_ <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">TupleDesc</span><span class="token punctuation">(</span>types<span class="token punctuation">,</span>names<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>需要注意的是,在这里需要根据<code>tableAlias</code>对<code>TupleDesc</code>进行设置,将<code>tableAlias</code>最为Field的前缀.剩余的部分,关于一些get,set操作的实现都是比较简单的,此外对于一些迭代器相关的操作也都是简单地对<code>HeapFileIterator</code>操作的一层封装,就不再多说了.</p>
-<h2 id="3-小结"><a href="#3-小结" class="headerlink" title="3.小结"></a>3.小结</h2><p>lab1不算太难,只要梳理清楚了各个类一层层的抽象关系即可.此外这里文件分页和BufferPool的配合我认为是非常巧妙的,文件分页既可以实现按需读取,减少全部加在所带来的内存浪费,又可以适应内存池装载的要求.此外,我对于迭代器这种设计模式的认识也更加深刻,我认为迭代器可以对外提供一种连续遍历访问假象,屏蔽了内部的细节,就比如说c++ STL中的deque,其内存分配其实是一段一段的,并不能说是连续的,但是使用它的迭代器就仿佛在一段连续的空间中顺序访问.此外还熟悉了一下好久没有使用过的java,java有一点让我不舒服,就是关于对象最为数据成员的情况.<a target="_blank" rel="noopener" href="https://juejin.cn/post/7041890272573128740">https://juejin.cn/post/7041890272573128740</a>.</p>
+<h2 id="小结">3.小结</h2>
+<p>lab1不算太难,只要梳理清楚了各个类一层层的抽象关系即可.此外这里文件分页和BufferPool的配合我认为是非常巧妙的,文件分页既可以实现按需读取,减少全部加在所带来的内存浪费,又可以适应内存池装载的要求.此外,我对于迭代器这种设计模式的认识也更加深刻,我认为迭代器可以对外提供一种连续遍历访问假象,屏蔽了内部的细节,就比如说c++
+STL中的deque,其内存分配其实是一段一段的,并不能说是连续的,但是使用它的迭代器就仿佛在一段连续的空间中顺序访问.此外还熟悉了一下好久没有使用过的java,java有一点让我不舒服,就是关于对象最为数据成员的情况.https://juejin.cn/post/7041890272573128740.</p>
 
                 
             </div>

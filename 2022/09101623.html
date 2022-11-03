@@ -503,17 +503,23 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <p>关于lab 6部分,代码量还是很小的,难度也不是太大.</p>
-<h2 id="1-实现基础"><a href="#1-实现基础" class="headerlink" title="1.实现基础"></a>1.实现基础</h2><h3 id="1-日志系统"><a href="#1-日志系统" class="headerlink" title="1) 日志系统"></a>1) 日志系统</h3><p>在说起日志系统之前,首先应当说一下<code>stable storage</code>.不同于易失和非易失存储.可以将其视为具有更高可靠性保证的存储介质,常见的实现方式,比如说在多个disk上对同一份数据进行多个备份,并且采用某种机制维护该数据的更新一致性,最终达到比一半的非易失有更强的容错性.或者是一些远程的备份系统.日志系统一般存储于<code>stable storage</code>上.</p>
+<h2 id="实现基础">1.实现基础</h2>
+<h3 id="日志系统">1) 日志系统</h3>
+<p>在说起日志系统之前,首先应当说一下<code>stable storage</code>.不同于易失和非易失存储.可以将其视为具有更高可靠性保证的存储介质,常见的实现方式,比如说在多个disk上对同一份数据进行多个备份,并且采用某种机制维护该数据的更新一致性,最终达到比一半的非易失有更强的容错性.或者是一些远程的备份系统.日志系统一般存储于<code>stable storage</code>上.</p>
 <p>面对一些故障问题,数据库系统的原子性极有可能受到破坏,比如说在一个事件尚未commit或者abort的时候因故障而中断,这个时候相关的数据就会处于一种中间状态,在这种情况下,数据库系统需要借助日志系统来进行调整.</p>
 <p>在数据库中的修改数据发生时,先写到日志文件中,随后才flush到数据对应的文件中.其中每次写日志子的记录如下:</p>
 <ul>
 <li>事务标记.</li>
 <li>数据项标识(比如说lab中的PageId等).</li>
-<li>old value和new value.其中undo就是说将数据项设置为old value,redo就是设置成new value.</li>
+<li>old value和new value.其中undo就是说将数据项设置为old
+value,redo就是设置成new value.</li>
 </ul>
 <p>其中日志类型有:<code>abort,commit,start,update</code>等.</p>
 <p>对于某个事务,如果发生了abort,处于数据库原子性的需要,则需要对该事件进行回滚,恢复到该事务什么都没有做的状态.</p>
-<h3 id="2-日志检查点"><a href="#2-日志检查点" class="headerlink" title="2) 日志检查点"></a>2) 日志检查点</h3><h2 id="2-实现过程"><a href="#2-实现过程" class="headerlink" title="2.实现过程"></a>2.实现过程</h2><h3 id="Exercise-1-LogFile-rollback"><a href="#Exercise-1-LogFile-rollback" class="headerlink" title="Exercise 1: LogFile.rollback()"></a>Exercise 1: LogFile.rollback()</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">rollback</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span>
+<h3 id="日志检查点">2) 日志检查点</h3>
+<h2 id="实现过程">2.实现过程</h2>
+<h3 id="exercise-1-logfile.rollback">Exercise 1: LogFile.rollback()</h3>
+<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">rollback</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span>
     <span class="token keyword keyword-throws">throws</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-synchronized">synchronized</span> <span class="token punctuation">(</span><span class="token class-name">Database</span><span class="token punctuation">.</span><span class="token function">getBufferPool</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
         <span class="token keyword keyword-synchronized">synchronized</span><span class="token punctuation">(</span><span class="token keyword keyword-this">this</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -530,16 +536,18 @@
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>首先一个需要明白的问题就是,<code>rollback</code>的作用在于将一个page的恢复到旧数据的状态,什么时候需要<code>rollback</code>呢?一般用于一个时间发生<code>abort</code>之后,这个时候该事务涉及到的Page会处于一种中间态,如果保持这种中间态的话,会破坏数据库的原子性保证,因此需要借助<code>rollback</code>进行相关的page的状态恢复.</p>
 <p>其中的实现过程很简单:</p>
 <ul>
 <li>因为要追加表示abort的日志,所以先<code>preAppend</code>留出一个位置.</li>
-<li>然后根据<code>tidToFirstLogRecord</code>(用于记录当前未完成的事件的map)得出该事件start log再log file中的offset.</li>
-<li>从该offset开始扫描该日志项,调用<code>revereReadLogs</code>会将其中有关的old page返回(逆序地返回对应rollback操作逆序的需要).</li>
+<li>然后根据<code>tidToFirstLogRecord</code>(用于记录当前未完成的事件的map)得出该事件start
+log再log file中的offset.</li>
+<li>从该offset开始扫描该日志项,调用<code>revereReadLogs</code>会将其中有关的old
+page返回(逆序地返回对应rollback操作逆序的需要).</li>
 <li>将这些old page逐个flush到其对应的文件中.</li>
 </ul>
-<h3 id="Exercise-2-LogFile-recover"><a href="#Exercise-2-LogFile-recover" class="headerlink" title="Exercise 2: LogFile.recover()"></a>Exercise 2: LogFile.recover()</h3><p><code>recover</code>主要用于当数据库crash之后,需要进行的恢复工作.</p>
+<h3 id="exercise-2-logfile.recover">Exercise 2: LogFile.recover()</h3>
+<p><code>recover</code>主要用于当数据库crash之后,需要进行的恢复工作.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">recover</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">IOException</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-synchronized">synchronized</span> <span class="token punctuation">(</span><span class="token class-name">Database</span><span class="token punctuation">.</span><span class="token function">getBufferPool</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
         <span class="token keyword keyword-synchronized">synchronized</span> <span class="token punctuation">(</span><span class="token keyword keyword-this">this</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -551,11 +559,11 @@
         <span class="token punctuation">}</span>
      <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这个过程其实相对比较复杂,下面结合<code>reverseReadLogs</code>(函数名字起的有些问题,其实在这里是进行正向扫描的).</p>
 <p>其中具体的实现过程如下:</p>
 <ul>
-<li>首先获取LogFile开头的检查点offset,这是最新的检查点offset,移动到此处,检查当前未完成事件的start offset,并移动到其中最小的start offset处.</li>
+<li>首先获取LogFile开头的检查点offset,这是最新的检查点offset,移动到此处,检查当前未完成事件的start
+offset,并移动到其中最小的start offset处.</li>
 <li>从此处开始扫描,直到LogFile当前的末尾,在扫描log的过程中,对于各种Log类型的处理如下:</li>
 </ul>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -601,7 +609,6 @@
                 <span class="token punctuation">}</span>
                 <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
         <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <ul>
 <li>扫描完之后,对于<code>stacklist</code>中仍然剩余的UpdateRecord,这些也就是一直记没有commit,也没有abort的情况,这种情况则按照abort的情况处理即可.</li>
 </ul>
@@ -611,15 +618,25 @@
 <li>对于start位于检查点之后的事务,如果有commit则进行redo,如果是abort或者一直没有完成,则进行undo.</li>
 <li>对于start位于检查点之前的事务,如果在后来进行commit,正常commit处理即可,如果一直没有出现完成或者出现abort则要求进行undo.</li>
 </ul>
-<p>.此外,在因为<code>rollback,recover</code>需要进行的flush操作中,会需要用到<code>BufferPool.discard</code>.这用于将某个Page flush之后,从BufferPool中移除,因为在这里是直接进行flush到对应的文件中,而不是借助修改BUfferPool中Page,所以需要将其移出,这可以避免后来的abort或者commit处理时,将旧的Page进行flush.为什么要这样实现呢? 因为java中的对象是引用类型的,在LogFile中从日志文件中所获取的Page和BufferPool中的Page的引用不相同,因此在LogFile对象中,无法直接获取BufferPool中的某个Page对象进行修改.</p>
-<h2 id="3-mit-6-830的简单复盘"><a href="#3-mit-6-830的简单复盘" class="headerlink" title="3.mit 6.830的简单复盘"></a>3.mit 6.830的简单复盘</h2><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2052%2019%201662868339%201662868339584%20H5qbhe%20C0D262E9B18BE8B92ECFAA2AF52B8A63%20.jpg" style="zoom:50%;">
-
+<p>.此外,在因为<code>rollback,recover</code>需要进行的flush操作中,会需要用到<code>BufferPool.discard</code>.这用于将某个Page
+flush之后,从BufferPool中移除,因为在这里是直接进行flush到对应的文件中,而不是借助修改BUfferPool中Page,所以需要将其移出,这可以避免后来的abort或者commit处理时,将旧的Page进行flush.为什么要这样实现呢?
+因为java中的对象是引用类型的,在LogFile中从日志文件中所获取的Page和BufferPool中的Page的引用不相同,因此在LogFile对象中,无法直接获取BufferPool中的某个Page对象进行修改.</p>
+<h2 id="mit-6.830的简单复盘">3.mit 6.830的简单复盘</h2>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2052%2019%201662868339%201662868339584%20H5qbhe%20C0D262E9B18BE8B92ECFAA2AF52B8A63%20.jpg" style="zoom:50%;"></p>
 <p>这套lab从最初的存储开始,我认为这一部分主要围绕着对于DbFile的抽象和BufferPool的设计为主.DbFile的设计上,采用了每个表对应一个DbFile的模式,对于DbFile中所需要存储的一个个Record则根据关系模型定义了Tuple,TupleDesc等数据结构.DbFile还会被划分为一个个的Page,Page可以算作是DbFile到BufferPool的桥梁,对文件分页机制的实现,适应了操作系统以block为单位去读写文件到内存中的特性,因此也可以说每一个Page也是数据库中对于数据文件进行I/O操作的基本单位,将Page装载于BufferPool中,还可以有效地利用缓存减少文件I/O带来的开销,DataBase对于某个Page进行访问的最外层接口也就是<code>BufferPool.getPage</code>.同时<code>Catalog</code>用来记录一些全局性的元数据,比如说根据tableId获取其对应的DbFile等.</p>
 <p>至于lab2中各种操作的基本实现上,在SimpleDb中很重要的一种设计模式就是迭代器,每种迭代器都可以代表某种操作的序列,比如说<code>insert</code>类型的OpIterator则代表了一连串的insert操作,<code>Filter</code>则代表了一连串的过滤操作,借助<code>next</code>执行这个迭代器中的操作,比如对于insert来说,执行一次next就是将一个关系插入到一个表中,一般每个next返回值都表示这一次操作的结果.此外还有关于<code>Predicate</code>的实现也是不可忽视的一部分,<code>Predicate</code>即为断言,用来表示一个表达式,比如<code>A &gt; B,A != B</code>等,这些断言通常附加在某种操作中表示执行这种操作的条件,比如说JoinPredicate表示符合Join操作的两个Field的条件,当两个Field中的关系满足断言时,可以进行Field操作.</p>
-<p>lab3查询优化部分,首先则需要涉及到对于创建出来的表,都需要基于直方图对于表中的每个列计算出来一个<code>Statistic</code>,生成的<code>Statistic</code>会登记在一个全局的map中,对于经过sql解析器所得出的plan,我们可以视为一串操作序列.如果我以OPi表示一个个关系运算的话,大概可以表达为这种形式的式子:A Op1 B Op2 C Op3 D Op1 B  对于这样的式子采用不同的计算顺序(可以理解为加括号的方式),则会带来不同的开销.由于关系代数的等价性,会带来一些最终产生的关系结果等价的式子,比如说:(A Op1 B) Op2 ((C Op3 D) Op1 B) ,((A Op1 B) Op2 (C Op3 D)) Op1 B) 等,至于怎样从中选取最优的方式,在lab3中采用了一个动态规划的算法.</p>
-<p>lab4中引入了关于并发的控制,由于在SimpleDb中实现的是基于Page的并发控制,所以在这里的LockManager也就设计成了一个BUfferPool的成员,这类LockManager管理着所有事务请求和占有锁的记录,以及每个Page当前的锁状态.每一个试图访问某个Page的事务,都必须先通过LockManager的Accquire才可以,否则就会陷入阻塞,这里采用两段锁协议,两段锁协议避免一个事务的lock lifetime中出现上锁和解锁混杂的情况,其实我的LockManager中其实没有实现两段锁协议,只不过测试用例中,都是等到所有getPage执行完之后(都执行完之后也就不会有正在等待上锁的操作),才会进行commit(commit会触发放锁),因此测试用例中也体现了对于两段锁协议的遵循.每个事务commit之后将该事务有关的锁全部解开,对于死锁的判断,我只是采用了简单的超时,某个事务发现死锁后,会将自己abort,回滚,并释放掉自己的锁.</p>
-<p>lab5中的索引,主要是文件的组织形式变得更复杂了,之前一个Table对应的Page(DbFile中的Page)只不过就是简单的将数据存储在文件里,如果想要查找某个Tuple或者插入的话,不得不尝试逐个Page地进行遍历.而BTreeFile对于Page的组织更加复杂,一个BTreeFile仍然对应了一个Table,但是将其所持有的Page分为leaf Page,Internal Page,rootPage等类型.各种Page之间都有象征指针的数值,用来指向某个其他的Page,这使得看似扁平地分布在文件中的一个个Page可以立体地抽象为一个个树的节点,一个文件也就成了一棵树.原本顺序地将文件进行遍历也就成了从根开始遍历一个个节点(每个节点对应一个Page),每遍历一个节点仍然是借助BufferPool.getPage来完成.所以总的来说,我认为这部分复杂,主要在于数据结构本身很复杂,此外文件中原本一个个的Page由于需要抽象成B+树,所以每个Page由建立了一种链式的关系(每个Page中都有指针).</p>
-<p>对于lab 6中的日志系统部分,处于简单,没有将日志文件存储于某种稳定存储介质中.需要注意的是这里的<code>LogFile</code>是一个独立于BufferPool的,全局的文件.</p>
+<p>lab3查询优化部分,首先则需要涉及到对于创建出来的表,都需要基于直方图对于表中的每个列计算出来一个<code>Statistic</code>,生成的<code>Statistic</code>会登记在一个全局的map中,对于经过sql解析器所得出的plan,我们可以视为一串操作序列.如果我以OPi表示一个个关系运算的话,大概可以表达为这种形式的式子:A
+Op1 B Op2 C Op3 D Op1 B
+对于这样的式子采用不同的计算顺序(可以理解为加括号的方式),则会带来不同的开销.由于关系代数的等价性,会带来一些最终产生的关系结果等价的式子,比如说:(A
+Op1 B) Op2 ((C Op3 D) Op1 B) ,((A Op1 B) Op2 (C Op3 D)) Op1 B)
+等,至于怎样从中选取最优的方式,在lab3中采用了一个动态规划的算法.</p>
+<p>lab4中引入了关于并发的控制,由于在SimpleDb中实现的是基于Page的并发控制,所以在这里的LockManager也就设计成了一个BUfferPool的成员,这类LockManager管理着所有事务请求和占有锁的记录,以及每个Page当前的锁状态.每一个试图访问某个Page的事务,都必须先通过LockManager的Accquire才可以,否则就会陷入阻塞,这里采用两段锁协议,两段锁协议避免一个事务的lock
+lifetime中出现上锁和解锁混杂的情况,其实我的LockManager中其实没有实现两段锁协议,只不过测试用例中,都是等到所有getPage执行完之后(都执行完之后也就不会有正在等待上锁的操作),才会进行commit(commit会触发放锁),因此测试用例中也体现了对于两段锁协议的遵循.每个事务commit之后将该事务有关的锁全部解开,对于死锁的判断,我只是采用了简单的超时,某个事务发现死锁后,会将自己abort,回滚,并释放掉自己的锁.</p>
+<p>lab5中的索引,主要是文件的组织形式变得更复杂了,之前一个Table对应的Page(DbFile中的Page)只不过就是简单的将数据存储在文件里,如果想要查找某个Tuple或者插入的话,不得不尝试逐个Page地进行遍历.而BTreeFile对于Page的组织更加复杂,一个BTreeFile仍然对应了一个Table,但是将其所持有的Page分为leaf
+Page,Internal
+Page,rootPage等类型.各种Page之间都有象征指针的数值,用来指向某个其他的Page,这使得看似扁平地分布在文件中的一个个Page可以立体地抽象为一个个树的节点,一个文件也就成了一棵树.原本顺序地将文件进行遍历也就成了从根开始遍历一个个节点(每个节点对应一个Page),每遍历一个节点仍然是借助BufferPool.getPage来完成.所以总的来说,我认为这部分复杂,主要在于数据结构本身很复杂,此外文件中原本一个个的Page由于需要抽象成B+树,所以每个Page由建立了一种链式的关系(每个Page中都有指针).</p>
+<p>对于lab
+6中的日志系统部分,处于简单,没有将日志文件存储于某种稳定存储介质中.需要注意的是这里的<code>LogFile</code>是一个独立于BufferPool的,全局的文件.</p>
 
                 
             </div>
@@ -771,8 +788,8 @@
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/c/">
-                        <span class="chip bg-color">c++</span>
+                    <a href="/tags/C/">
+                        <span class="chip bg-color">C++</span>
                     </a>
                     
                     <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">

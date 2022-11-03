@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Yfs&#39;s Box">
+    <meta name="keywords" content="CMU 15-445:project #3 - Query Execution, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Yfs&#39;s Box</title>
+    <title>CMU 15-445:project #3 - Query Execution | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/banner/1.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2019%2016%2047%2034%201666169254%201666169254019%20qSTWmm%20image-20221019164733888%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title"></h1>
+                    <h1 class="description center-align post-title">CMU 15-445:project #3 - Query Execution</h1>
                 </div>
             </div>
         </div>
@@ -442,9 +442,21 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">No tag</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/C/">
+                                <span class="chip bg-color">C++</span>
+                            </a>
+                        
+                            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">数据库系统</span>
+                            </a>
+                        
+                            <a href="/tags/CMU-15-445/">
+                                <span class="chip bg-color">CMU 15-445</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -465,14 +477,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    87
+                    1.7k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    1 Min
+                    7 Min
                 </div>
                 
 
@@ -490,8 +502,113 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <hr>
-<p>title: ‘CMU 15-445:project #3 - Query Execution’<br>date: 2022-10-26 14:54:42<br>tags:<br>    - 数据库系统<br>    - CMU 15-445<br>    - c++<br>summary: 这个project相对第二个简单了不少,在平均每天投入3~5小时的情况下,花了我大概5,6天的时间.<br>img: <a target="_blank" rel="noopener" href="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2026%2014%2057%2041%201666767461%201666767461362%20XQwVsQ%20image-20221026145741238%20.png">https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2026%2014%2057%2041%201666767461%201666767461362%20XQwVsQ%20image-20221026145741238%20.png</a><br>–</p>
+                <h2 id="代码分析">1. 代码分析</h2>
+<p>在本次project中,如果想要正确实现,需要阅读大量的相关的代码,所以在此先讲相关的代码及其架构分析一下.</p>
+<h3 id="catalog">1) Catalog</h3>
+<p>关于Catalog,简而言之是一个数据库系统记录一些全局信息的数据结构,在后面的执行器中,可以通过Catalog,检索到所需要的信息,比如说Index,Table等.</p>
+<p>首先看<code>catalog.h</code>中的Catalog,其中的私有成员如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+ <span class="token punctuation">[</span><span class="token punctuation">[</span>maybe_unused<span class="token punctuation">]</span><span class="token punctuation">]</span> BufferPoolManager <span class="token operator">*</span>bpm_<span class="token punctuation">;</span>
+ <span class="token punctuation">[</span><span class="token punctuation">[</span>maybe_unused<span class="token punctuation">]</span><span class="token punctuation">]</span> LockManager <span class="token operator">*</span>lock_manager_<span class="token punctuation">;</span>
+ <span class="token punctuation">[</span><span class="token punctuation">[</span>maybe_unused<span class="token punctuation">]</span><span class="token punctuation">]</span> LogManager <span class="token operator">*</span>log_manager_<span class="token punctuation">;</span>
+ std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>table_oid_t<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>TableInfo<span class="token operator">&gt;&gt;</span> tables_<span class="token punctuation">;</span>
+ <span class="token comment">/** Map table name -&gt; table identifiers. */</span>
+ std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> table_oid_t<span class="token operator">&gt;</span> table_names_<span class="token punctuation">;</span>
+ <span class="token comment">/** The next table identifier to be used. */</span>
+ std<span class="token double-colon punctuation">::</span>atomic<span class="token operator">&lt;</span>table_oid_t<span class="token operator">&gt;</span> next_table_oid_<span class="token punctuation">{</span><span class="token number">0</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+ std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>index_oid_t<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>IndexInfo<span class="token operator">&gt;&gt;</span> indexes_<span class="token punctuation">;</span>
+ std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> index_oid_t<span class="token operator">&gt;&gt;</span> index_names_<span class="token punctuation">;</span>
+ std<span class="token double-colon punctuation">::</span>atomic<span class="token operator">&lt;</span>index_oid_t<span class="token operator">&gt;</span> next_index_oid_<span class="token punctuation">{</span><span class="token number">0</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>由此可见,可以由<code>table_oid_t</code>来得到相应的<code>TableInfo</code>.还有name字符串道相应的<code>table_oid_t</code>.下面还有与索引的相关的.其中主要的API有:GetTable,GetIndex等,大多数API的实现都是围绕着上面几个map数据结构的操作的.但是除了这些之外,像CreateIndex,CreateTable这些API则会涉及到更加复杂的BufferPoolManager的操作.</p>
+<p>然后看<code>schema.h</code>,这个数据结构定义了一个表的模式,主要包括每一列的信息(类型,大小)等.其中核心的数据结构如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-uint32_t">uint32_t</span> length_<span class="token punctuation">;</span>
+<span class="token comment">/** All the columns in the schema, inlined and uninlined. */</span>
+std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Column<span class="token operator">&gt;</span> columns_<span class="token punctuation">;</span>
+<span class="token comment">/** True if all the columns are inlined, false otherwise. */</span>
+<span class="token keyword keyword-bool">bool</span> tuple_is_inlined_<span class="token punctuation">;</span>
+<span class="token comment">/** Indices of all uninlined columns. */</span>
+std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span><span class="token keyword keyword-uint32_t">uint32_t</span><span class="token operator">&gt;</span> uninlined_columns_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中比较常用的API是<code>GetColumns</code>,<code>GetColumn</code>等,这些关于Get的实现一般都是比较简单的.</p>
+<p>但是<code>column.h</code>中有什么呢?一个表的Scheme是由多个<code>Column</code>(如同前面的vector数据成员)组成的,其中包含一些内部信息(name,type,length,offset)等.此外值得注意的是每一个<code>Colmns</code>成员中还会有:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/** Expression used to create this column **/</span>
+<span class="token keyword keyword-const">const</span> AbstractExpression <span class="token operator">*</span>expr_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>及其相关的Get接口.至于其具体作用,在后面具体分析.</p>
+<h3 id="table">2) Table</h3>
+<h4 id="tuple">Tuple</h4>
+<p>相关的类主要是:<code>Tuple,TableHeap,TableIterator</code>.其中<code>Tuple</code>之最基础的单位,即为“元组”,表示关系中的一个条目.其中的数据成员如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> allocated_<span class="token punctuation">{</span><span class="token boolean">false</span><span class="token punctuation">}</span><span class="token punctuation">;</span>  <span class="token comment">// is allocated?</span>
+ RID rid_<span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>              <span class="token comment">// if pointing to the table heap, the rid is valid</span>
+ <span class="token keyword keyword-uint32_t">uint32_t</span> size_<span class="token punctuation">{</span><span class="token number">0</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+ <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>data_<span class="token punctuation">{</span><span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中rid是一个用来在磁盘上检索Tuple的索引(更具体地说,表明了所属的page_id,以及再改page_id中对应的slot的位置),size表明了该Tuple的大小,其中data是一个缓冲区对应该tuple的实际内容.其中相关的API主要是一些Get操作,其中有:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Tuple <span class="token function">KeyFromTuple</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Schema <span class="token operator">&amp;</span>schema<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> Schema <span class="token operator">&amp;</span>key_schema<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span><span class="token keyword keyword-uint32_t">uint32_t</span><span class="token operator">&gt;</span> <span class="token operator">&amp;</span>key_attrs<span class="token punctuation">)</span><span class="token punctuation">;</span>
+Value <span class="token function">GetValue</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Schema <span class="token operator">*</span>schema<span class="token punctuation">,</span> <span class="token keyword keyword-uint32_t">uint32_t</span> column_idx<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>API比较关键,也比较复杂.<code>GetTuple</code>用于从缓冲区的内容中,根据一个shema提取出column_idx,并将其“翻译”成Value类型,作为返回.关于<code>KeyFromTuple</code>比较复杂,在后面也多次用到,留到后面再说.</p>
+<p>总的来说关于其中Value的读取,主要根据参数中Scheme中的Colmns来在Tuple中的data缓冲区中定位到数据,然后翻译成Value.</p>
+<h4 id="tableheap">TableHeap</h4>
+<p><code>TableHeap</code>表示的是一个磁盘中的物理页(不是内存),一个物理页中包含多个TablePage(也就对应于Buffer
+Pool中可以装载的内存页).其中对于这些TablePage的访问,是通过TableIterator进行的(提供了Begin,Next等迭代器接口).其余的API主要围绕着对于Tuple的操作,其中RID是TableHeap检索Tuple的重要参数.比如说下面的UpdateTuple中:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">TableHeap</span><span class="token double-colon punctuation">::</span><span class="token function">UpdateTuple</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Tuple <span class="token operator">&amp;</span>tuple<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> RID <span class="token operator">&amp;</span>rid<span class="token punctuation">,</span> Transaction <span class="token operator">*</span>txn<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Find the page which contains the tuple.</span>
+  <span class="token keyword keyword-auto">auto</span> page <span class="token operator">=</span> <span class="token generic-function"><span class="token function">reinterpret_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>TablePage <span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>buffer_pool_manager_<span class="token operator">-&gt;</span><span class="token function">FetchPage</span><span class="token punctuation">(</span>rid<span class="token punctuation">.</span><span class="token function">GetPageId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// If the page could not be found, then abort the transaction.</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>page <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    txn<span class="token operator">-&gt;</span><span class="token function">SetState</span><span class="token punctuation">(</span>TransactionState<span class="token double-colon punctuation">::</span>ABORTED<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token comment">// Update the tuple; but first save the old value for rollbacks.</span>
+  Tuple old_tuple<span class="token punctuation">;</span>
+  page<span class="token operator">-&gt;</span><span class="token function">WLatch</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-bool">bool</span> is_updated <span class="token operator">=</span> page<span class="token operator">-&gt;</span><span class="token function">UpdateTuple</span><span class="token punctuation">(</span>tuple<span class="token punctuation">,</span> <span class="token operator">&amp;</span>old_tuple<span class="token punctuation">,</span> rid<span class="token punctuation">,</span> txn<span class="token punctuation">,</span> lock_manager_<span class="token punctuation">,</span> log_manager_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  page<span class="token operator">-&gt;</span><span class="token function">WUnlatch</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  buffer_pool_manager_<span class="token operator">-&gt;</span><span class="token function">UnpinPage</span><span class="token punctuation">(</span>page<span class="token operator">-&gt;</span><span class="token function">GetTablePageId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> is_updated<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Update the transaction's write set.</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>is_updated <span class="token operator">&amp;&amp;</span> txn<span class="token operator">-&gt;</span><span class="token function">GetState</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> TransactionState<span class="token double-colon punctuation">::</span>ABORTED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    txn<span class="token operator">-&gt;</span><span class="token function">GetWriteSet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">emplace_back</span><span class="token punctuation">(</span>rid<span class="token punctuation">,</span> WType<span class="token double-colon punctuation">::</span>UPDATE<span class="token punctuation">,</span> old_tuple<span class="token punctuation">,</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-return">return</span> is_updated<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先会借助RID中的Fetch获取其所处的页,然后进行对该页的Update(也就是基于我们所熟悉的BufferPool的一些API完成).</p>
+<h4 id="tableiterator">TableIterator</h4>
+<p>前面提到过,TableHeap中有提供的迭代器接口(Begin,End)可以用来遍历其中的Page,其返回类型为TableIterator.每一个TableIterator的数据成员如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">TableHeap <span class="token operator">*</span>table_heap_<span class="token punctuation">;</span>
+ Tuple <span class="token operator">*</span>tuple_<span class="token punctuation">;</span>
+ Transaction <span class="token operator">*</span>txn_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>一个TableIterator的原子单位是该Page中的一个tuple,也就是上面的tuple指针,而table_heap_也就是该迭代器所处的TableHeap.至于内部关于迭代器的一些重载实现,我们主要关注迭代器中最重要的,比如*,-&gt;,++操作的实现.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Tuple <span class="token operator">*</span>TableIterator<span class="token double-colon punctuation">::</span><span class="token keyword keyword-operator">operator</span><span class="token operator">-&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">assert</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span> <span class="token operator">!=</span> table_heap_<span class="token operator">-&gt;</span><span class="token function">End</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> tuple_<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-const">const</span> Tuple <span class="token operator">&amp;</span>TableIterator<span class="token double-colon punctuation">::</span><span class="token keyword keyword-operator">operator</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">assert</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span> <span class="token operator">!=</span> table_heap_<span class="token operator">-&gt;</span><span class="token function">End</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>tuple_<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面的实现比较简单都是基于TableIterator的最小操作单位,也就是一个Tuple.</p>
+<p>而关于++的实现则是比较复杂的.结合前面的理解,一个++操作意味着Tuple指针移动到当前table_heap中的下一个Tuple.因此这涉及到了需要借助Buffer
+Pool的Fetch,Unpin,GetTuple`等操作,可能涉及到不只一个内存页的读取和Unpin.</p>
+<h3 id="executor">3) Executor</h3>
+<h4 id="executorcontext">ExecutorContext</h4>
+<p>顾名思义,该类为执行器提供一些全局性的信息(也就是执行器背景).其中成员函数是这些全局性信息的指针(比如说Catalog,Buffer
+Pool,Lock Manafer等),主要API也是GET类型的,比如说:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Transaction <span class="token operator">*</span><span class="token function">GetTransaction</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> transaction_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+Catalog <span class="token operator">*</span><span class="token function">GetCatalog</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> catalog_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+BufferPoolManager <span class="token operator">*</span><span class="token function">GetBufferPoolManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> bpm_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+LogManager <span class="token operator">*</span><span class="token function">GetLogManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
+LockManager <span class="token operator">*</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> lock_mgr_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+TransactionManager <span class="token operator">*</span><span class="token function">GetTransactionManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> txn_mgr_<span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h4 id="executorplan">ExecutorPlan</h4>
+<p>对于一个SQL查询语句,内核会将其组织称一个树状的形式,自树的leaf道root递归地计算,最终从root得到最终的结果.其中每个ExecutorPlan代表查询树中的一个节点.</p>
+<p>其中为了对应多态实现的Executor,Executor也是多态的,首先说明一下其中抽象类的实现(数据成员):</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+ <span class="token keyword keyword-const">const</span> Schema <span class="token operator">*</span>output_schema_<span class="token punctuation">;</span>
+ std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span><span class="token keyword keyword-const">const</span> AbstractPlanNode <span class="token operator">*</span><span class="token operator">&gt;</span> children_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>output_schema定义了执行完该节点后所得到Tuple的模式(相当于于投影机制).而children则对应了查询树中的子结点.关于其所能提供的API,也是一些围绕着<code>output_schema_</code>和<code>children_</code>展开的.至于其派生类,后面结合Executor的实现,进行分析.</p>
+<h4 id="executorfactory">ExecutorFactory</h4>
+<p>这个类的实现采用了工厂模式.由于容器在bustub中的实现是基于多态实现的,也就是说定义一个执行器基类,然后可以定义不同种类的执行器.其中相关的接口如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-static">static</span> std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>AbstractExecutor<span class="token operator">&gt;</span> <span class="token function">CreateExecutor</span><span class="token punctuation">(</span>ExecutorContext <span class="token operator">*</span>exec_ctx<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> AbstractPlanNode <span class="token operator">*</span>plan<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>在此介绍task中所需要依赖的类.主要是plan和expression.</p>
+<h2 id="实验过程">2.实验过程</h2>
+<h2 id="其他记录">3.其他记录</h2>
 
                 
             </div>
@@ -518,7 +635,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/10262.html">http://example.com/2022/10262.html</a>
+                    <a href="http://example.com/2022/102641124.html">http://example.com/2022/102641124.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -555,7 +672,19 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">No tag</span>
+                            
+                                <a href="/tags/C/">
+                                    <span class="chip bg-color">C++</span>
+                                </a>
+                            
+                                <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">数据库系统</span>
+                                </a>
+                            
+                                <a href="/tags/CMU-15-445/">
+                                    <span class="chip bg-color">CMU 15-445</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -597,30 +726,28 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;Current
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/10262.html">
+                <a href="/2022/11017476.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2001%2016%2011%2029%201667290289%201667290289554%20xxEp6e%20image-20221101161129462%20.png" class="responsive-img" alt="CMU 15-445:project #4 - Concurrency Control">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="">
-                        
-                        <span class="card-title"></span>
+                        <span class="card-title">CMU 15-445:project #4 - Concurrency Control</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            CMU 15-445终于结束了,在每天投入3~5小时的情况下,做了接近一个月的时间.
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-10-26
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-11-01
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -629,7 +756,22 @@
                         </span>
                     </div>
                 </div>
-
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/C/">
+                        <span class="chip bg-color">C++</span>
+                    </a>
+                    
+                    <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">数据库系统</span>
+                    </a>
+                    
+                    <a href="/tags/CMU-15-445/">
+                        <span class="chip bg-color">CMU 15-445</span>
+                    </a>
+                    
+                </div>
                 
             </div>
         </div>
@@ -669,8 +811,8 @@
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/c/">
-                        <span class="chip bg-color">c++</span>
+                    <a href="/tags/C/">
+                        <span class="chip bg-color">C++</span>
                     </a>
                     
                     <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">

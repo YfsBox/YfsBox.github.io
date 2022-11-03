@@ -503,8 +503,11 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <p>总的来说,lab2的难度也不是太大,主要难的在于一些关于迭代器的实现.</p>
-<h2 id="1-总体架构"><a href="#1-总体架构" class="headerlink" title="1.总体架构"></a>1.总体架构</h2><p>lab2中所需要实现的部分并不像lab1那样有那么强的结构性和整体性,相对来说比较零散.总的来说分为<code>Join,Field,Group,Add,Delete</code>等操作,还有bufferpool的置换算法.</p>
-<h3 id="1-Operator-OpIterator为基础的迭代器体系"><a href="#1-Operator-OpIterator为基础的迭代器体系" class="headerlink" title="1) Operator,OpIterator为基础的迭代器体系"></a>1) Operator,OpIterator为基础的迭代器体系</h3><p>其中<code>Opiterator</code>是所有运算操作所需要实现的基本接口,位于最底层,其中的需要实现的函数包含了一些迭代器中最基本的函数,比如说<code>open,close,hasNext,next</code>等.</p>
+<h2 id="总体架构">1.总体架构</h2>
+<p>lab2中所需要实现的部分并不像lab1那样有那么强的结构性和整体性,相对来说比较零散.总的来说分为<code>Join,Field,Group,Add,Delete</code>等操作,还有bufferpool的置换算法.</p>
+<h3 id="operatoropiterator为基础的迭代器体系">1)
+Operator,OpIterator为基础的迭代器体系</h3>
+<p>其中<code>Opiterator</code>是所有运算操作所需要实现的基本接口,位于最底层,其中的需要实现的函数包含了一些迭代器中最基本的函数,比如说<code>open,close,hasNext,next</code>等.</p>
 <p>而<code>Operator</code>则是以<code>OpIterator</code>为基础所实现的一个抽象类,其中将<code>next,hasNext,close</code>等操作进行实现,其中尤其是<code>next,hasNext</code>理解这部分的实现能够有利于我们知道<code>Opertaor</code>的子类中<code>FetchNext</code>的作用.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">Tuple</span> next <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token keyword keyword-open">open</span> <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
@@ -529,12 +532,10 @@
         next <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
         <span class="token keyword keyword-return">return</span> result<span class="token punctuation">;</span>
  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>在其中有两个变量<code>next</code>和open,其中open是一个表示是否已经开启的flag,这个flag的真假将会影响到<code>hasNext</code>等操作的执行,也就是该迭代器的状态.<code>next</code>则用于保存<code>fetchNext</code>的结果,当调用next的时候,可以认为是将next中储存的<code>FetchNext</code>的结果取出,如果next中没有储存的结果,就通过调用<code>FetchNext</code>取出一个来,然后再取出.而<code>hasNext</code>则是通过检查当前next有没有存储的结果来实现的,如果没有则尝试能不能<code>FetchNext</code>出一个结果,只有在没有储存的next结果并且取不出一个新的next的时候,hasNext为false.</p>
 <p>在这里面<code>fetchNext</code>是一个抽象方法,通常用于在继承Operator的类中实现,比如说<code>Filter,Join</code>等.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token keyword keyword-abstract">abstract</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span>
             <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
 <p>结合<code>hasNext,next</code>以及后来派生类的实现,可以将这个模型概括为:</p>
 <ul>
 <li>变量next是一个缓冲区(size为1).</li>
@@ -544,27 +545,31 @@
 </ul>
 <p>所以在lab中,只有实现了fetchNext方法,才算是实现了一个完整的迭代器.</p>
 <p>这种迭代器的设计方式看似比较别扭,但是其巧妙之处在于,可以使不同的迭代器共用相同的next和hasnext,只需要实现不同的fetchNext即可,降低了代码的耦合度.</p>
-<h3 id="2-join-field"><a href="#2-join-field" class="headerlink" title="2)join,field"></a>2)join,field</h3><p>这一部分操作的基础为断言(<code>Predicate</code>).用来表示的是,像“a == b,a &gt; b,a != b”等条件式.而在于数据库所需要的关系运算中,这种二元运算就往往需要在关系中进行,因此“二元”变成了关系中的两个<code>filed</code>.因此一个<code>Predicate</code>的基类的数据成员如下,恰好对应了二元条件表达式:</p>
+<h3 id="joinfield">2)join,field</h3>
+<p>这一部分操作的基础为断言(<code>Predicate</code>).用来表示的是,像“a ==
+b,a &gt; b,a !=
+b”等条件式.而在于数据库所需要的关系运算中,这种二元运算就往往需要在关系中进行,因此“二元”变成了关系中的两个<code>filed</code>.因此一个<code>Predicate</code>的基类的数据成员如下,恰好对应了二元条件表达式:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> field_<span class="token punctuation">;</span> <span class="token comment">//对应了关系中的某一列的所有field</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">Op</span> op_<span class="token punctuation">;</span> <span class="token comment">//描述=,!=,&gt;等操作符</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">Field</span> operand_<span class="token punctuation">;</span> <span class="token comment">//只用来对应一个Field</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p><code>JoinPredicate</code>与<code>Predicate</code>的实现和功能类似,但是其中最主要的区别在于其数据成员中,包含的field的部分是两个表示field的索引,因此<code>JoinPredicate</code>的比较对象是关系中的两个列整体进行OP操作,而<code>Predacate</code>则用于将关系的一个列和一个固定的field进行比较.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> field1_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> field2_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">Predicate<span class="token punctuation">.</span>Op</span> op_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p>因此,<code>JoinPredicate</code>用于实现<code>Join</code>,而<code>Predicate</code>用于实现<code>filter</code>.</p>
-<h3 id="3-Aggregate"><a href="#3-Aggregate" class="headerlink" title="3)Aggregate"></a>3)Aggregate</h3><p>首先是<code>Aggregator</code>,这是一个接口,这个接口是对于聚类函数的抽象,比如说<code>MIN,MAX,SUM,AVG</code>等.此外还包括<code>mergeTupleIntoGroup</code>这个函数,因此每当有一个新的Tuple加入,聚类操作的结果就要发生变化.而关于迭代器的实现,将结合被聚类关系进行操作,也就是说,这个迭代器用于遍历被聚类关系上的一个个元组,每当<code>next</code>遍历一次,就要执行<code>mergeTupleIntoGroup</code>进行更新.而<code>StringAggregator</code>和<code>IntegerAggregator</code>是两个<code>Aggregator</code>的派生类,</p>
+<h3 id="aggregate">3)Aggregate</h3>
+<p>首先是<code>Aggregator</code>,这是一个接口,这个接口是对于聚类函数的抽象,比如说<code>MIN,MAX,SUM,AVG</code>等.此外还包括<code>mergeTupleIntoGroup</code>这个函数,因此每当有一个新的Tuple加入,聚类操作的结果就要发生变化.而关于迭代器的实现,将结合被聚类关系进行操作,也就是说,这个迭代器用于遍历被聚类关系上的一个个元组,每当<code>next</code>遍历一次,就要执行<code>mergeTupleIntoGroup</code>进行更新.而<code>StringAggregator</code>和<code>IntegerAggregator</code>是两个<code>Aggregator</code>的派生类,</p>
 <p><code>Aggregate</code>则是一个<code>Operator</code>类,其中关于迭代器的实现仍然遵循上面所说的模式,具体来说就是<strong>根据InterAggregator或者StringAggregator的迭代器进行实现</strong>.</p>
-<h3 id="4-insert-delete"><a href="#4-insert-delete" class="headerlink" title="4)insert,delete"></a>4)insert,delete</h3><p>这一部分遵循<code>HeapPage-&gt;HeapFile-&gt;BufferPool</code>的层次,<code>BuferPool</code>所提供的关于insert/delete是最外层的接口,BufferPool会调用HeapFile中的insert/delete,然后再将改变的page在BufferPool更新,HeapFile中的insert和delete都需要读取Page,但这个时候借助BufferPool的getPage来读取,对于其中需要求改的Page,则进一步地调用HeapPage中的insert/delete.</p>
-<h2 id="2-实现过程"><a href="#2-实现过程" class="headerlink" title="2.实现过程"></a>2.实现过程</h2><h3 id="1-Exercise-1"><a href="#1-Exercise-1" class="headerlink" title="1) Exercise 1"></a>1) Exercise 1</h3><p>关于<code>Predicate</code>类的实现,其中需要补全的几个部分主要是一些关于Set和Get的函数,比较简单不再多说,其中需要实现<code>filter</code>函数,该函数的作用在于给定一个Tuple,将其与<code>Predicate</code>中的<code>operand_</code>(也就是固定的被比较的域)进行比较,这个函数直接将Tuple中对应的field获取,然后调用compare函数进行比较即可.</p>
+<h3 id="insertdelete">4)insert,delete</h3>
+<p>这一部分遵循<code>HeapPage-&gt;HeapFile-&gt;BufferPool</code>的层次,<code>BuferPool</code>所提供的关于insert/delete是最外层的接口,BufferPool会调用HeapFile中的insert/delete,然后再将改变的page在BufferPool更新,HeapFile中的insert和delete都需要读取Page,但这个时候借助BufferPool的getPage来读取,对于其中需要求改的Page,则进一步地调用HeapPage中的insert/delete.</p>
+<h2 id="实现过程">2.实现过程</h2>
+<h3 id="exercise-1">1) Exercise 1</h3>
+<p>关于<code>Predicate</code>类的实现,其中需要补全的几个部分主要是一些关于Set和Get的函数,比较简单不再多说,其中需要实现<code>filter</code>函数,该函数的作用在于给定一个Tuple,将其与<code>Predicate</code>中的<code>operand_</code>(也就是固定的被比较的域)进行比较,这个函数直接将Tuple中对应的field获取,然后调用compare函数进行比较即可.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token function">filter</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> t<span class="token punctuation">)</span> <span class="token punctuation">{</span>
        <span class="token comment">// some code goes here</span>
 		<span class="token class-name">Field</span> field_t <span class="token operator">=</span> t<span class="token punctuation">.</span><span class="token function">getField</span><span class="token punctuation">(</span>field_<span class="token punctuation">)</span><span class="token punctuation">;</span>
    <span class="token keyword keyword-return">return</span> field_t<span class="token punctuation">.</span><span class="token function">compare</span><span class="token punctuation">(</span>op_<span class="token punctuation">,</span>operand_<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//operand_就是被比较的对象</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>然后基于<code>Predicate</code>实现<code>Fielter</code>,这个类的作用在于对一个给定的关系,将其根据<code>Predicate</code>执行过滤操作.除了几个简单的get,set操作之外,还有有关于迭代器的部分,其中最重要的是fetchNext,结合上面所说的next,hasNext和fetchNext的关系,实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">NoSuchElementException</span><span class="token punctuation">,</span>
             <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
@@ -577,7 +582,6 @@
         <span class="token punctuation">}</span>
         <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这里的filter有两个数据成员,一个用来描述filter所需要满足的条件<code>Predicate</code>,另一个表示作用对象child_,更具体地说,是一个用来操作关系的迭代器.这里的fetchNext基于<code>child_</code>的迭代器实现,不过多了<code>predicate_</code>的filter操作,直到找到下一个符合要求的才会返回,如果没有就返回null.</p>
 <p>关于其他部分的实现:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">TupleDesc</span> <span class="token function">getTupleDesc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -601,7 +605,6 @@
        <span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
        <span class="token keyword keyword-open">open</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>由于这是一个基于child_的迭代器所实现的迭代器,所以在<code>open,close,rewind</code>等操作中,需要开启/关闭的迭代器既包含<code>child_</code>所对应的迭代器,也包含它自己的迭代器,对于TupleDesc来说,过滤操作不改变关系自身的模式,只是根据条件筛选出一部分Tuple而已,因此和child的TupleDesc相同.</p>
 <p><code>Join</code>部分的目标在于,根据给定的<code>JoinPredicate</code>将两个关系中的一部分Tuple进行合并.关于合并两个Tuple的操作如下</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">Tuple</span> <span class="token function">joinTuples</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> tuple1<span class="token punctuation">,</span><span class="token class-name">Tuple</span> tuple2<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//根据是否符合某个条件将两者合并</span>
@@ -620,7 +623,6 @@
         <span class="token punctuation">}</span>
         <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>首先判断两个Tuple是否符合<code>Predicate</code>的要求,否则直接返回null.对于符合条件的,先得出合并后的TupleDesc,然后得出两个tuple的所有field,然后通过setField进行设置,最终返回.</p>
 <p>而其中关于<code>fetchNext</code>的实现是比较烧脑的,实现如下.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
@@ -651,9 +653,10 @@
         <span class="token punctuation">}</span>
         <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="2-Exercise-2"><a href="#2-Exercise-2" class="headerlink" title="2) Exercise 2"></a>2) Exercise 2</h3><p>在此以<code>StringAggregator</code>为例.</p>
-<p><code>GpMap</code>中,每个key对应加入的Tuple中的不同的group Field,其中value则是group Filed下的所有的StringField的集合.</p>
+<h3 id="exercise-2">2) Exercise 2</h3>
+<p>在此以<code>StringAggregator</code>为例.</p>
+<p><code>GpMap</code>中,每个key对应加入的Tuple中的不同的group
+Field,其中value则是group Filed下的所有的StringField的集合.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> gbfield_<span class="token punctuation">;</span> <span class="token comment">//group所根据的field index</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">Type</span> gbfieldtype_<span class="token punctuation">;</span> <span class="token comment">//上面索引中所对应的数据类型,也就是group域的数值类型</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> afield_<span class="token punctuation">;</span> <span class="token comment">//聚合函数所对应的的field index</span>
@@ -673,7 +676,6 @@
        desc_ <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
        <span class="token class-name">GpMap_</span> <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Field</span><span class="token punctuation">,</span><span class="token class-name">ArrayList</span><span class="token punctuation">&lt;</span><span class="token class-name">StringField</span><span class="token punctuation">&gt;</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中<code>TupleDesc</code>的实现主要区分好两种情况,一种是一个field的情况,这种情况通常是<code>gbfield_</code>为-1或者该索引不存在的情况,除此之外则是两个field的情况.关于<code>mergeTupleIntoGroup</code>这个函数主要的作用在于将一个特定的Tuple加入到该类维护的容器(GpMap)中,在这里仍然注意对于gpfield两种情况的区分,如果gpfield是-1的话,则map中对应的key为null.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">mergeTupleIntoGroup</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> tup<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">NoSuchElementException</span> <span class="token punctuation">{</span>
         <span class="token comment">// some code goes here</span>
@@ -695,7 +697,6 @@
         <span class="token punctuation">}</span>
         <span class="token class-name">GpMap_</span><span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>gpfield<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>afield<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//最后加入到group feild为key的StringFeild序列中.</span>
     <span class="token punctuation">}</span> <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>此外,StringAggregator需要有一个完整的迭代器的实现.这个迭代器是基于GpMap这个“容器”进行实现的.其数据成员如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">StringAggregator</span> aggregator_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Field</span><span class="token punctuation">&gt;</span></span> gvalueIt_<span class="token punctuation">;</span>
@@ -710,7 +711,6 @@
       gvalueIt_ <span class="token operator">=</span> <span class="token class-name"><span class="token namespace">aggregator_<span class="token punctuation">.</span></span>GpMap_</span><span class="token punctuation">.</span><span class="token function">keySet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">iterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
       currGroup_ <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p><code>aggregator</code>指的是该迭代器所属的<code>StringAggregator</code>,<code>gvalueIt</code>则是aggregator中的<code>GpMap</code>中key的迭代器,迭代器中每一项也就对应一个group.因此该迭代器每次遍历的单位就是一个group.其中关于next的实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">Tuple</span> <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">NoSuchElementException</span> <span class="token punctuation">{</span>
             <span class="token class-name">Tuple</span> tuple <span class="token operator">=</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
@@ -729,8 +729,8 @@
 <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-boolean">boolean</span> <span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
             <span class="token keyword keyword-return">return</span> gvalueIt_<span class="token punctuation">.</span><span class="token function">hasNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>其中返回的Tuple的desc再<code>aggregator</code>中就已经确定,其中value,直接通过<code>aggregator_.GpMap_.get(currGroup_).size()</code>即可获得.至于<code>hasNext</code>的实现,只要还有next group就可以,因此也就是返回<code>gvalueIt_.hasNext()</code>.</p>
+<p>其中返回的Tuple的desc再<code>aggregator</code>中就已经确定,其中value,直接通过<code>aggregator_.GpMap_.get(currGroup_).size()</code>即可获得.至于<code>hasNext</code>的实现,只要还有next
+group就可以,因此也就是返回<code>gvalueIt_.hasNext()</code>.</p>
 <p>在练习2中<code>Aggregate</code>仍然是一个<code>operator</code>,其基本模式与上面的<code>Fielter,Join</code>基本一样.其作用在于对于某个给定的关系执行某种聚类操作.数据成员如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">OpIterator</span> child_<span class="token punctuation">;</span> <span class="token comment">//执行聚类操作的关系</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">Aggregator</span> aggregator_<span class="token punctuation">;</span> <span class="token comment">//代表聚类操作</span>
@@ -739,7 +739,6 @@
 <span class="token keyword keyword-private">private</span> <span class="token class-name">Aggregator<span class="token punctuation">.</span>Op</span> aop_<span class="token punctuation">;</span> <span class="token comment">//aggregator操作的类型</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> desc_<span class="token punctuation">;</span> <span class="token comment">//返回Tuple的描述符</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">OpIterator</span> opIt_<span class="token punctuation">;</span> <span class="token comment">//aggregator中的迭代器</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这里的思路,主要在于将child_中的Tuple一个个Merge到aggregator中,然后借助该aggregator的迭代器实现<code>fetchNext</code>等迭代器的操作.其中<code>fetchNext</code>实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
         <span class="token comment">// some code goes here</span>
@@ -766,9 +765,9 @@
         child_<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
         <span class="token keyword keyword-super">super</span><span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>当<code>opIt_</code>被填充好后,直接根据<code>opIt_</code>的next实现即可.<code>open</code>的实现中,需要对<code>opIt_</code>进行初始化,其中MergeToAggregator用于将<code>child_</code>这个关系中的Tuple一个个地加入到<code>aggregator</code>中.</p>
-<h3 id="3-Exercise-3"><a href="#3-Exercise-3" class="headerlink" title="3) Exercise 3"></a>3) Exercise 3</h3><p>练习3中,需要实现对某个表进行insert/delete操作,其实现遵循<code>HeapPage-&gt;HeapFile-&gt;BufferPool</code>自底向上的线索.在<code>HeapPage</code>中:</p>
+<h3 id="exercise-3">3) Exercise 3</h3>
+<p>练习3中,需要实现对某个表进行insert/delete操作,其实现遵循<code>HeapPage-&gt;HeapFile-&gt;BufferPool</code>自底向上的线索.在<code>HeapPage</code>中:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">insertTuple</span><span class="token punctuation">(</span><span class="token class-name">Tuple</span> t<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
     <span class="token comment">// some code goes here</span>
     <span class="token comment">// not necessary for lab1</span>
@@ -786,7 +785,6 @@
     tuples<span class="token punctuation">[</span>k<span class="token punctuation">]</span> <span class="token operator">=</span> t<span class="token punctuation">;</span>
     <span class="token function">markSlotUsed</span><span class="token punctuation">(</span>k<span class="token punctuation">,</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>在这里插入一个insert需要遍历bitmap中的每一个bit,当遇到空闲位置则插入,插入时需要对Tuple中的Record进行重置,从而适应最终插入的位置,设置对应的tuples,最终还需要标记Used.关于delete的操作与此类似,不同的是直接定位出要删除的Tuple的位置,然后直接将SlotUsed进行设置即可.在<code>HeapPage</code>中还有一些关于Dirty的操作,这用于<code>BufferPool</code>中的flush,evit等操作.其实现比较简单.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java">   <span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">markDirty</span><span class="token punctuation">(</span><span class="token keyword keyword-boolean">boolean</span> dirty<span class="token punctuation">,</span> <span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span> <span class="token punctuation">{</span>
        <span class="token comment">// some code goes here</span>
@@ -806,7 +804,6 @@
            <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">;</span>
        <span class="token punctuation">}</span>
    <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>在<code>HeapFile</code>中,delete操作比较简单,将某个Tuple对应的PageId提取出来后,然后借助<code>BufferPool.getPage</code>读取出来该页,然后调用该页的deletTuple即可.而insert相对而言比较复杂.其实现如下:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> <span class="token function">insertTuple</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Tuple</span> t<span class="token punctuation">)</span>
             <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
@@ -836,7 +833,6 @@
         list<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span><span class="token punctuation">;</span>
         <span class="token keyword keyword-return">return</span> list<span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>需要遍历该PageFile中当前已有的Page,当遍历到仍然有空位的Page就执行insert,如果当前已有的Page中并没有空余的,就创建一个Page,然后将其插入到新的Page中,并将这个Page写入到该文件.为什么返回值是<code>List</code>或者<code>ArrayList</code>呢?这个返回值用于被<code>BufferPool</code>获取,当BufferPool获取后,就知道哪些页发生了更新的动作,进而将BufferPool中当前已有的对应的Page进行更新.其中BufferPool中关于insertTuple和deleteTuple的操作是基于HeapFile的insert/delete实现的.最后将返回的<code>List&lt;page&gt;</code>进行更新(调用<code>updatePagePool</code>).</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-void">void</span> <span class="token function">updatePagePool</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> pagelist<span class="token punctuation">,</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">{</span>
     <span class="token keyword keyword-int">int</span> size <span class="token operator">=</span> pagelist<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -856,7 +852,6 @@
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>关于<code>flushPage,flushAllPages</code>的实现,这里这里获取该Page对应的文件后,根据isDirty进行writePage即可.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token keyword keyword-synchronized">synchronized</span>  <span class="token keyword keyword-void">void</span> <span class="token function">flushPage</span><span class="token punctuation">(</span><span class="token class-name">PageId</span> pid<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">IOException</span> <span class="token punctuation">{</span>
     <span class="token comment">// some code goes here</span>
@@ -871,14 +866,13 @@
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span> <span class="token comment">//写入</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="4-Exercise-4"><a href="#4-Exercise-4" class="headerlink" title="4) Exercise 4"></a>4) Exercise 4</h3><p>实现<code>Delete,Insert</code>操作,这里的实现仍然遵循<code>Fielter,Join</code>等模式,实现<code>open,close,fetchNext</code>等.两者的实现差不多,只说明Insert.</p>
+<h3 id="exercise-4">4) Exercise 4</h3>
+<p>实现<code>Delete,Insert</code>操作,这里的实现仍然遵循<code>Fielter,Join</code>等模式,实现<code>open,close,fetchNext</code>等.两者的实现差不多,只说明Insert.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">TransactionId</span> tid_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">OpIterator</span> child_<span class="token punctuation">;</span> 
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-int">int</span> tableId_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">TupleDesc</span> desc_<span class="token punctuation">;</span>
 <span class="token keyword keyword-private">private</span> <span class="token keyword keyword-boolean">boolean</span> isNext_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>数据成员如上,这个迭代器用于将<code>child_</code>中的所有Tuple插入到tableId对应的表中,需要特别注意它的next的意义,一个next操作则表示将整个<code>child_</code>插入到table中.其返回Tuple的类型只有一个field,表示的是成功插入的Tuple的数量.</p>
 <p>下面是<code>fetchNext</code>的实现:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-protected">protected</span> <span class="token class-name">Tuple</span> <span class="token function">fetchNext</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">TransactionAbortedException</span><span class="token punctuation">,</span> <span class="token class-name">DbException</span> <span class="token punctuation">{</span>
@@ -905,9 +899,9 @@
     isNext_ <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
     <span class="token keyword keyword-return">return</span> result<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>如果之前已经通过fetchNext执行过一次插入了,就返回null,这告知上面的hasNext是false的.在近插入时则遍历child,逐个借助insertTuple进行插入,最终返回插入后的结果.这里的insert则是借助<code>BufferPool</code>的insert接口实现的.</p>
-<h3 id="5-Exercise-5"><a href="#5-Exercise-5" class="headerlink" title="5) Exercise 5"></a>5) Exercise 5</h3><p>最后这一部分主要是<code>BufferPool</code>中关于置换算法的实现,这里的实现采用FIFO的置换方法,实现起来非常简单:</p>
+<h3 id="exercise-5">5) Exercise 5</h3>
+<p>最后这一部分主要是<code>BufferPool</code>中关于置换算法的实现,这里的实现采用FIFO的置换方法,实现起来非常简单:</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token comment">//增加的新的数据成员</span>
 <span class="token keyword keyword-private">private</span> <span class="token class-name">LinkedList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">&gt;</span></span> fifoQueue_<span class="token punctuation">;</span>
 <span class="token comment">//evitPage实现</span>
@@ -924,9 +918,9 @@
         <span class="token punctuation">}</span>
         pages_<span class="token punctuation">.</span><span class="token function">remove</span><span class="token punctuation">(</span>hashcode<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//移除</span>
     <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p><code>fifoQueue_</code>在每次有新的Page加入后都会在里面加入新的Page.注意对于驱逐出来的Page注意flush到File中.</p>
-<h2 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h2><p>lab2中讲opertaor定义为迭代器的形式,此外其中next和hasNext的处理很精妙,这使得派生类都可以共用next,hasNext,只需要重写fetchNext,open等.</p>
+<h2 id="总结">3.总结</h2>
+<p>lab2中讲opertaor定义为迭代器的形式,此外其中next和hasNext的处理很精妙,这使得派生类都可以共用next,hasNext,只需要重写fetchNext,open等.</p>
 
                 
             </div>
