@@ -444,16 +444,16 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/C/">
-                                <span class="chip bg-color">C++</span>
-                            </a>
-                        
                             <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
                                 <span class="chip bg-color">数据库系统</span>
                             </a>
                         
                             <a href="/tags/CMU-15-445/">
                                 <span class="chip bg-color">CMU 15-445</span>
+                            </a>
+                        
+                            <a href="/tags/C/">
+                                <span class="chip bg-color">C++</span>
                             </a>
                         
                     </div>
@@ -477,14 +477,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.6k
+                    2.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    6 Min
+                    9 Min
                 </div>
                 
 
@@ -503,7 +503,7 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <h2 id="相关基础知识">1.相关基础知识</h2>
-<p>相关基础知识见另一篇博客<a href="">并发控制小叙</a></p>
+<p>相关基础知识见另一篇博客<a target="_blank" rel="noopener" href="https://yfsbox.github.io/2022/110351034.html">并发控制小叙</a></p>
 <h2 id="代码实现">2.代码实现</h2>
 <p>这一部分需要实现的API有这么几个:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token function">LockShared</span><span class="token punctuation">(</span>Transaction <span class="token operator">*</span>txn<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> RID <span class="token operator">&amp;</span>rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -615,19 +615,100 @@ txn<span class="token operator">-&gt;</span><span class="token function">GetExcl
   <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>根据比较<code>txn_id_t</code>来判断事务的新老,并且检查是否冲突.如果冲突,无论年轻事务有没有被授予锁,都对其进行ABORT处理,除此之外还需要将其对应的request从请求队列中移除.如果这个过程中有事务因为死锁预防被终止,还会调用条件变量的Notify唤醒正在等待的事务(线程).</p>
-<h4 id="两阶段锁">两阶段锁</h4>
-<h4 id="事务隔离级别的实现">事务隔离级别的实现</h4>
-<p>这一部分需要结合LockManager中的API以及执行器中对于这些API的调用方式来进行说明.</p>
-<p>单纯地看<code>lock_manager.cpp</code>中这几个API的实现,需要考虑到事务隔离级别的地方就这么几个.一个是<code>LockShared</code>中,如果检测到当前事务隔离级别是读未提交,就会将该事务设置为ABORT并且返回异常,这是因此我们在后面关于执行器的实现中,在需要读取一些数据时,在该事务隔离级别之下就根本不会调用<code>LockShared</code>.</p>
-<p>另外一个地方在于UnLock中关于Shrinking状态的设置.</p>
+<h4 id="事务隔离级别与两阶段锁的实现">事务隔离级别与两阶段锁的实现</h4>
+<p>这一部分需要结合LockManager中的API以及执行器中对于这些API的调用方式来进行说明.总的来说在需要我们实现的三种隔离级别中,从“读未提交”,“读已提交”,“可重复读”事务隔离级别是依次增强的.</p>
+<p>首先看<code>IsolationLevel::READ_UNCOMMITTED</code>相关的实现.这种隔离级别给人的感觉是,其关于读数据的操作是非常自由的,某个事物如果想要对某个数据进行读,不需要考虑是否有其他事务正在写.因此,具体在实现上就是:<strong>当需要读取数据时,不需要LockShared</strong>.因此在LockShared的实现中,如果检测到来自一个“读未提交”隔离级别的事务,那么将其设置为ABORT,抛出异常即可.如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> IsolationLevel<span class="token double-colon punctuation">::</span>READ_UNCOMMITTED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  txn<span class="token operator">-&gt;</span><span class="token function">SetState</span><span class="token punctuation">(</span>TransactionState<span class="token double-colon punctuation">::</span>ABORTED<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-throw">throw</span> <span class="token function">TransactionAbortException</span><span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetTransactionId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> AbortReason<span class="token double-colon punctuation">::</span>LOCKSHARED_ON_READ_UNCOMMITTED<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>与此相呼应的是有关于ScanExecutor的实现,也就是说在该执行器中,不会对此隔离级别的事务LockShared.如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> IsolationLevel<span class="token double-colon punctuation">::</span>READ_UNCOMMITTED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+   exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">LockShared</span><span class="token punctuation">(</span>txn<span class="token punctuation">,</span> tup<span class="token punctuation">.</span><span class="token function">GetRid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>在“读未提交中”,关于有关于写锁在执行器中的实现,是正常地上锁和解锁的.</p>
+<p>然后是关于"读已提交"的实现.在执行器中,会执行正常的上锁和解锁方式.相比“读未提交”最大的区别就在于关于读取数据的操作需要尽心"LockShared",这使得读取数据不再自由,而是需要和其他事务的“Exclusive”进行竞争,要么先于其他事务的“LockExclusive”,要么等到其他事务将锁释放之后(这种情况下,就意味着脏读问题可以避免了).</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"> <span class="token comment">// scan_execuotr</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> IsolationLevel<span class="token double-colon punctuation">::</span>READ_UNCOMMITTED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">LockShared</span><span class="token punctuation">(</span>txn<span class="token punctuation">,</span> tup<span class="token punctuation">.</span><span class="token function">GetRid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token punctuation">}</span>
+<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> IsolationLevel<span class="token double-colon punctuation">::</span>READ_COMMITTED<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">Unlock</span><span class="token punctuation">(</span>txn<span class="token punctuation">,</span> tup<span class="token punctuation">.</span><span class="token function">GetRid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token punctuation">}</span>
+<span class="token comment">// update_executor</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>transaction<span class="token operator">-&gt;</span><span class="token function">IsSharedLocked</span><span class="token punctuation">(</span>tmp_rid<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+	 exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">LockUpgrade</span><span class="token punctuation">(</span>transaction<span class="token punctuation">,</span> tmp_rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+    exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">LockExclusive</span><span class="token punctuation">(</span>transaction<span class="token punctuation">,</span> tmp_rid<span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token punctuation">}</span>
+<span class="token comment">//......</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>transaction<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> IsolationLevel<span class="token double-colon punctuation">::</span>REPEATABLE_READ<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">Unlock</span><span class="token punctuation">(</span>transaction<span class="token punctuation">,</span> tmp_tup<span class="token punctuation">.</span><span class="token function">GetRid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>至此,我们结合可以发现,“读已提交”没有遵循所谓的两段锁协议,因此一个事务中上锁和解锁的过程是交织在一起的,而非集中与两个阶段.这因此也就容易导致不可重复读问题.因此“可重复读”为了将两个行为分为两个阶段,其实现做法是,不再执行器中释放锁,而是将锁的释放动作集中到<code>Abort</code>或者<code>Commit</code>进行处理.</p>
+<p>因此在执行器中相关的代码,对于“可重复读是不释放锁的”.比如说:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// update_executor	</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>transaction<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> IsolationLevel<span class="token double-colon punctuation">::</span>REPEATABLE_READ<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+   exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">Unlock</span><span class="token punctuation">(</span>transaction<span class="token punctuation">,</span> tmp_tup<span class="token punctuation">.</span><span class="token function">GetRid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在其<code>Unlock</code>中也体现了两段锁协议:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>txn<span class="token operator">-&gt;</span><span class="token function">GetIsolationLevel</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> IsolationLevel<span class="token double-colon punctuation">::</span>REPEATABLE_READ<span class="token punctuation">)</span> <span class="token punctuation">{</span>
   txn<span class="token operator">-&gt;</span><span class="token function">SetState</span><span class="token punctuation">(</span>TransactionState<span class="token double-colon punctuation">::</span>SHRINKING<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>只有允许可重复读的情况下,会设置SHRINKING,因此我们也可以说,只有可重复读的隔离界别是满足两段锁协议的.为了加深理解考虑这么一个场景:</p>
-<pre class="line-numbers language-cp" data-language="cp"><code class="language-cp">T1:			T2:
-read(x)
-				update(x)
-read(x)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>因此做个总结:</p>
+<table>
+<colgroup>
+<col style="width: 5%">
+<col style="width: 36%">
+<col style="width: 36%">
+<col style="width: 7%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>隔离级别</th>
+<th>读锁</th>
+<th>写锁</th>
+<th>两段锁协议</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>读未提交</td>
+<td>不上读锁</td>
+<td>执行器中正常上锁和解锁</td>
+<td>不遵循</td>
+<td>脏读,不可重复读,幻读</td>
+</tr>
+<tr class="even">
+<td>读已提交</td>
+<td>执行器中正常上锁和解锁</td>
+<td>执行器中正常上锁和解锁</td>
+<td>不遵循</td>
+<td>不可重复读,幻读</td>
+</tr>
+<tr class="odd">
+<td>可重复读</td>
+<td>执行器中正常上锁,不解锁;在Abort或者Commit集中解锁</td>
+<td>执行器中正常上锁,不解锁;在Abort或者Commit集中解锁</td>
+<td>遵循</td>
+<td>幻读</td>
+</tr>
+</tbody>
+</table>
+<h4 id="执行器的其他细节">执行器的其他细节</h4>
+<p>执行器关于Update,Delete等操作是需要对索引结构进行更新的,这里添加的代码用于生成一个写索引记录,为后续的回滚服务.在我的实现中,遵循先写记录,在写索引的方式.其实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>index <span class="token operator">:</span> indexes<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  IndexWriteRecord <span class="token function">new_record</span><span class="token punctuation">(</span>tmp_rid<span class="token punctuation">,</span> info_<span class="token operator">-&gt;</span>oid_<span class="token punctuation">,</span> WType<span class="token double-colon punctuation">::</span>INSERT<span class="token punctuation">,</span> tmp_next<span class="token punctuation">,</span> info_<span class="token operator">-&gt;</span>oid_<span class="token punctuation">,</span>
+                              exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetCatalog</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  txn<span class="token operator">-&gt;</span><span class="token function">AppendTableWriteRecord</span><span class="token punctuation">(</span>new_record<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  index<span class="token operator">-&gt;</span>index_<span class="token operator">-&gt;</span><span class="token function">InsertEntry</span><span class="token punctuation">(</span>
+      tmp_next<span class="token punctuation">.</span><span class="token function">KeyFromTuple</span><span class="token punctuation">(</span>info_<span class="token operator">-&gt;</span>schema_<span class="token punctuation">,</span> index<span class="token operator">-&gt;</span>key_schema_<span class="token punctuation">,</span> index<span class="token operator">-&gt;</span>index_<span class="token operator">-&gt;</span><span class="token function">GetKeyAttrs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> tmp_rid<span class="token punctuation">,</span>
+      AbstractExecutor<span class="token double-colon punctuation">::</span>exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetTransaction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在原本更新索引的地方插入写记录的代码即可.</p>
 <h2 id="小结">3. 小结</h2>
 <p>终于完工了CMU
 15-445打算抽空再把源代码和测试代码啃一遍,距离寒假还有接近两个月,剩余的各种课程任务重了起来,打算用剩余的时间入门编译原理吧,或者在补一补6.824中分布式的那些论文,还有以前博客中没有填完的坑.</p>
@@ -700,16 +781,16 @@ read(x)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></s
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/C/">
-                                    <span class="chip bg-color">C++</span>
-                                </a>
-                            
                                 <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
                                     <span class="chip bg-color">数据库系统</span>
                                 </a>
                             
                                 <a href="/tags/CMU-15-445/">
                                     <span class="chip bg-color">CMU 15-445</span>
+                                </a>
+                            
+                                <a href="/tags/C/">
+                                    <span class="chip bg-color">C++</span>
                                 </a>
                             
                         </div>
@@ -835,16 +916,16 @@ read(x)<span aria-hidden="true" class="line-numbers-rows"><span></span><span></s
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/C/">
-                        <span class="chip bg-color">C++</span>
-                    </a>
-                    
                     <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
                         <span class="chip bg-color">数据库系统</span>
                     </a>
                     
                     <a href="/tags/CMU-15-445/">
                         <span class="chip bg-color">CMU 15-445</span>
+                    </a>
+                    
+                    <a href="/tags/C/">
+                        <span class="chip bg-color">C++</span>
                     </a>
                     
                 </div>

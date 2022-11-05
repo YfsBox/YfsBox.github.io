@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.9k
+                    2.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    6 Min
+                    7 Min
                 </div>
                 
 
@@ -561,13 +561,25 @@ serializability</strong>的.</p>
 management：两阶段锁(two-phase locking)</a></p>
 <h3 id="事务隔离级别">4) 事务隔离级别</h3>
 <p>提到事务隔离级别,首先考虑数据库系统中所涉及到的几种异常的数据访问情况,事务隔离级别将会深刻地影响锁管理器处理锁的方式以及上锁方式.</p>
+<p>首先了解这几个基本问题:</p>
+<ul>
+<li>脏读:某个事务更新一份数据,另一个事务读取到结果,但是后来更新该数据的事务又进行了回滚,这个时候读取到的结果是不正确的.</li>
+<li>不可重复读:一个事务多次重复读取某个数据时,由于中间插入其他事务的写,因此导致前后读取的结果不一致.</li>
+<li>幻读:事务1首先读取一些数据(比如说范围查询,或者查询整个表之类的),此时有事务2插入新的行或者列并提交,然而新加入的数据对于事务1来说并不知道.</li>
+</ul>
 <p>其中有:</p>
 <ul>
 <li>可重复读:只允许读取已经提交的数据,并且一个事务在多次读取时,中间不允许插入其他事务对该数据的更新.<strong>可以理解为不允许一个事务在多次读取某数据时有其他事务对该数据的更新介入</strong>.</li>
 <li>已提交读:只允许读已经提交了的数据,不要求可重复读.</li>
-<li>未提交读:这种事务的隔离级别下,一个事务的读操作可以随意进行,不考虑其他事务是否在进行一些与之冲突的操作.</li>
+<li>未提交读:这种事务的隔离级别下,一个事务的读操作可以随意进行,不考虑其他事务是否在进行一些与之冲突的操作.会出现:脏读,幻读或者不可重复读.</li>
 <li>可串行化.前面提到过,一般要求冲突可串行化.</li>
 </ul>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2012%2054%2010%201667451250%201667451250013%20vxb6gK%20image-20221103125409931%20.png" alt="image-20221103125409931">
+<figcaption aria-hidden="true">image-20221103125409931</figcaption>
+</figure>
+<p>可串行化可以将这几个问题都避免.</p>
+<p>其实这几个隔离级别顾名思义,”读未提交“意味着读取数据时,正在对该数据进行更新操作的事务还没有提交,对于一个没有提交的事务,要么最后ABORT,要么COMMIT,而其容易导致脏读就是因为不能保证没有ABORT的情况.而“读已提交”就保证了会被ABORT的事务不会被其他事务读到,因此避免了脏读.</p>
 <h3 id="死锁预防策略">5) 死锁预防策略</h3>
 <p>在这里只说明一下<code>wound-wait</code>算法.</p>
 <p>《数据库系统概念》中提到,关于对于死锁预防,有两种实现思路,第一种是所有事务开始前就确定某一个不会出现死锁的次序,然后按照该顺序加锁.第二种则使用了抢占和回滚.比如在此要说的<code>wound-wait</code>算法.</p>
@@ -776,16 +788,16 @@ https://zhuanlan.zhihu.com/p/57579023</p>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/C/">
-                        <span class="chip bg-color">C++</span>
-                    </a>
-                    
                     <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F/">
                         <span class="chip bg-color">数据库系统</span>
                     </a>
                     
                     <a href="/tags/CMU-15-445/">
                         <span class="chip bg-color">CMU 15-445</span>
+                    </a>
+                    
+                    <a href="/tags/C/">
+                        <span class="chip bg-color">C++</span>
                     </a>
                     
                 </div>
