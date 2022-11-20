@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="编译原理, Yfs&#39;s Box">
+    <meta name="keywords" content="《NETHCF:Filtering Spoofed IP Traffic With Programmable Switches》论文阅读笔记, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>编译原理 | Yfs&#39;s Box</title>
+    <title>《NETHCF:Filtering Spoofed IP Traffic With Programmable Switches》论文阅读笔记 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2014%2023%2004%201668234184%201668234184700%20zaCvwZ%20image-20221112142304593%20.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2017%2035%2035%201668504935%201668504935188%202Hfs1B%20image-20221115173535039%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">编译原理</h1>
+                    <h1 class="description center-align post-title">《NETHCF:Filtering Spoofed IP Traffic With Programmable Switches》论文阅读笔记</h1>
                 </div>
             </div>
         </div>
@@ -444,8 +444,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
-                                <span class="chip bg-color">编译原理</span>
+                            <a href="/tags/%E7%BD%91%E7%BB%9C%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">网络系统</span>
                             </a>
                         
                     </div>
@@ -460,7 +460,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-11-12
+                    2022-11-15
                 </div>
                 
 
@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    3.1k
+                    5.3k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    10 Min
+                    18 Min
                 </div>
                 
 
@@ -494,177 +494,141 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="一.-词法分析">一. 词法分析</h2>
-<p>词法分析就是将输入的字符流,分解成一个个的单词,并且对每个单词进行归类.</p>
-<h3 id="token">1) token</h3>
-<p>书中首先介绍了token这一种基本的单位,并且举了几个代码段,来进行说明,其中token常见的几种类型有这些.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2007%2012%2051%2040%201665118300%201665118300359%20GVwr10%20image-20221007125140226%20.png" alt="image-20221007125140226" style="zoom: 50%;"></p>
-<p>对于一段代码如下,经过词法分析器之后可以产生如下的效果:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2007%2012%2052%2024%201665118344%201665118344344%20RjtfY0%20image-20221007125224262%20.png" alt="image-20221007125224262" style="zoom:50%;"></p>
-<h3 id="正则">2) 正则</h3>
-<p>但是如何从文本(字符序列)解析出一个个的token呢?首先需要介绍的是正则表达式这一形式化的表达方式.正则表达式可以定义某种字符串的格式,对于输入的字符串可以进行匹配,根据是否匹配的结果可以确定给定的字符串是否符合某种类型.关于正则表达式的一些语法上的细节就不再多说.</p>
+                <p>总的来说,本文提出一种可以借助可编程交换机(数据平面+控制平面协调工作)来对欺骗性IP流量进行过滤(通过HCF机制过滤)的系统架构.</p>
+<h2 id="一.-引子">一. 引子</h2>
+<p>DDos攻击中常用的手段是伪造不合法的IP源地址,向服务器端发送大量的请求,进而使得服务器在建立连接时,由于始终不能完整握手阶段的返回,一直占用资源并等待着,进而导致服务器出现资源耗尽而瘫痪的现象.</p>
+<p>因此为了对抗这种伪造不合法的IP的方法,有研究者提出了HCF方案,这是一种根据跳数来对不合法IP进行过滤的方案.之所以考虑根据跳数进行过滤,是因为跳数着一变量是基于攻击者到服务端的路由路径所决定的,不会像普通的报文子段那样易于修改.下面的图中展示的就是一个简单的HCF机制的算法描述:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2017%2049%2012%201668505752%201668505752942%20DhuIYo%20image-20221115174912845%20.png" alt="image-20221115174912845" style="zoom: 50%;"></p>
 <blockquote>
-<p>在此还是提几个需要注意的细节吧,星号(*)即可重复,表示的是0个或多个.关于“|”则表示必选其一的或.</p>
+<p><strong>可见HCF机制是通过检查TTL来进行的计算的.</strong></p>
+<p>此子段表示的是,一个数据包处于当前的路由器时,可以继续进行转发的最大路由处,每当经过一个路由器转发就会使得TTL值减一,如果已经到了零,就会丢包.因此可以通过计算起始点的TTL之差得出中途所经过的跳数.</p>
 </blockquote>
-<p>下面有几个例子:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2007%2013%2000%2055%201665118855%201665118855089%20Uy3S6S%20image-20221007130055006%20.png" alt="image-20221007130055006" style="zoom:50%;"></p>
-<p>还有正则匹配的二义性问题是需要注意的,比如说<code>if8</code>.处理方法有:</p>
+<p>关于HCF模式的发展状况,HCF模式在此paper的成果之前,该模式主要部署在网络协议栈中,尤其是linux系统的生态里.因此单纯地借助有HCF机制支持的Server就可以达到一定的HCF过滤效果.但是这种模式是存在一定的问题的.这也是文章后面的主要动机.</p>
+<p>除此之外,paper中还提到了可编程交换机的发展.虽然,可编程交换机的功能已经强大了很多,可以运行更加复杂的算法和逻辑.然而在可编程交换机运行HCF机制,充满了困难,首先由于HCF条目数目太多所导致的存储空间紧张的问题,另外一点在于对于处于变化的网络环境中,维护HCF条目的相关的变量是需要进行比较复杂的逻辑的,这会给交换机的计算机资源带来很大的负担.这也就是文章中所说的内存和计算资源的局限.</p>
+<h2 id="二.-背景与动机">二. 背景与动机</h2>
+<h3 id="现有hcf模式的弊端">1. 现有HCF模式的弊端</h3>
+<p>这篇paper在对现有的HCF模式进行批判和探索更优解的时候,采用了一种循序渐进的思考方式.我认为其思考线索,主要在于两个维度:<strong>集中/分散和服务器/交换机</strong>.我对这两个维度进行进行简单地说明,<strong>前者是说,关于执行HCF过滤机制,应当使得每个服务器各自地运行自己的HCF来进行过滤,还是考虑在欺骗性IP流量进入到Servers之前的某个交汇点进行过滤?后者则是说,应当将HCF部署在服务器上还是交换机上?</strong>paper从这两个维度出发,最终得出了NETHCF的设计目标,也就是一种“集中+交换机”的HCF模式.</p>
+<h4 id="分散-服务器">(1) 分散 &amp;&amp; 服务器</h4>
+<p>这正是前面所提到的当前最最流行的HCF模式.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2018%2046%2009%201668509169%201668509169217%20Z64ao5%20image-20221115184609124%20.png" alt="image-20221115184609124" style="zoom:50%;"></p>
+<p>作者对于这种模式的批判主要在于以下三点:</p>
 <ul>
-<li>最长匹配,由于一个字符串可以匹配出多种类型的正则,那么选取其中最长的一种正则类型.(在这里if8就是identifier,虽然也可以匹配到IF关键字和8但是不是最长的).</li>
-<li>规则优先,第一匹配完的正则有效.(if8结果为if).</li>
+<li><p>服务器上网络带宽的浪费.</p></li>
+<li><p>部署冗余及对内存,CPU等资源的浪费.</p></li>
+<li><p>系统中负载均衡降低预建立的效率.</p></li>
 </ul>
-<p>但是仅仅是依赖正则表达式还是不够的,正则表达式只能匹配出字符串的类型,但是我们还需要做什么呢?</p>
+<p>下面是我对于以上几点的理解.关于第一点是比较好理解的,因为我们使用HCF机制只能使得欺骗性IP流量在Server端被过滤掉,也就是说欺骗性IP流量还是占用一定的Server上的带宽,因此作者就想,能不能设计一种提前在Server上就被过滤的机制.</p>
+<p>关于第二点,部署冗余问题的理解,因为HCF机制会在内核(内存)中维护一个个的HCF条目,然而HCF的运行在这些服务器上是独立运行的,因此在整个系统之中,如果要确保HCF机制被有效运行,就要保证这些服务器对于这些IP的HCF条目都要有一份,因此整个系统中对于同一个IP的HCF条目相当于有了许多份,这显然是一种冗余的问题.此外,对于内存和CPU的浪费更不必说,HCF条目需要安置在内存上,CPU需要额外地进行HCF算法的执行.</p>
+<p>至于第三点.结合paper中给的图就可以很清楚地说明:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2008%2056%201668510536%201668510536401%20oXD0iT%20image-20221115190856314%20.png" alt="image-20221115190856314" style="zoom:50%;"></p>
 <blockquote>
-<p>一般情况下,词法分析器的作用是用来分析最长匹配.</p>
+<p><strong>HCF的预收集</strong></p>
+<p>类似于缓存系统中的预热功能.如果不进行HCF进行预收集的话,那么HCF机制将会处于一个真空期,也就是HCF条目处于一种较为空缺的状态,因此IP过滤的效率将会大打折扣.所以在正常投入使用前,会先将运行HCF的服务器处于收集的状态.至于收集的效率,<strong>处理流量的密度和收集的效率往往是成反比的</strong>.对于一些访问比较热门的服务,所到来的流量也大,因此往往较短时间就能收集到比较全面的IP,对于一些比较生僻的小网站,可能几个月也收集不全.</p>
 </blockquote>
-<h3 id="自动机">3) 自动机</h3>
-<p><strong>我们需要以一种编程模型来实现正则表达式.</strong>所以也就提出了有限自动机的概念.</p>
-<p>在词法分析的<strong>有限自动机</strong>中,每个边上的条件对应正则表达式上的一位字符.在运行时,一个字符串将会逐个字符的输入自动机,最终达到终态的就可以接受,如果到达某个非法状态,或者走投无路了,则拒绝该字符串.</p>
+<p>就如图中所示的那样,虚线是理想的情况.下面的几个就是在有负载均衡机制下的系统中,不同数量的端主机<code>setting-up</code>的情况.正如在上面所说的,处理流量的密度和<code>setting-up</code>的效率是成反比的,因为一个Server所到来的流量是经过上一条交换机分摊之后的结果,因此所经过流量密度会减小.</p>
+<h4 id="集中-服务器">(2) 集中 &amp;&amp; 服务器</h4>
+<p>结合上面模式的分析,<strong>似乎上面几个问题的根源在于HCF处理的分散性</strong>.所以作者就自然而然想到,如果能将HCF从一个个的服务器们解放出来,集中在一个个Server之前进行处理.就如同下面的:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2026%2002%201668511562%201668511562159%20RfrQvC%20image-20221115192602071%20.png" alt="image-20221115192602071" style="zoom: 33%;"></p>
+<p>因此paper也提到了这种“集中+服务器”的方案,</p>
 <blockquote>
-<p>对于某个字符串对一个有穷自动机不匹配的情况:当字符输入完了,但是还没有到达状态机final
-state;或者中间某个状态无边可选.</p>
+<p>其实到了这里,我也有在思考,为什么没有直接跳跃到“集中+交换机”的方案?我个人认为这是因为当时还没有在交换机运行HCF机制的方案,此外,工程师在解决问题时都会有一种“尽量不重复造轮子”习惯.因此也就首先考虑,仍然利用现有的轮子,只是将“分散”变为“集中”,而非进行更大的跳跃.</p>
 </blockquote>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2007%2013%2010%2031%201665119431%201665119431828%209Fn4Wr%20image-20221007131031745%20.png" alt="image-20221007131031745" style="zoom:33%;"></p>
-<p>至此,我们可以根据各种类型的正则表达式得出各自的自动机,但是真正使用时需要一个合并的大的自动机,并且又穷自动机还可以表示成矩阵的形式:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2007%2013%2013%2026%201665119606%201665119606812%209jCiTs%20image-20221007131326733%20.png" alt="image-20221007131326733" style="zoom: 50%;"></p>
-<p>在使用自动机进行字符串匹配的过程中,需要记录最长匹配的位置和长度.因此会有两个变量被维护(Last_Final,Input_Position_at_Last_Final).</p>
-<p>既然有了一般的自动机,还要NFA有何用呢?其最大的特点在于<strong>非确定,每走一步可以尝试不同的分支(同一个符号).</strong>这也可以用来实现正则表达式.</p>
-<p><strong>这一部分的难点在于正则到NFA和NFA到DFA的转换.</strong></p>
-<h4 id="正则转nfa">正则转NFA</h4>
-<p>首先我们需要明确在正则语法中:**|,·,*是基本的联结运算符号**,因此任何正则表达式都可以转换为只有这3中符号的表达方式,而根据这几种连接符号的性质,我们很容易得出其NFA的表达形式:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2004%2022%2001%2038%201667570498%201667570498192%20fr4eBy%20image-20221104220138064%20.png" alt="image-20221104220138064" style="zoom:33%;"></p>
-<p>所以可以将M,N递归地转换成NFA的形式,最终也就可以得到NFA的表达形式.</p>
-<h4 id="nfa转dfa">NFA转DFA</h4>
-<p>这一部分相对来说要复杂一些.</p>
-<p>书上讲得太抽象了,找了篇博客感觉写得挺好:<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43655282/article/details/108963761">NFA到DFA的转化(保证能讲明白)</a>,然后在找几个例子动手写一写,大概就可以理解是怎么一回事了.</p>
-<h4 id="最小化dfa">最小化DFA</h4>
+<p>但是考虑这一种中间盒方案,如果直接借助一个服务器,运行HCF机制,这给这个服务器带来巨大的负担,处理能力是有限的,此外单个主机一旦宕机,该机制就会作废.因此这个中间盒往往是一个集群,以一种分布式系统的模式运行一个巨大的中间盒.</p>
 <blockquote>
-<p>lex是构造词法分析器的强力工具,其输出是一个c语言文件,即根据我们的定义生成的词法分析模块的程序代码.</p>
+<p><strong>分布式系统的烦恼</strong></p>
+<p>分布式系统是一种需要多个主机借助网络(RPC)通信进行协同工作,进而完成一种服务的系统模式.相比单机系统,其设计和运行都需要考虑许多额外的棘手的问题.</p>
+<ul>
+<li><strong>可靠性.</strong>单个主机宕机是偶然的,但在一个集群中,宕机几乎就是必然事件.因此必须设计一定的机制使得系统中存在故障的情况下,仍然能够维持有效的服务.</li>
+<li><strong>一致性.</strong>为了保障数据的可靠性(完整),往往会在整个系统中对数据维护多个副本,然而面临复杂的读写情况,我们需要维护多个数据的副本能够同时有最新的结果.</li>
+</ul>
+<p>此外,由于这些比较复杂的问题,分布式系统会设计一些更加复杂的机制,耗费更多的网络带宽,带来一定的延迟.这些都是分布式系统的代价.</p>
 </blockquote>
-<h2 id="二.-语法分析">二. 语法分析</h2>
+<p>即使接受这种方案带的额外开销,有一点也是<strong>致命的软肋:服务器端这种软件形式的处理方式效率及其有限.</strong>其处理速率和延迟是无法忍受的.关于其延迟,后面测评中的一个图可以很好的说明问题:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2011%2027%2006%201668569226%201668569226628%20dmW4Y7%20image-20221116112706482%20.png" alt="image-20221116112706482" style="zoom:50%;"></p>
+<h4 id="集中-交换机">(3) 集中 &amp;&amp; 交换机</h4>
+<p>至此,考虑到服务器处理包的效率有限,那么谁是最擅长处理网络数据包的呢?那还得是交换机.单论数据包的路由和转发,交换机中ASIC的处理效率远高于服务器中的CPU.</p>
 <blockquote>
-<p>语法是将单词组合成词组,从句或者句子的方法.</p>
+<p>我对于交换机ASIC的简单理解,交换机ASIC在计算方面属于专才,专注于对于网络数据包的处理.而一般的通用计算资源,比如说CPU等,其对于网络数据包的处理是比较逊色的.</p>
 </blockquote>
-<h3 id="语法表示的困难">0. 语法表示的困难</h3>
-<p>比如说,我们既然可以将字符以正则的语法组成一个表达式,那么如果我们是不是就可以考虑用一个由token组成的表达式就好了?比如说</p>
-<pre class="line-numbers language-none"><code class="language-none">digits = [0-9]+
-sum = (digits "+")*digits<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>对于上面的方式,直接将表达式进行代换就可以得到sum的结果,一个由正则表达式组成的式子.</p>
-<p>但是一些表达式的代换需要考虑递归的问题.比如说:</p>
-<pre class="line-numbers language-none"><code class="language-none">digits = [0-9]+
-sum = expr "+" expr
-expr = "(" sum ")" | digits<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<p>如果考虑直接对sum进行,直接考虑将sum进行代换的话,就会导致无休止的递归问题.</p>
-<h3 id="上下文无关文法">1. 上下文无关文法</h3>
-<p>上下文无关文法是一个<strong>产生式的集合,还包括一些列开始符,终结符,非终结符等</strong>.每个产生式的格式如下:</p>
-<pre class="line-numbers language-none"><code class="language-none">symbol -&gt; symbol symbol ... symbol<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>举几个例子:</p>
-<pre class="line-numbers language-none"><code class="language-none">S -&gt; aSb
-S -&gt; ab<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>我们将最左边的S成为非终结符,我们只要找到了符合右边的串,就可以将其归为S.结合书上的例子:</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2015%2027%2042%201668238062%201668238062328%202U68I3%20image-20221112152742227%20.png" alt="image-20221112152742227">
-<figcaption aria-hidden="true">image-20221112152742227</figcaption>
-</figure>
-<p>以上产生式的集合就可以表示一个文法.终结符是一个产生式中,不可继续分解的最小单位符号.比如上面的num,id,+等等.可以继续分解的就是非终结符.</p>
-<p>关于语法的推导,指的是将一个开始符号,对于其右部的每一个非终结符,都用此非终结符产生式中的任意一个右部进行替换,递归地进行,直到无法再进行替换为止,<strong>最终所有非终结符将会消失</strong>,推导有分为<strong>最右推导和最左推导</strong>.如下所示:</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2015%2036%2005%201668238565%201668238565100%20aGiW9f%20image-20221112153605011%20.png" alt="image-20221112153605011">
-<figcaption aria-hidden="true">image-20221112153605011</figcaption>
-</figure>
-<p>关于推导的过程,<strong>可以将推导的过程组织成一个语法树</strong>.此外,很多文法其实可以最终推导成不同的形式(语法树),称之为<strong>二义性语法</strong>.对于语法二义性应当是我们要避免的东西,因此有一些文法转换的方式.常见的方法有:增加一些非形式化的定义或者设计无二义性的文法.</p>
+<p>因此,至此考虑将HCF模式部署在一个交换机中,就如下展示的一样.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2045%2047%201668512747%201668512747169%20wqpt0D%20image-20221115194547081%20.png" alt="image-20221115194547081" style="zoom:50%;"></p>
+<p>最后也简单地总结一下,paper中对于这三种方案的对比:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2046%2031%201668512791%201668512791648%20U9Bowa%20image-20221115194631562%20.png" alt="image-20221115194631562" style="zoom:50%;"></p>
+<p>paper中对于可编程交换机能力的强调:<strong>可以处理高吞吐量,低延迟和抖动的数据包</strong>.</p>
+<h3 id="可编程交换机的局限">2. 可编程交换机的局限</h3>
+<p>关于其局限性主要在于两点,<strong>一个是内存另一个是计算.</strong></p>
+<p>关于内存,paper中有比较详细的描述,对于HFC中的IP2HC条目,仅仅借助可编程交换机中的内存资源根本就存储不全.其实使用一定程度的哈希压缩方案,也因为哈希冲突容易影响HCF模式的可用性,并且也不能缓解内存资源的紧张.</p>
+<p>关于计算资源,我想主要是由于交换机ASIC的特点所导致的吧,就如前面所说的那样,交换机ASIC在计算方面是专才而非通才,对于一些因为网络动态变化而导致的IP2HC条目内容的更新(比如说网络路由线路发生了变化),以及由于压缩机制所带来的额外的计算.这些都会给交换机ASIC带来了沉重的负担.</p>
+<h2 id="三.-核心设计">三. 核心设计</h2>
+<h3 id="控制平面和数据平面互补的缓存模型">(1)
+控制平面和数据平面互补的缓存模型</h3>
+<p>这种模型的提出,针对的是交换机本机上内存资源紧张的问题.前面提到,交换机本身不太可能将所有需要的IP2HC条目保存,paper中确实也接受了这个现实.但是paper中想到了利用控制平面这个大后方,可以只让数据平面只保存一部分,而控制平面维护了全局视角的IP2HC条目.<strong>简而言之,这是一种将数据平面作为控制平面缓存的方案</strong>.</p>
 <blockquote>
-<p><strong>文件结束符</strong></p>
-<p>文件结束标志往往也是语法分析器必须要读入的,比如说可以用<span class="math inline">\(表示.往往会额外引入一个开始符号S‘,多一个产生式S’
--&gt; S\)</span></p>
+<p>读到这里,我也在尝试挑刺,质疑这种方案的可行性.但是paper中似乎都做出了一些解释,我感觉的确无懈可击.</p>
+<p><strong>既然作为一种缓存系统,那么当数据平面miss时就需要访问控制平面,然而这带来一定的额外开销和延迟,这篇paper哪来的自信,可以保证这种开销不会太大呢?</strong></p>
+<p>根据以往学习过的缓存系统的使用条件,我认为对于数据的访问应当具有一定的局部性才能高效地发挥缓存系统的优势.但是paper中提到了一种IP访问的“heavy-tail”的特点.大体上就是说,IP的访问热度集中在一小部分IP.因此<strong>维护一小部分映射就可以服务于大多数合法的网络流量</strong>.因此,像miss的现象应该不会过于频繁.</p>
 </blockquote>
-<h3 id="ll文法">2) LL文法</h3>
-<p>首先我们需要了解的是,LL文法指的是什么?<strong>LL文法对应了语法树以先序遍历方式,即自顶向下</strong>.</p>
-<p>需要明确的是LL文法分析的先决条件:</p>
+<p>其中paper中描述的结构如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2020%2017%2011%201668514631%201668514631246%203qeWAY%20image-20221115201711153%20.png" alt="image-20221115201711153" style="zoom:67%;"></p>
+<blockquote>
+<p><strong>既然可以讲数据平面和控制平面互补的部分视为一个缓存系统,那么这个系统的设计需要考虑哪些缓存系统中的共性问题?</strong></p>
 <ul>
-<li>消除左递归问题.</li>
-<li>解决回溯问题.</li>
+<li>存储数据条目的内容及其存储的数据结构.</li>
+<li>cache和mirror之间的置换依据及策略.</li>
+<li>数据条目更新及一致性等问题.</li>
 </ul>
-<h4 id="回溯与左递归问题">回溯与左递归问题</h4>
-<p>对于一个输入的字符串,从开始符号出发,不断地将非终结符进行替换,直到没有非终结符为止,最终建立起一个语法树.最终确定一个推导式.但是容易导致的问题有:</p>
-<ul>
-<li>在替换的时候,对于同一个非终结符有多种替换方式,并且这其中并非每种替换方式都正确,一旦递归到某地方后发现错误,就需要回溯,然后继续试探.这会带来较大时开销.</li>
-<li>左递归所导致的无限循环,如果某一个非终结符可替换的方案中,与该非终结符有共同的前缀,并且始终在递归中无法消除.</li>
-</ul>
-<p>关于回溯问题的处理,简而言之,<strong>本质是因为某一个非终结符的多个产生式中,具有公共左因子</strong>,因此在制定文法时,需要保证每个非终结符的多个产生式之间不可以有公共左因子.因此可以采用<strong>提取左因子</strong>的方法,如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2016%2046%2036%201668242796%201668242796474%205jsqE5%20image-20221112164636369%20.png" alt="image-20221112164636369" style="zoom:50%;"></p>
-<p>关于左递归问题的解决.这种现象分为<strong>直接左递归和间接左递归</strong>.定义如下:</p>
-<table>
-<colgroup>
-<col style="width: 15%">
-<col style="width: 84%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>直接左递归</th>
-<th>文法G中有形如A-&gt;Aa的产生式</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>间接左递归</td>
-<td>文法G中无形如A-&gt;Aa的产生式,但是可以经过有限步骤得到A-&gt;Aa</td>
-</tr>
-</tbody>
-</table>
-<p>关于直接左递归的消除:</p>
-<ul>
-<li>以产生式中无左递归的部分为前缀,生成右递归表达式.</li>
-<li>对于有左递归的部分,去除公共前缀,之后写成右递归的形式(末尾还有一个空符).</li>
-</ul>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2016%2056%2058%201668243418%201668243418471%20aWVy1D%20image-20221112165658377%20.png" alt="image-20221112165658377" style="zoom: 33%;"></p>
-<p>至于间接左递归的消除方法,首先通过代换的方式,转换成直接左递归问题,然后按照直接左递归进行处理即可.</p>
-<h4 id="first和follow">First和Follow</h4>
-<p>首先需要了解两个定义:</p>
-<ul>
-<li>First(a),a是一个给定的符号串,First就是该符号串中的首终结符集合.</li>
-<li>Follow(A),是对于非终结符的在整个文法中的后随(紧接的)终结符号的集合.</li>
-</ul>
-<p>其中对于给定的非终结符A,如何计算其follow集合,需要扫描每个含有A的产生式,描述算法如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2013%2018%2014%2038%201668334478%201668334478740%20XQm7tm%20image-20221113181438586%20.png" alt="image-20221113181438586" style="zoom:50%;"></p>
-<p>知道Follow大小不再扩张时,Follow构造结束.</p>
-<p>其实对于LL文法先决条件的描述,通过Follow和First进行更精确的描述如下,<strong>如果满足这些条件,也就说明没有左递归与回溯</strong>:</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2017%2040%2031%201668246031%201668246031708%20OhhSlN%20image-20221112174031613%20.png" alt="image-20221112174031613">
-<figcaption aria-hidden="true">image-20221112174031613</figcaption>
-</figure>
-<p>因此,我们需要先求出Follow和First,然后判断是否符合LL的条件.</p>
-<h4 id="预测分析表的构建">预测分析表的构建</h4>
-<p>下面主要涉及到LL(1)文法有关的部分,LL(1)文法是一种不需要回溯的自顶向下算法.</p>
-<p>至此,我们考虑两个问题.一个是,如何构建预测分析表,并且构建出来之后,该预测分析表又是怎么用的呢?关于预测分析表,结构如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2018%2000%2019%201668247219%201668247219232%20HPzfut%20image-20221112180019132%20.png" alt="image-20221112180019132" style="zoom:50%;"></p>
-<p>每一行对应一个非终结符,每一列对应所有终结符.因此通过检查每个产生式,填表即可.可以参考这个例子<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_40741513/article/details/106036849">编译原理LL(1)预测分析表的构造</a>.</p>
-<p>描述算法如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2013%2018%2025%2022%201668335122%201668335122112%20aLCwWp%20image-20221113182522005%20.png" alt="image-20221113182522005" style="zoom:50%;"></p>
-<p>然而预测分析表是怎样在递归下降中使用呢?</p>
-<p>这篇文章中对于parsing的过程有很详细的推导:<a target="_blank" rel="noopener" href="https://www.cnblogs.com/spoiledkid/p/13270238.html">编译原理语法分析之LL(1)
-parser</a></p>
-<p>推导就是一个伴随着字符串的输入而进行入栈和弹栈的过程,每一步入栈对应了一个非终结符的转化,这里转化的过程是根据预测分析表决策的.</p>
-<h3 id="lr文法">3) LR文法</h3>
-<p>LR(k)分析代表的是,从左到右分析,最右推导,超前查看k个单词.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2019%2050%2012%201668253812%201668253812393%20brVzVw%20image-20221112195012284%20.png" alt="image-20221112195012284" style="zoom:50%;"></p>
-<p>从此图可知,相比LL(1)文法每次查看一个符号就根据预测分析表来对战进行规约或压入,LR文法则是先将符号压入,如果符合规约的条件,再递归地进行规约动作,直到扫描到结束字符,而且此时栈中只有一个S.LR文法对应了语法分析树中的后序遍历.</p>
-<p>除此之外,我们还可以发现,栈内的元素+输入缓冲区的内容总是等于一个”规范句型“.</p>
-<h4 id="lr语法分析算法">LR语法分析算法</h4>
-<p>LR分析器是怎样知道如何移进或者规约的呢?答案是通过有限自动机来进行的.<strong>这种有限自动机是作用于栈的动作的</strong>.</p>
-<p>其中如下所示:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2021%2005%2015%201668258315%201668258315569%20gVMhfi%20image-20221112210515455%20.png" alt="image-20221112210515455" style="zoom:50%;"></p>
-<p>其中的纵坐标表示的是栈的状态,而横坐标表示的是当前要输入的符号.关于对于其中动作的说明:</p>
-<ul>
-<li>sn表示的是移进,并且转换到状态n.</li>
-<li>rk表示的是规约,根据文法中的规则k依次弹出单词(弹出单词的数量与产生式右半部分相同).然后压入产生式左半部.</li>
-</ul>
-<p>因此我们的任务也就是,如何根据文法构建出这样的一个状态机.</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2013%2019%2016%2018%201668338178%201668338178168%20ozbHdW%20image-20221113191618033%20.png" alt="image-20221113191618033">
-<figcaption aria-hidden="true">image-20221113191618033</figcaption>
-</figure>
-<h4 id="lr0分析器">LR(0)分析器</h4>
+<p>后面的设计内容主要也是围绕着这几个问题,但是在一些细节的设计上,需要结合一些网络和安全系统的特性,我认为这些也就是理解其设计的难点所在.</p>
+</blockquote>
+<p>此外,值得一提的是,该系统会被划分为两种工作状态,一种是学习状态另一种是过滤状态.<strong>之所以要划分两种状态,是为了避免时时刻刻处理miss而导致的额外延迟</strong>.</p>
+<h3 id="数据条目及其数据结构">(2) 数据条目及其数据结构</h3>
+<p>这一部分回答了上面所提到的问题.paper中主要回答了控制平面上的情况.</p>
+<p>简而言之,控制平面上所展现的是一种“表+树”的数据结构.</p>
+<blockquote>
+<p><strong>树对于节省存储空间的优势</strong></p>
+<p>关于我对树这种数据结构的理解,我认为树对于表示一些具有层级特性(比如说IP地址,页表项等)的数据方面相对于一般的表会有明显的优势.对于表这种数据结构,对于一些有共同前缀的数据,毫无疑问会讲这些“前缀”存储多次,造成冗余.然而树可以避免这种现象,不同条目的共同前缀在树中只会对应一份,剩余不同的部分则对应该共同前缀节点下的不同孩子.</p>
+</blockquote>
+<p>上面是我对于树这种数据结构对于表示IP地址这种具有层次性特点的优势.但此外,我认为其优势不仅仅如此,树这种结构相比表,更便于合并与分离.为什么需要进行合并与分离的操作呢?首先我们知道,合并与分裂的操作肯定是有利于节省空间的.其所依据的经验就是,对于一些具有共同前缀,尤其是共同前缀的IP地址,往往在网络中的位置接近的(比如说处于同一个局域网之中),因此有大量的共同前缀的IP也具有相同的跳数值,因此可以考虑合并成同一项,这对应了合并到同一个父节点上,这种现象很常见因此,因此可以节省大量的空间.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2020%2051%2048%201668516708%201668516708773%20poRV61%20image-20221115205148679%20.png" alt="image-20221115205148679" style="zoom:50%;"></p>
+<p>关于数据平面,其中的数据结构则是一个表,及匹配动作表.如下所示:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2020%2056%2005%201668516965%201668516965708%20uwiL2g%20image-20221115205605614%20.png" alt="image-20221115205605614" style="zoom:50%;"></p>
+<p>至此,我们可以发现,控制平面上的压缩机制最终也造福了数据平面,因为数据平面上条目中的IP/IP前缀使得一个条目可以处理多个IP,倘若没有控制平面费尽心思地做压缩机制,也就不会有数据平面上的效果.</p>
+<h3 id="适应网络动态">(3) 适应网络动态</h3>
+<p>我觉得这一部分是整个paper中最最难以理解的,理解了这一部分,也就理解了前面所提到的“共性与特性”问题,尤其是一些和网路及安全情境下的细节问题.</p>
+<h4 id="a.-条目的更新">a. 条目的更新</h4>
+<p>这个问题主要考虑,在考虑对抗的情景下,如何判断一个IP是否合法,然后对于合法的更新,如何设计更新机制才可以尽可能保证数据平面和控制平面的一致性?</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2021%2015%2047%201668518147%201668518147085%201pg8nz%20image-20221115211546992%20.png" alt="image-20221115211546992" style="zoom:50%;"></p>
+<p>关于IP合法性,也就相当于到来TCP连接的合法性,该系统是根据<code>Switch-based TCP SYN Cookie workflow</code>进行的.</p>
+<blockquote>
+<p><strong>利用TCP SYN Cookie怎样判断合法TCP连接?</strong></p>
+<p>具体地说,对于跳数不一致的TCP SYN数据包,TCP会话监视器模块会响应TCP
+SYN-ACK数据包等待TCP ACK数据包.</p>
+</blockquote>
+<p>关于条目的更新,<strong>对于miss的条目来说</strong>,如果当前处于过滤阶段会将整个数据包发给控制平面,如果是学习状态则只发送数据包摘要.当控制平面接收到之后在本地更新,然后再发送消息使得数据平面更新“匹配+动作表”.<strong>而对于hit的条目来说</strong>,接下来会进入TCP会话监听模块判断是否有跳数变化,如果有跳数变化,TCP监听模块会发送消息给控制平面,控制平面更新后发送消息使得数据平面上的“匹配+动作”表更新.</p>
+<p>然而仅仅是这样做的话,会导致一个问题,因为这个过程会带来延迟,在这个延迟之间的真空期如何处理?</p>
+<p>这也就是后面引入一个<code>HC Reinspect</code>的意义.<code>HC Reinspect</code>与TCP会话监控模块直接相连,可以接收到最新的IP2HC变化.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2011%2002%2023%201668567743%201668567743700%20R4tD6l%20image-20221116110223610%20.png" alt="image-20221116110223610" style="zoom:50%;"></p>
+<h4 id="b.-ip热度变化以及置换机制">b. IP热度变化以及置换机制</h4>
+<p>对于IP条目需要维护一个表示IP热度的子段,该字段将会作为该缓存系统中的置换依据.如果不考虑任何和安全有关的问题,那么我们对于每个IP,每访问一次就对其热度计数加一就行了.但是一旦考虑安全的问题,就要避免欺骗性IP对其造成影响.</p>
+<p>在NETHCF的设计中,对于数据平面没有进行缓存的IP条目,无法在数据平面上完成判断,因此这时就需要借助控制平面进行判断.然而怎样将此数据包报告给控制平面呢?</p>
+<p>如果当前处于学习状态,那么就会讲数据包摘要(IP地址,IP
+TTL,TCP标志等)传递给控制平面镜像,如果是处于过滤状态的话,则是直接发送整个数据包到控制平面.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2009%2020%2003%201668561603%201668561603563%20pY5XrP%20image-20221116092003469%20.png" alt="image-20221116092003469" style="zoom: 33%;"></p>
+<p>然而当缓存中的条目计数值发生变化,如何与控制平面进行同步呢?</p>
+<p>NETHCF采用了一种类似于批处理的策略,也就是说,并非每次在数据平面更新都会在控制平面上更新,而是当缓存上一个条目的计数器超过一定的阈值时,缓存会将该条目的IP/IPs前缀发送给控制平面镜像.后面的<code>Report Bit Array</code>用来防止一旦超过某个阈值进而重复报告.</p>
+<p>当控制平面获取了数据平面上的所有热条目之后,求出其补集(也就是没有被报告的条目),再根据之前所收集到的miss的条目,对这一部分(补集)中的条目进行更新.</p>
+<blockquote>
+<p>有一说一,这一部分没有完全理解.</p>
+</blockquote>
+<p>最终总体结构如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2009%2057%2049%201668563869%201668563869967%20cONu9q%20image-20221116095749877%20.png" alt="image-20221116095749877" style="zoom:67%;"></p>
+<h2 id="四.-评估分析">四. 评估分析</h2>
+<p>首先,说明一下实验条件:一个运行NETHCF的Tofino交换机,当作控制平面的交换机,当作服务端的服务器,另外一个服务器用来作为client.</p>
+<p>之后的评估工作主要包括预建立测试,IP2HC表压缩,跳数变化捕捉等等.其中将交换机上资源占用率(CPU内存等),控制平面和数据平面开销和处理延迟等作为重要评价指标.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2011%2024%2026%201668569066%201668569066384%20A7Ey9q%20image-20221116112426296%20.png" alt="image-20221116112426296" style="zoom: 67%;"></p>
+<h2 id="五.-小结和感想">五. 小结和感想</h2>
+<p>本文虽然是一篇网络安全相关的论文,但是其创新点并不主要体现在安全机制的创新,而是对于运行这种安全机制的系统架构的创新,创新的目的主要侧重于更小的开销和更高的性能.是一篇硬核的系统文章.</p>
+<p>此外,这篇论文涉及到的知识面具有一定的广度,从TCP/IP协议,交换机硬件,分布式系统等等皆有涉猎,此外其中缓存模型的思想也是计算机系统中的经典思想.其实虽然创新很大,但是很多设计仍然是使用的计算机领域比较经典的思想.由此可见,对于系统研究者深刻理解计算机基础学科的意义.</p>
+<p>并且系统方面的很多设计,不像纯理论的研究,很多设计所依赖的基础是一些工程的经验,难以用完全精准的公式去描述,比如说:网路IP访问的“heavy-tail”性质等等,但是这些经验极其有用.因此有人说”系统设计是艺术,而非科学“.</p>
 
                 
             </div>
@@ -691,7 +655,7 @@ parser</a></p>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/111239825.html">http://example.com/2022/111239825.html</a>
+                    <a href="http://example.com/2022/111523193.html">http://example.com/2022/111523193.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -729,8 +693,8 @@ parser</a></p>
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
-                                    <span class="chip bg-color">编译原理</span>
+                                <a href="/tags/%E7%BD%91%E7%BB%9C%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">网络系统</span>
                                 </a>
                             
                         </div>
@@ -778,23 +742,23 @@ parser</a></p>
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/111523193.html">
+                <a href="/2022/111919665.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2017%2035%2035%201668504935%201668504935188%202Hfs1B%20image-20221115173535039%20.png" class="responsive-img" alt="《NETHCF:Filtering Spoofed IP Traffic With Programmable Switches》论文阅读笔记">
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2020%2011%2039%2050%201668915590%201668915590826%20aBAslk%20image-20221120113950731%20.png" class="responsive-img" alt="《NanoLog: A Nanosecond Scale Logging System》论文阅读笔记">
                         
-                        <span class="card-title">《NETHCF:Filtering Spoofed IP Traffic With Programmable Switches》论文阅读笔记</span>
+                        <span class="card-title">《NanoLog: A Nanosecond Scale Logging System》论文阅读笔记</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            一篇挺硬核的网络系统方面的paper.
+                            老师推荐了一个值得学习的开源日志库,这是其paper的学习笔记.
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-11-15
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-11-19
                         </span>
                         <span class="publish-author">
                             
@@ -807,8 +771,12 @@ parser</a></p>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E7%BD%91%E7%BB%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">网络系统</span>
+                    <a href="/tags/C/">
+                        <span class="chip bg-color">C++</span>
+                    </a>
+                    
+                    <a href="/tags/%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">日志系统</span>
                     </a>
                     
                 </div>
@@ -822,24 +790,23 @@ parser</a></p>
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/11059442.html">
+                <a href="/2022/111239825.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2014%2023%2004%201668234184%201668234184700%20zaCvwZ%20image-20221112142304593%20.png" class="responsive-img" alt="编译原理">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="CTF Pwn namespaces与CVE-2019-5736">
-                        
-                        <span class="card-title">CTF Pwn namespaces与CVE-2019-5736</span>
+                        <span class="card-title">编译原理</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            软件安全上布置的一个课题,虽然不怎么搞安全,但是感觉其中涉及到一些比较深的知识,写这篇文章记下来.
+                            学习编译原理基础知识所做的笔记,主要参考书为虎书等.
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-11-05
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-11-12
                             </span>
                         <span class="publish-author">
                             
@@ -852,16 +819,8 @@ parser</a></p>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F/">
-                        <span class="chip bg-color">云原生</span>
-                    </a>
-                    
-                    <a href="/tags/docker/">
-                        <span class="chip bg-color">docker</span>
-                    </a>
-                    
-                    <a href="/tags/%E5%AE%B9%E5%99%A8/">
-                        <span class="chip bg-color">容器</span>
+                    <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
+                        <span class="chip bg-color">编译原理</span>
                     </a>
                     
                 </div>

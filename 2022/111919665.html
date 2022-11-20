@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Yfs&#39;s Box">
+    <meta name="keywords" content="《NanoLog: A Nanosecond Scale Logging System》论文阅读笔记, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Yfs&#39;s Box</title>
+    <title>《NanoLog: A Nanosecond Scale Logging System》论文阅读笔记 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/banner/1.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2020%2011%2039%2050%201668915590%201668915590826%20aBAslk%20image-20221120113950731%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title"></h1>
+                    <h1 class="description center-align post-title">《NanoLog: A Nanosecond Scale Logging System》论文阅读笔记</h1>
                 </div>
             </div>
         </div>
@@ -442,9 +442,17 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">No tag</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/C/">
+                                <span class="chip bg-color">C++</span>
+                            </a>
+                        
+                            <a href="/tags/%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/">
+                                <span class="chip bg-color">日志系统</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -456,7 +464,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-11-15
+                    2022-11-19
                 </div>
                 
 
@@ -465,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    4.3k
+                    2.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    14 Min
+                    9 Min
                 </div>
                 
 
@@ -490,124 +498,100 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>title: '《NETHCF:Filtering Spoofed IP Traffic With Programmable
-Switches》论文阅读笔记' tags: - 网络系统 abbrlink: 23193 date:
-2022-11-15 17:32:56 img:
-https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2017%2035%2035%201668504935%201668504935188%202Hfs1B%20image-20221115173535039%20.png</p>
-<p>summary: 一篇挺硬核的网络系统方面的paper.</p>
-<p>总的来说,本文提出一种可以借助可编程交换机(数据平面+控制平面协调工作)来对欺骗性IP流量进行过滤(通过HCF机制过滤)的系统架构.</p>
-<h2 id="一.-引子">一. 引子</h2>
-<p>DDos攻击中常用的手段是伪造不合法的IP源地址,向服务器端发送大量的请求,进而使得服务器在建立连接时,由于始终不能完整握手阶段的返回,一直占用资源并等待着,进而导致服务器出现资源耗尽而瘫痪的现象.</p>
-<p>因此为了对抗这种伪造不合法的IP的方法,有研究者提出了HCF方案,这是一种根据跳数来对不合法IP进行过滤的方案.之所以考虑根据跳数进行过滤,是因为跳数着一变量是基于攻击者到服务端的路由路径所决定的,不会像普通的报文子段那样易于修改.下面的图中展示的就是一个简单的HCF机制的算法描述:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2017%2049%2012%201668505752%201668505752942%20DhuIYo%20image-20221115174912845%20.png" alt="image-20221115174912845" style="zoom: 50%;"></p>
+                <h2 id="导引">1. 导引</h2>
+<p>这一部分paper中先介绍了日志系统当下对于性能优化的要求,日志系统的开销比较大,这使得开发者需要在更加详实的系统记录和更高性能之间做取舍.</p>
+<p>后来paper对比分析了集中方案.这几点对于我这个新手来说,很有意义.下面逐一介绍一下.</p>
+<h3 id="浅析同步日志系统">浅析同步日志系统</h3>
+<p>这是实现起来最最容易的一种模式,但是它的性能也是最差的.其中主要的代价源于<strong>格式化字符串和I/O</strong>,此外,主线程还需要调用内核来进行flush,这也是额外的代价.</p>
+<h3 id="常规的异步日志系统">常规的异步日志系统</h3>
+<p>主要只两个线程.主线程用于生成日志massenge并且写到缓冲区中,有一个专门用来做I/O的线程用来将缓冲区中的内容flush到磁盘上,两者之间构成了生产者与消费者模型,时常通过基于C++
+std::function的方式传递任务.</p>
+<p>其中主要的任务时,对于I/O任务的传递需要主线程额外做功,并且主线程如果生成日志的频率过快,使得I/O线程来不及消费,就会导致阻塞.这是使得开发者陷入一个权衡,究竟应该接受阻塞还是宁可抛弃一部分日志信息.关于第二种选择,有随机丢弃,优先级丢弃等方案,但都感觉强差人意.</p>
+<h3 id="nanolog简介">Nanolog简介</h3>
+<p>Nanolog的设计基于两种想法.</p>
+<p>第一个想法是,完全格式化的信息不一定需要放在程序运行时期进行,可以以某种不完全的方式暂时打印日志,人们可以等到需要查看时,将这种日志的形式转化成可读的,这种“不完全的方式”应该有更小的空间并相比字符串格式化来说开销更小.第二个想法是,日志消息一部分是静态的一部分是动态的,是否可以讲静态信息的处理提前到编译器计算阶段,即将静态信息进行编码.</p>
+<h2 id="核心设计">2. 核心设计</h2>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2020%2011%2014%2035%201668914075%201668914075200%202aYh4F%20image-20221120111435072%20.png" alt="image-20221120111435072">
+<figcaption aria-hidden="true">image-20221120111435072</figcaption>
+</figure>
+<p>上面是宏观的一个系统结构图.</p>
+<p>有三个部分,第一部分是一个预处理器,其作用在于将源代码中的日志语句中的进行重写,并生成一个对应的压缩函数,以及一个静态信息字典的函数.第二部分是运行时库,该库除了提供处理buffer的基础组件之外还有基于压缩函数和字典函数以二进制的形式输出日志信息.第三部分,用于将二进制形式的日志信息翻译成可读的形式.</p>
+<p>除此之外,其使用接口是相当简单的.即<code>NANO_LOG()</code>,是<code>printf</code>风格的.</p>
+<p>下面分析一下其设计的细节.</p>
+<h3 id="预处理器">1) 预处理器</h3>
+<p>就如同上面的系统图中所示.经过与处理器的处理之后,生成的是一个<code>Metadata</code>文件和被重写日志语句的源代码文件.此外还有一个<code>Combiner</code>用于根据元数据文件产生额外的C++源文件.最总运行时库文件、生成的库文件和用户的对象文件都被链接到一起.</p>
+<h4 id="重写日志语句">重写日志语句</h4>
+<p>对于每个有<code>NANO_LOG</code>的语句,都会对其<code>statements</code>进行解析并且将其源代码中的日志语句替换成一种更快的编码.</p>
 <blockquote>
-<p><strong>可见HCF机制是通过检查TTL来进行的计算的.</strong></p>
-<p>此子段表示的是,一个数据包处于当前的路由器时,可以继续进行转发的最大路由处,每当经过一个路由器转发就会使得TTL值减一,如果已经到了零,就会丢包.因此可以通过计算起始点的TTL之差得出中途所经过的跳数.</p>
+<p>这里提到的<code>statements</code>究竟指的是什么呢?先留一个坑.</p>
 </blockquote>
-<p>关于HCF模式的发展状况,HCF模式在此paper的成果之前,该模式主要部署在网络协议栈中,尤其是linux系统的生态里.因此单纯地借助有HCF机制支持的Server就可以达到一定的HCF过滤效果.但是这种模式是存在一定的问题的.这也是文章后面的主要动机.</p>
-<p>除此之外,paper中还提到了可编程交换机的发展.虽然,可编程交换机的功能已经强大了很多,可以运行更加复杂的算法和逻辑.然而在可编程交换机运行HCF机制,充满了困难,首先由于HCF条目数目太多所导致的存储空间紧张的问题,另外一点在于对于处于变化的网络环境中,维护HCF条目的相关的变量是需要进行比较复杂的逻辑的,这会给交换机的计算机资源带来很大的负担.这也就是文章中所说的内存和计算资源的局限.</p>
-<h2 id="二.-背景与动机">二. 背景与动机</h2>
-<h3 id="现有hcf模式的弊端">1. 现有HCF模式的弊端</h3>
-<p>这篇paper在对现有的HCF模式进行批判和探索更优解的时候,采用了一种循序渐进的思考方式.我认为其思考线索,主要在于两个维度:<strong>集中/分散和服务器/交换机</strong>.我对这两个维度进行进行简单地说明,<strong>前者是说,关于执行HCF过滤机制,应当使得每个服务器各自地运行自己的HCF来进行过滤,还是考虑在欺骗性IP流量进入到Servers之前的某个交汇点进行过滤?后者则是说,应当将HCF部署在服务器上还是交换机上?</strong>paper从这两个维度出发,最终得出了NETHCF的设计目标,也就是一种“集中+交换机”的HCF模式.</p>
-<h4 id="分散-服务器">(1) 分散 &amp;&amp; 服务器</h4>
-<p>这正是前面所提到的当前最最流行的HCF模式.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2018%2046%2009%201668509169%201668509169217%20Z64ao5%20image-20221115184609124%20.png" alt="image-20221115184609124" style="zoom:50%;"></p>
-<p>作者对于这种模式的批判主要在于以下三点:</p>
+<p>其中关于这种好处,paper中也提到了三点:</p>
 <ul>
-<li><p>服务器上网络带宽的浪费.</p></li>
-<li><p>部署冗余及对内存,CPU等资源的浪费.</p></li>
-<li><p>系统中负载均衡降低预建立的效率.</p></li>
+<li>日志语句的大小减小,其中只剩动态时的信息.</li>
+<li>以压缩的形式来记录信息.</li>
+<li>对于runtime来说,对代码替换要比原始的格式化字符串等动作要快得多.</li>
 </ul>
-<p>下面是我对于以上几点的理解.关于第一点是比较好理解的,因为我们使用HCF机制只能使得欺骗性IP流量在Server端被过滤掉,也就是说欺骗性IP流量还是占用一定的Server上的带宽,因此作者就想,能不能设计一种提前在Server上就被过滤的机制.</p>
-<p>关于第二点,部署冗余问题的理解,因为HCF机制会在内核(内存)中维护一个个的HCF条目,然而HCF的运行在这些服务器上是独立运行的,因此在整个系统之中,如果要确保HCF机制被有效运行,就要保证这些服务器对于这些IP的HCF条目都要有一份,因此整个系统中对于同一个IP的HCF条目相当于有了许多份,这显然是一种冗余的问题.此外,对于内存和CPU的浪费更不必说,HCF条目需要安置在内存上,CPU需要额外地进行HCF算法的执行.</p>
-<p>至于第三点.结合paper中给的图就可以很清楚地说明:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2008%2056%201668510536%201668510536401%20oXD0iT%20image-20221115190856314%20.png" alt="image-20221115190856314" style="zoom:50%;"></p>
 <blockquote>
-<p><strong>HCF的预收集</strong></p>
-<p>类似于缓存系统中的预热功能.如果不进行HCF进行预收集的话,那么HCF机制将会处于一个真空期,也就是HCF条目处于一种较为空缺的状态,因此IP过滤的效率将会大打折扣.所以在正常投入使用前,会先将运行HCF的服务器处于收集的状态.至于收集的效率,<strong>处理流量的密度和收集的效率往往是成反比的</strong>.对于一些访问比较热门的服务,所到来的流量也大,因此往往较短时间就能收集到比较全面的IP,对于一些比较生僻的小网站,可能几个月也收集不全.</p>
+<p>对于常规的printf语句来说,printf语句的执行需要格式化字符串的处理,并且要将二进制形式的内容解释成某一种特定的类型.这都带来一些额外的开销.</p>
 </blockquote>
-<p>就如图中所示的那样,虚线是理想的情况.下面的几个就是在有负载均衡机制下的系统中,不同数量的端主机<code>setting-up</code>的情况.正如在上面所说的,处理流量的密度和<code>setting-up</code>的效率是成反比的,因为一个Server所到来的流量是经过上一条交换机分摊之后的结果,因此所经过流量密度会减小.</p>
-<h4 id="集中-服务器">(2) 集中 &amp;&amp; 服务器</h4>
-<p>结合上面模式的分析,<strong>似乎上面几个问题的根源在于HCF处理的分散性</strong>.所以作者就自然而然想到,如果能将HCF从一个个的服务器们解放出来,集中在一个个Server之前进行处理.就如同下面的:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2026%2002%201668511562%201668511562159%20RfrQvC%20image-20221115192602071%20.png" alt="image-20221115192602071" style="zoom: 33%;"></p>
-<p>因此paper也提到了这种“集中+服务器”的方案,</p>
+<h4 id="生成函数">生成函数</h4>
+<p>对于每个<code>NANO_LOG</code>都会生成对应的两个函数.一个是<code>record</code>,另一个是<code>compact</code>.这些函数对应了之前结构图中的<code>Generated Library Code</code>,专门汇集到了一个C++
+代码文件中.</p>
+<p>其中有示例伪代码如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2020%2012%2008%2038%201668917318%201668917318146%20Aqx6ne%20image-20221120120838061%20.png" alt="image-20221120120838061" style="zoom: 33%;"></p>
+<p>前者是提供给一个buffer线程进行调用的,后者是提供给一个I/O线程的.(对应了后面runtime中的两种主要的工作线程).<code>record</code>的主要作用在于将<code>NANO_LOG</code>中的动态信息,加入到一个buffer中,<code>compact</code>的主要作用在于从buffer提取这些动态信息,并且进行压缩.</p>
+<p>此外关于<code>record</code>,其中唯一的静态信息一般是<code>NANO_LOG</code>语句的唯一标识符.其中一些动态数据类型,比如说name和tableId的数据类型,一般是在编译时期经过预处理器通过解析格式字符串完成的.因此在<code>record</code>的参数中也就确定了这些动态信息的参数类型.</p>
 <blockquote>
-<p>其实到了这里,我也有在思考,为什么没有直接跳跃到“集中+交换机”的方案?我个人认为这是因为当时还没有在交换机运行HCF机制的方案,此外,工程师在解决问题时都会有一种“尽量不重复造轮子”习惯.因此也就首先考虑,仍然利用现有的轮子,只是将“分散”变为“集中”,而非进行更大的跳跃.</p>
+<p>这种标识符是从哪里来的?需要了解一些C++的底层语法原理吗?</p>
 </blockquote>
-<p>但是考虑这一种中间盒方案,如果直接借助一个服务器,运行HCF机制,这给这个服务器带来巨大的负担,处理能力是有限的,此外单个主机一旦宕机,该机制就会作废.因此这个中间盒往往是一个集群,以一种分布式系统的模式运行一个巨大的中间盒.</p>
+<p>关于<code>compact</code>函数的话,可以根据将语句压缩成更加短小的语句实现对于I/O带宽的节省.其中在具体的<code>compact</code>方法中每个动态信息都基于之前所确定的数据类型的.</p>
 <blockquote>
-<p><strong>分布式系统的烦恼</strong></p>
-<p>分布式系统是一种需要多个主机借助网络(RPC)通信进行协同工作,进而完成一种服务的系统模式.相比单机系统,其设计和运行都需要考虑许多额外的棘手的问题.</p>
+<p><strong>对于这两个函数的处理,主要都是针对日志语句中的动态信息的,那么对于静态信息的处理应该怎么处理呢?</strong></p>
+<p>专门有一个字典条目,该字典条目记录了像文件名,行号,日志消息级别等静态信息.</p>
+</blockquote>
+<p>分析完这两个函数后,预处理器将<code>NANO_LOG</code>替换成<code>record</code>函数,并且同时在字典信息中保存了<code>compact</code>.</p>
+<h4 id="组合器">组合器</h4>
+<p>其输入是预处理器生成的<code>Metadata</code>,输出是一个C++
+代码文件,并且还会和runtim library并到一起参与后续的链接过程.</p>
+<blockquote>
+<p>那么<code>Metadata</code>中究竟是什么东西呢,是不是就是前面所说的保存静态信息的字典条目呢?其中有生成的<code>function</code>和<code>compact</code>函数.还有一些静态的日志消息数据.</p>
+</blockquote>
+<p>或说这一部分其功能我不是太理解.</p>
+<h3 id="运行时库">2) 运行时库</h3>
+<p>简而言之,划分了两个线程,第一个线程也就是主线程,主线程通过record来将一些动态信息写入到其buffer中,是buffer的生产者,另一个线程是一个I/O线程,从buffer中读取数据并且采用压缩的方式讲这些内容进行压缩,相比一般的I/O线程,其I/O效率比较高.</p>
+<h4 id="user-thread及其staging-buffer">User Thread及其Staging
+Buffer</h4>
+<p>Staging
+Buffer的作为这个“生产者-消费者”模型中的桥梁,其中关键的challenge是如何实现<strong>无锁同步和缓存一致性</strong>.</p>
+<p>为了实现无锁同步,采用了每个logging线程都有一个环形buffer,并且是单生产者和单消费者的模式.并且这种模式增强了并行程度.在环形队列中,通常消费者只移动head,生产者只移动tail,因此两个避免了潜在的竞争条件.</p>
+<p>除此之外,还有缓存一致性的问题.其中主要的问题在于,如果一个线程需要获取buffer的当前空间大小,则需要同时访问head和tail两个指针,这容易导致竞争条件问题和一致性问题.对此做的处理是,比如说对于logging线程来说,并不是实时地对指针进行访问,而是缓存一个变量,直到可用空间被用完时,才会更新,对于I/O线程也是采用了类似的方式.</p>
+<blockquote>
+<p>这里的缓存一致性处理说实话,我没有完全明白.</p>
+</blockquote>
+<h4 id="nanolog-compaction-thread">NanoLog Compaction Thread</h4>
+<p>对于这个I/O线程来说,我们最需要考虑的是,尽可能提高做I/O的效率,这使得不会出现消费者落后于生产者而导致生产者阻塞的现象.其实现方式就是压缩日志消息后再输出.也就是将格式化处理和时间排序安排到执行后的程序中进行处理.</p>
+<p>I/O线程仅仅是以环形地方式扫描buffer,并且将压缩后的内容刷到disk上.(这种静态的处理机制可以避免竞争,但我不是太理解为什么)</p>
+<blockquote>
+<p><strong>常规I/O线程开销大的原因</strong></p>
+<p>格式化处理,并且维护日志的时间顺序甚至要对来自logging线程的日志进行排序.</p>
+</blockquote>
+<p>其中的压缩方式,也就是体现在<code>compact</code>函数中的方法,也是非常高效的.重点介绍一下对于整型变量值的压缩,其中发现在日志系统中出现的整型还是有很多高位用不到的,因此考虑将高位压缩掉,但是后续则需要知道被压缩了多少位.一般情况下,用4个字节表示一个整型数字,并且还有其中的一个字节用来表示是正数还是负数(这用来区分二义性问题).</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2020%2014%2041%2046%201668926506%201668926506062%20n8rb7k%20image-20221120144145964%20.png" alt="image-20221120144145964" style="zoom:50%;">、</p>
+<p><strong>关于压缩线程,以及一些压缩的细节,我也没有很好的明白.</strong></p>
+<p>总体对于压缩的评价来说,一般情况下,如果不带任何动态的信息,其中锁包含的压缩只是涉及到日志标识和相对于最后一个日志压缩的调用时间.可以缩小到3个字节.</p>
+<h3 id="解码器">3) 解码器</h3>
+<h3 id="c-17机制的利用">4) C++ 17机制的利用</h3>
+<p>C++
+17中有一种编译时计算的机制,可以不额外地实现一个<code>preprocessor</code>.对此,我们再次明确,需要我们做的事:</p>
 <ul>
-<li><strong>可靠性.</strong>单个主机宕机是偶然的,但在一个集群中,宕机几乎就是必然事件.因此必须设计一定的机制使得系统中存在故障的情况下,仍然能够维持有效的服务.</li>
-<li><strong>一致性.</strong>为了保障数据的可靠性(完整),往往会在整个系统中对数据维护多个副本,然而面临复杂的读写情况,我们需要维护多个数据的副本能够同时有最新的结果.</li>
+<li>生成<code>record</code>和<code>compact</code>的优化代码文件.</li>
+<li>为每个调用了<code>NANO_LOG</code>的语句,分配一个唯一的标识符号.</li>
+<li>对于源代码中的静态数据生成字典信息.</li>
 </ul>
-<p>此外,由于这些比较复杂的问题,分布式系统会设计一些更加复杂的机制,耗费更多的网络带宽,带来一定的延迟.这些都是分布式系统的代价.</p>
-</blockquote>
-<p>即使接受这种方案带的额外开销,有一点也是<strong>致命的软肋:服务器端这种软件形式的处理方式效率及其有限.</strong>其处理速率和延迟是无法忍受的.</p>
-<h4 id="集中-交换机">(3) 集中 &amp;&amp; 交换机</h4>
-<p>至此,考虑到服务器处理包的效率有限,那么谁是最擅长处理网络数据包的呢?那还得是交换机.单论数据包的路由和转发,交换机中ASIC的处理效率远高于服务器中的CPU.</p>
-<blockquote>
-<p>我对于交换机ASIC的简单理解,交换机ASIC在计算方面属于专才,专注于对于网络数据包的处理.而一般的通用计算资源,比如说CPU等,其对于网络数据包的处理是比较逊色的.</p>
-</blockquote>
-<p>因此,至此考虑将HCF模式部署在一个交换机中,就如下展示的一样.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2045%2047%201668512747%201668512747169%20wqpt0D%20image-20221115194547081%20.png" alt="image-20221115194547081" style="zoom:50%;"></p>
-<p>最后也简单地总结一下,paper中对于这三种方案的对比:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2019%2046%2031%201668512791%201668512791648%20U9Bowa%20image-20221115194631562%20.png" alt="image-20221115194631562" style="zoom:50%;"></p>
-<p>paper中对于可编程交换机能力的强调:<strong>可以处理高吞吐量,低延迟和抖动的数据包</strong>.</p>
-<h3 id="可编程交换机的局限">2. 可编程交换机的局限</h3>
-<p>关于其局限性主要在于两点,<strong>一个是内存另一个是计算.</strong></p>
-<p>关于内存,paper中有比较详细的描述,对于HFC中的IP2HC条目,仅仅借助可编程交换机中的内存资源根本就存储不全.其实使用一定程度的哈希压缩方案,也因为哈希冲突容易影响HCF模式的可用性,并且也不能缓解内存资源的紧张.</p>
-<p>关于计算资源,我想主要是由于交换机ASIC的特点所导致的吧,就如前面所说的那样,交换机ASIC在计算方面是专才而非通才,对于一些因为网络动态变化而导致的IP2HC条目内容的更新(比如说网络路由线路发生了变化),以及由于压缩机制所带来的额外的计算.这些都会给交换机ASIC带来了沉重的负担.</p>
-<h2 id="三.-核心设计">三. 核心设计</h2>
-<h3 id="控制平面和数据平面互补的缓存模型">(1)
-控制平面和数据平面互补的缓存模型</h3>
-<p>这种模型的提出,针对的是交换机本机上内存资源紧张的问题.前面提到,交换机本身不太可能将所有需要的IP2HC条目保存,paper中确实也接受了这个现实.但是paper中想到了利用控制平面这个大后方,可以只让数据平面只保存一部分,而控制平面维护了全局视角的IP2HC条目.<strong>简而言之,这是一种将数据平面作为控制平面缓存的方案</strong>.</p>
-<blockquote>
-<p>读到这里,我也在尝试挑刺,质疑这种方案的可行性.但是paper中似乎都做出了一些解释,我感觉的确无懈可击.</p>
-<p><strong>既然作为一种缓存系统,那么当数据平面miss时就需要访问控制平面,然而这带来一定的额外开销和延迟,这篇paper哪来的自信,可以保证这种开销不会太大呢?</strong></p>
-<p>根据以往学习过的缓存系统的使用条件,我认为对于数据的访问应当具有一定的局部性才能高效地发挥缓存系统的优势.但是paper中提到了一种IP访问的“heavy-tail”的特点.大体上就是说,IP的访问热度集中在一小部分IP.因此<strong>维护一小部分映射就可以服务于大多数合法的网络流量</strong>.因此,像miss的现象应该不会过于频繁.</p>
-</blockquote>
-<p>其中paper中描述的结构如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2020%2017%2011%201668514631%201668514631246%203qeWAY%20image-20221115201711153%20.png" alt="image-20221115201711153" style="zoom:67%;"></p>
-<blockquote>
-<p><strong>既然可以讲数据平面和控制平面互补的部分视为一个缓存系统,那么这个系统的设计需要考虑哪些缓存系统中的共性问题?</strong></p>
-<ul>
-<li>存储数据条目的内容及其存储的数据结构.</li>
-<li>cache和mirror之间的置换依据及策略.</li>
-<li>数据条目更新及一致性等问题.</li>
-</ul>
-<p>后面的设计内容主要也是围绕着这几个问题,但是在一些细节的设计上,需要结合一些网络和安全系统的特性,我认为这些也就是理解其设计的难点所在.</p>
-</blockquote>
-<h3 id="数据条目及其数据结构">(2) 数据条目及其数据结构</h3>
-<p>这一部分回答了上面所提到的问题.paper中主要回答了控制平面上的情况.</p>
-<p>简而言之,控制平面上所展现的是一种“表+树”的数据结构.</p>
-<blockquote>
-<p><strong>树对于节省存储空间的优势</strong></p>
-<p>关于我对树这种数据结构的理解,我认为树对于表示一些具有层级特性(比如说IP地址,页表项等)的数据方面相对于一般的表会有明显的优势.对于表这种数据结构,对于一些有共同前缀的数据,毫无疑问会讲这些“前缀”存储多次,造成冗余.然而树可以避免这种现象,不同条目的共同前缀在树中只会对应一份,剩余不同的部分则对应该共同前缀节点下的不同孩子.</p>
-</blockquote>
-<p>上面是我对于树这种数据结构对于表示IP地址这种具有层次性特点的优势.但此外,我认为其优势不仅仅如此,树这种结构相比表,更便于合并与分离.为什么需要进行合并与分离的操作呢?首先我们知道,合并与分裂的操作肯定是有利于节省空间的.其所依据的经验就是,对于一些具有共同前缀,尤其是共同前缀的IP地址,往往在网络中的位置接近的(比如说处于同一个局域网之中),因此有大量的共同前缀的IP也具有相同的跳数值,因此可以考虑合并成同一项,这对应了合并到同一个父节点上,这种现象很常见因此,因此可以节省大量的空间.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2020%2051%2048%201668516708%201668516708773%20poRV61%20image-20221115205148679%20.png" alt="image-20221115205148679" style="zoom:50%;"></p>
-<p>关于数据平面,其中的数据结构则是一个表,及匹配动作表.如下所示:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2020%2056%2005%201668516965%201668516965708%20uwiL2g%20image-20221115205605614%20.png" alt="image-20221115205605614" style="zoom:50%;"></p>
-<p>至此,我们可以发现,控制平面上的压缩机制最终也造福了数据平面,因为数据平面上条目中的IP/IP前缀使得一个条目可以处理多个IP,倘若没有控制平面费尽心思地做压缩机制,也就不会有数据平面上的效果.</p>
-<h3 id="适应网络动态">(3) 适应网络动态</h3>
-<p>我觉得这一部分是整个paper中最最难以理解的,理解了这一部分,也就理解了前面所提到的“共性与特性”问题,尤其是一些和网路及安全情境下的细节问题.</p>
-<h4 id="a.-条目的更新">a. 条目的更新</h4>
-<p>这个问题主要考虑,在考虑对抗的情景下,如何判断一个IP是否合法,然后对于合法的更新,如何设计更新机制才可以尽可能保证数据平面和控制平面的一致性?</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2021%2015%2047%201668518147%201668518147085%201pg8nz%20image-20221115211546992%20.png" alt="image-20221115211546992" style="zoom:50%;"></p>
-<p>关于IP合法性,也就相当于到来TCP连接的合法性,该系统是根据<code>Switch-based TCP SYN Cookie workflow</code>进行的.</p>
-<blockquote>
-<p><strong>利用TCP SYN Cookie怎样判断合法TCP连接?</strong></p>
-<p>具体地说,对于跳数不一致的TCP SYN数据包,TCP会话监视器模块会响应TCP
-SYN-ACK数据包等待TCP ACK数据包.</p>
-</blockquote>
-<h4 id="b.-ip热度变化以及置换机制">b. IP热度变化以及置换机制</h4>
-<p>对于IP条目需要维护一个表示IP热度的子段,该字段将会作为该缓存系统中的置换依据.如果不考虑任何和安全有关的问题,那么我们对于每个IP,每访问一次就对其热度计数加一就行了.但是一旦考虑安全的问题,就要避免欺骗性IP对其造成影响.</p>
-<p>在NETHCF的设计中,对于数据平面没有进行缓存的IP条目,无法在数据平面上完成判断,因此这时就需要借助控制平面进行判断.然而怎样将此数据包报告给控制平面呢?</p>
-<p>然而当缓存中的条目计数值发生变化,如何与控制平面进行同步呢?</p>
-<h2 id="四.-实验分析">四. 实验分析</h2>
-<h2 id="五.-小结和感想">五. 小结和感想</h2>
+<p>这些地方的实现,都是对于C++ 17的语法要求非常高的.</p>
+<h2 id="测评及其方法分析">3. 测评及其方法分析</h2>
+<h2 id="局限性和总结">4. 局限性和总结</h2>
 
                 
             </div>
@@ -634,7 +618,7 @@ SYN-ACK数据包等待TCP ACK数据包.</p>
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/11151.html">http://example.com/2022/11151.html</a>
+                    <a href="http://example.com/2022/111919665.html">http://example.com/2022/111919665.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -671,7 +655,15 @@ SYN-ACK数据包等待TCP ACK数据包.</p>
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">No tag</span>
+                            
+                                <a href="/tags/C/">
+                                    <span class="chip bg-color">C++</span>
+                                </a>
+                            
+                                <a href="/tags/%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/">
+                                    <span class="chip bg-color">日志系统</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -713,24 +705,59 @@ SYN-ACK数据包等待TCP ACK数据包.</p>
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;Current
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/11151.html">
+                <a href="/2022/112049061.html">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="">
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="Nanolog(C++ 17版)源码分析">
                         
-                        <span class="card-title"></span>
+                        <span class="card-title">Nanolog(C++ 17版)源码分析</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
                             
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-11-20
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Next&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/111523193.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2015%2017%2035%2035%201668504935%201668504935188%202Hfs1B%20image-20221115173535039%20.png" class="responsive-img" alt="《NETHCF:Filtering Spoofed IP Traffic With Programmable Switches》论文阅读笔记">
+                        
+                        <span class="card-title">《NETHCF:Filtering Spoofed IP Traffic With Programmable Switches》论文阅读笔记</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            一篇挺硬核的网络系统方面的paper.
                         
                     </div>
                     <div class="publish-info">
@@ -745,48 +772,11 @@ SYN-ACK数据包等待TCP ACK数据包.</p>
                         </span>
                     </div>
                 </div>
-
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                Next&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/2022/111239825.html">
-                    <div class="card-image">
-                        
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2014%2023%2004%201668234184%201668234184700%20zaCvwZ%20image-20221112142304593%20.png" class="responsive-img" alt="编译原理">
-                        
-                        <span class="card-title">编译原理</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            学习编译原理基础知识所做的笔记,主要参考书为虎书等.
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-11-12
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-user fa-fw"></i>
-                            yfs
-                            
-                        </span>
-                    </div>
-                </div>
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
-                        <span class="chip bg-color">编译原理</span>
+                    <a href="/tags/%E7%BD%91%E7%BB%9C%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">网络系统</span>
                     </a>
                     
                 </div>
