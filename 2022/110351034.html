@@ -498,69 +498,46 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h3 id="锁管理器">1) 锁管理器</h3>
-<p>对于数据库系统中的锁,有两个容易令人混淆的概念,一个事<code>latch</code>另一个是<code>lock</code>,两者的区别如下.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2008%2021%2055%201667434915%201667434915232%20lZ0OTs%20image-20221103082155111%20.png" alt="image-20221103082155111" style="zoom:50%;"></p>
+                <h3 id="1-锁管理器"><a href="#1-锁管理器" class="headerlink" title="1) 锁管理器"></a>1) 锁管理器</h3><p>对于数据库系统中的锁,有两个容易令人混淆的概念,一个事<code>latch</code>另一个是<code>lock</code>,两者的区别如下.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2008%2021%2055%201667434915%201667434915232%20lZ0OTs%20image-20221103082155111%20.png" alt="image-20221103082155111" style="zoom:50%;">
+
 <p>关于Lock的类型分为共享锁和排他锁.</p>
 <p>锁管理器授予锁的条件并非简单地判断是否锁冲突,还会考虑锁请求的先后顺序,之所以考虑这个条件是因为这种情景:假设T2持有共享锁,而T1请求排他锁,T3也请求共享锁.其中请求次序为(T2&gt;T1&gt;T3),如果只是简单地根据锁的互斥条件加锁,就会导致T3有可能先于T1获得锁,如果在考虑有多个事务都需要加互斥锁,这个时候如果T1老是抢不到锁,就会导致“饿死”.因此锁管理器还有一个重要的加锁条件:<strong>在一个事务被授予锁之前,确保之前的请求被授予(处理)</strong>.因此,一个加锁的请求不会被后面的请求阻塞.</p>
-<h3 id="可串行化">2) 可串行化</h3>
-<p>对于一个事务序列,如果存在有一个调度S1等价于另一个S2,那么就可以说该调度S1是可串行化的.</p>
+<h3 id="2-可串行化"><a href="#2-可串行化" class="headerlink" title="2) 可串行化"></a>2) 可串行化</h3><p>对于一个事务序列,如果存在有一个调度S1等价于另一个S2,那么就可以说该调度S1是可串行化的.</p>
 <p>如何定义“等价”是一个值得考虑的问题.下面有这几种等价的定义方式:</p>
-<h4 id="final-state-serializability">final state serializability</h4>
-<p>不同的调度,其<strong>写操作对相关数据的影响</strong>是相同的.但是对于这种状态的检查是相当困难的,依据定义将输出以及相关的数据进行比对不大现实.所以考虑下面的方法判断是否符合.</p>
+<h4 id="final-state-serializability"><a href="#final-state-serializability" class="headerlink" title="final state serializability"></a>final state serializability</h4><p>不同的调度,其<strong>写操作对相关数据的影响</strong>是相同的.但是对于这种状态的检查是相当困难的,依据定义将输出以及相关的数据进行比对不大现实.所以考虑下面的方法判断是否符合.</p>
 <p>给定两个事务及其调度:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2002%2018%201667437338%201667437338918%20M64rJL%20image-20221103090218838%20.png" alt="image-20221103090218838" style="zoom: 50%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2002%2018%201667437338%201667437338918%20M64rJL%20image-20221103090218838%20.png" alt="image-20221103090218838" style="zoom: 50%;">
+
 <p>其中额外引入两个辅助事务,一个是T0,主要包含W操作,相当于将相关数据的初始值写入数据库,还有一个事务Tn主要包含R操作,意味着读取数据库相关数据的最终结果.因此根据调度T0,S,Tn的次序,建立数据流图可以得到如下的情况(对应了两种不同的调度S1,S2):</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2008%2032%201667437712%201667437712405%20DxQjnU%20image-20221103090832319%20.png" alt="image-20221103090832319">
-<figcaption aria-hidden="true">image-20221103090832319</figcaption>
-</figure>
-<p>图引用自知乎(Transaction management:可串行性(serializability)
-https://zhuanlan.zhihu.com/p/57579023)</p>
-<p>如果将不同调度数据流图中无法与Tn中对应的R节点联通的节点移除,所剩的图如果一致,那么可以保证两者实现了final
-state
-serializability.至此我们可以发现这种算法的实现复杂度比较高的,在数据库系统实现中很少采用.</p>
-<h4 id="view-serializability">view serializability</h4>
-<p>上面提到的一致性方式中,会讲事务视为一个黑盒,只关注事务处理的结果而非过程.而view这种串行化方案,则会关心具体的过程.</p>
-<p>对于一个保证了final state
-serializability的事务序列,未必不存在问题.考虑下面的这种情况:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2008%2032%201667437712%201667437712405%20DxQjnU%20image-20221103090832319%20.png" alt="image-20221103090832319"></p>
+<p>图引用自知乎(Transaction management:可串行性(serializability) <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57579023">https://zhuanlan.zhihu.com/p/57579023</a>)</p>
+<p>如果将不同调度数据流图中无法与Tn中对应的R节点联通的节点移除,所剩的图如果一致,那么可以保证两者实现了final state serializability.至此我们可以发现这种算法的实现复杂度比较高的,在数据库系统实现中很少采用.</p>
+<h4 id="view-serializability"><a href="#view-serializability" class="headerlink" title="view serializability"></a>view serializability</h4><p>上面提到的一致性方式中,会讲事务视为一个黑盒,只关注事务处理的结果而非过程.而view这种串行化方案,则会关心具体的过程.</p>
+<p>对于一个保证了final state serializability的事务序列,未必不存在问题.考虑下面的这种情况:</p>
 <p>初始状态是 {x=5,y=5,z=2} .</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2017%2000%201667438220%201667438220307%20qT37YW%20image-20221103091700226%20.png" alt="image-20221103091700226">
-<figcaption aria-hidden="true">image-20221103091700226</figcaption>
-</figure>
-<p>其中可以发现无论是按照T1,T2还是T2,T1都不会违背final state
-serializability,最终z都是1.但是在事务执行的过程中,比如T2,这两种调度在事务2读取x和y的结果是不相同的,前者是{7,7}后者是{5,5}.因此这种现象也就是:<strong>一个事务在不同的调度方案中,中途涉及到的读操作不能保证是一致的.</strong></p>
-<p>对于如何根据前面提到的模型判断<code>view serializability</code>:如果两个数据流图完全一致,那么可以保证view
-serializability.可见,这种串行性更加严格,同时满足final state
-serializability.</p>
-<h4 id="conflict-serializability">conflict serializability</h4>
-<p>倘若将事务对于数据的操作,考虑成一个个对于数据读写的序列,那么破坏ACID的关键原因在于,这些操作的顺序问题,如果某一对操作可以满足可交换律,这对操作可以不收调度顺序的影响.我们将这种操作定义为非冲突操作,否则就是冲突操作.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2017%2000%201667438220%201667438220307%20qT37YW%20image-20221103091700226%20.png" alt="image-20221103091700226"></p>
+<p>其中可以发现无论是按照T1,T2还是T2,T1都不会违背final state serializability,最终z都是1.但是在事务执行的过程中,比如T2,这两种调度在事务2读取x和y的结果是不相同的,前者是{7,7}后者是{5,5}.因此这种现象也就是:<strong>一个事务在不同的调度方案中,中途涉及到的读操作不能保证是一致的.</strong></p>
+<p>对于如何根据前面提到的模型判断<code>view serializability</code>:如果两个数据流图完全一致,那么可以保证view serializability.可见,这种串行性更加严格,同时满足final state serializability.</p>
+<h4 id="conflict-serializability"><a href="#conflict-serializability" class="headerlink" title="conflict serializability"></a>conflict serializability</h4><p>倘若将事务对于数据的操作,考虑成一个个对于数据读写的序列,那么破坏ACID的关键原因在于,这些操作的顺序问题,如果某一对操作可以满足可交换律,这对操作可以不收调度顺序的影响.我们将这种操作定义为非冲突操作,否则就是冲突操作.</p>
 <p>如何判断一对事务是否中途呢?</p>
 <blockquote>
-<ol type="1">
+<ol>
 <li>不属于同一个事务.</li>
 <li>其中一个是写操作.</li>
 </ol>
 </blockquote>
 <p>因此对于不同的调度,我们又有冲突等价的概念,如果两者对于冲突操作的调度顺序一样.</p>
-<p>此外对于conflict
-serializability,也有相关的模型用来判断,对于一个调度,我们根据调度中事务之间的依赖关系来构造一个优先图.<strong>如果在图中存在环的话,就是违背conflict
-serializability</strong>的.</p>
-<h3 id="两阶段锁">3) 两阶段锁</h3>
-<p>数据库的理想目标是实现可串行化.其中2PL机制就是为了维护这种性质而设计的.</p>
+<p>此外对于conflict serializability,也有相关的模型用来判断,对于一个调度,我们根据调度中事务之间的依赖关系来构造一个优先图.<strong>如果在图中存在环的话,就是违背conflict serializability</strong>的.</p>
+<h3 id="3-两阶段锁"><a href="#3-两阶段锁" class="headerlink" title="3) 两阶段锁"></a>3) 两阶段锁</h3><p>数据库的理想目标是实现可串行化.其中2PL机制就是为了维护这种性质而设计的.</p>
 <p>简而言之就是将一个事务分为两个阶段,一个growing,一个shrinking.前者只能加锁,一旦出现第一个解锁行为,就会进入shrinking,该阶段不能再上新的锁.</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2047%2049%201667440069%201667440069670%20MA8x5l%20image-20221103094749587%20.png" alt="image-20221103094749587">
-<figcaption aria-hidden="true">image-20221103094749587</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2009%2047%2049%201667440069%201667440069670%20MA8x5l%20image-20221103094749587%20.png" alt="image-20221103094749587"></p>
 <p>实现这种锁协议的目的是为了实现事务的可串行化调度,我们一般追求的是冲突可串行化,也就是前面所说的,可以构造出一个无环有向图.</p>
 <p>关于2PL对于可串行化的保证,证明如下:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2010%2001%2000%201667440860%201667440860332%205YhQc4%20image-20221103100100248%20.png" alt="image-20221103100100248" style="zoom:50%;"></p>
-<p>上述证明引用了文章<a target="_blank" rel="noopener" href="https://hw311.me/zh/study-notes/database/2019/03/17/transaction-consistency-2PL/">Transaction
-management：两阶段锁(two-phase locking)</a></p>
-<h3 id="事务隔离级别">4) 事务隔离级别</h3>
-<p>提到事务隔离级别,首先考虑数据库系统中所涉及到的几种异常的数据访问情况,事务隔离级别将会深刻地影响锁管理器处理锁的方式以及上锁方式.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2010%2001%2000%201667440860%201667440860332%205YhQc4%20image-20221103100100248%20.png" alt="image-20221103100100248" style="zoom:50%;">
+
+<p>上述证明引用了文章<a target="_blank" rel="noopener" href="https://hw311.me/zh/study-notes/database/2019/03/17/transaction-consistency-2PL/">Transaction management：两阶段锁(two-phase locking)</a></p>
+<h3 id="4-事务隔离级别"><a href="#4-事务隔离级别" class="headerlink" title="4) 事务隔离级别"></a>4) 事务隔离级别</h3><p>提到事务隔离级别,首先考虑数据库系统中所涉及到的几种异常的数据访问情况,事务隔离级别将会深刻地影响锁管理器处理锁的方式以及上锁方式.</p>
 <p>首先了解这几个基本问题:</p>
 <ul>
 <li>脏读:某个事务更新一份数据,另一个事务读取到结果,但是后来更新该数据的事务又进行了回滚,这个时候读取到的结果是不正确的.</li>
@@ -574,22 +551,15 @@ management：两阶段锁(two-phase locking)</a></p>
 <li>未提交读:这种事务的隔离级别下,一个事务的读操作可以随意进行,不考虑其他事务是否在进行一些与之冲突的操作.会出现:脏读,幻读或者不可重复读.</li>
 <li>可串行化.前面提到过,一般要求冲突可串行化.</li>
 </ul>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2012%2054%2010%201667451250%201667451250013%20vxb6gK%20image-20221103125409931%20.png" alt="image-20221103125409931">
-<figcaption aria-hidden="true">image-20221103125409931</figcaption>
-</figure>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2003%2012%2054%2010%201667451250%201667451250013%20vxb6gK%20image-20221103125409931%20.png" alt="image-20221103125409931"></p>
 <p>可串行化可以将这几个问题都避免.</p>
 <p>其实这几个隔离级别顾名思义,”读未提交“意味着读取数据时,正在对该数据进行更新操作的事务还没有提交,对于一个没有提交的事务,要么最后ABORT,要么COMMIT,而其容易导致脏读就是因为不能保证没有ABORT的情况.而“读已提交”就保证了会被ABORT的事务不会被其他事务读到,因此避免了脏读.</p>
-<h3 id="死锁预防策略">5) 死锁预防策略</h3>
-<p>在这里只说明一下<code>wound-wait</code>算法.</p>
+<h3 id="5-死锁预防策略"><a href="#5-死锁预防策略" class="headerlink" title="5) 死锁预防策略"></a>5) 死锁预防策略</h3><p>在这里只说明一下<code>wound-wait</code>算法.</p>
 <p>《数据库系统概念》中提到,关于对于死锁预防,有两种实现思路,第一种是所有事务开始前就确定某一个不会出现死锁的次序,然后按照该顺序加锁.第二种则使用了抢占和回滚.比如在此要说的<code>wound-wait</code>算法.</p>
 <p>简而言之,这种算法基于对每个事务赋予一个时间戳,该时间戳往往表示的是该事务创建的时间,时间戳大的是年轻事务,小的是年老事务.<strong>在这种算法下,不允许某个年轻事务先于一个年老事务获取对于某个数据的锁,一般实现为,如果一个年老事务在请求某一个锁时发现一个年轻的事务已经将该锁占有,那么年老事务将会终止并抢占此年轻事务</strong>.</p>
 <p>这种算法的缺点在于容易出现不必要的回滚.</p>
-<h2 id="reference">Reference</h2>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/538928744">Two Phase
-Locking(二阶段锁)</a></p>
-<p>Transaction management:可串行性(serializability)
-https://zhuanlan.zhihu.com/p/57579023</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/538928744">Two Phase Locking(二阶段锁)</a></p>
+<p>Transaction management:可串行性(serializability) <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/57579023">https://zhuanlan.zhihu.com/p/57579023</a></p>
 <p>《数据库系统概念》</p>
 
                 

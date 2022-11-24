@@ -503,8 +503,7 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <p>linux多线程服务器中常用的线程模型及其相关实现</p>
-<h2 id="进程与线程">1.进程与线程</h2>
-<p>在这里狭义地讲进程定义为系统通过fork所产生的东西,线程则是<code>pthread_create</code>出来的东西,线程和进程之间最显著的区分点在于,其是否有独立的内存空间.多线程的程序也就是需要有共享内存空间和数据的程序.</p>
+<h2 id="1-进程与线程"><a href="#1-进程与线程" class="headerlink" title="1.进程与线程"></a>1.进程与线程</h2><p>在这里狭义地讲进程定义为系统通过fork所产生的东西,线程则是<code>pthread_create</code>出来的东西,线程和进程之间最显著的区分点在于,其是否有独立的内存空间.多线程的程序也就是需要有共享内存空间和数据的程序.</p>
 <p>而在多线程服务程序中,根据线程所运行任务的种类可以分为:</p>
 <ul>
 <li>I/O线程,比如说主循环是IO复用,也可以处理一些定时事件.</li>
@@ -512,9 +511,7 @@
 <li>第三方库所用的线程,比如说日志,数据库等.</li>
 </ul>
 <p>如果系统是在分布式的情景下,节点需要通过网络通信来联系,比如说周期性地发送心跳包来证明自己的存在.这也是多进程中消息传递的IPC机制.</p>
-<h2 id="常用的编程模型">2.常用的编程模型</h2>
-<p>单线程服务器程序方面,最常见的方式也就是<code>Reactor</code>模式,也就是“非阻塞I/O
-+ I/O复用”.其程序基本结构如下所示:</p>
+<h2 id="2-常用的编程模型"><a href="#2-常用的编程模型" class="headerlink" title="2.常用的编程模型"></a>2.常用的编程模型</h2><p>单线程服务器程序方面,最常见的方式也就是<code>Reactor</code>模式,也就是“非阻塞I/O + I/O复用”.其程序基本结构如下所示:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-while">while</span><span class="token punctuation">(</span>looping<span class="token punctuation">)</span><span class="token punctuation">{</span>
 		<span class="token keyword keyword-int">int</span> timeout_ms <span class="token operator">=</span> <span class="token function">max</span><span class="token punctuation">(</span><span class="token number">1000</span><span class="token punctuation">,</span><span class="token function">getNextTimedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   	<span class="token keyword keyword-int">int</span> retval <span class="token operator">=</span> <span class="token double-colon punctuation">::</span><span class="token function">poll</span><span class="token punctuation">(</span>fds<span class="token punctuation">,</span>nfds<span class="token punctuation">,</span>timeout_ms<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -527,33 +524,28 @@
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>其中的poll可以是select,epoll等I/O复用.</p>
-<p>而对于多线程服务器方面,在这里主要介绍“non-blocking I/O + one loop per
-thread”模型.</p>
+<p>而对于多线程服务器方面,在这里主要介绍“non-blocking I/O + one loop per thread”模型.</p>
 <p>对于<code>one loop per thread</code>这个概念,即每个I/O线程都有一个主循环,这个主循环也就是用于<code>event loop</code>.配合线程池本身就分配好固定数量的线程,当有任务需要做的时候,就从中分配某个线程去做,也就是将<code>timer</code>或者<code>IO channel</code>注册到其中的loop里.</p>
 <p>而有关于线程池的实现,线程池中的线程池对于计算任务来说是消费者,而生产者则是运行I/O复用的主循环线程,在这个典型的生产者消费者模型中,采用条件变量是比较方便的.当没有任务需要处理的时候,线程都休眠于线程池的条件变量上,一旦有任务需要处理,则唤醒其中的线程进行处理.</p>
 <p>这个线程池的实现的更多细节,该class会维护一个任务队列,每一个task由一个处理函数和参数构成.在<code>muduo</code>中,run是线程池对外接受任务的接口,将task接收到之后加入到队列中后,并唤醒线程池中睡眠在条件变量中的线程,被唤醒的线程从任务队列中取出任务进行处理.</p>
-<p>所以总的来说,<code>even loop + thread pool</code>,前者用来做I/O(常用I/O复用),thread
-pool用来做计算.</p>
-<h2 id="使用tcp作为ipc">3. 使用TCP作为IPC</h2>
-<p>相比于signal,FIFO,消息队列等,TCP很显著的优势在于无论是单机还是多机都很方便,也就是修改“host:port”的功夫,跨机器很方便.</p>
+<p>所以总的来说,<code>even loop + thread pool</code>,前者用来做I/O(常用I/O复用),thread pool用来做计算.</p>
+<h2 id="3-使用TCP作为IPC"><a href="#3-使用TCP作为IPC" class="headerlink" title="3. 使用TCP作为IPC"></a>3. 使用TCP作为IPC</h2><p>相比于signal,FIFO,消息队列等,TCP很显著的优势在于无论是单机还是多机都很方便,也就是修改“host:port”的功夫,跨机器很方便.</p>
 <p>对于socket的操作主要就是对于文件描述符的操作,并且每个进程都占用一个端口也防止了一个程序多次被打开,因为一个端口只能被一个进程占用,即使当退出时也会被操作系统自动回收.</p>
-<h2 id="多线程服务器的适用场景">4.多线程服务器的适用场景</h2>
-<p>在有多个机器组成的分布式系统是多线程的,因为线程不能跨越多个os.</p>
+<h2 id="4-多线程服务器的适用场景"><a href="#4-多线程服务器的适用场景" class="headerlink" title="4.多线程服务器的适用场景"></a>4.多线程服务器的适用场景</h2><p>在有多个机器组成的分布式系统是多线程的,因为线程不能跨越多个os.</p>
 <p>对于一个机器可采用的模式,主要采用“运行多个单线程的进程”,这种模式又可以划分为“无主,多主,单主”等模式.</p>
-<h2 id="多线程服务器实现要点">5.多线程服务器实现要点</h2>
-<p>在使用c/C++实现时,虽然必须要使用一部分posix
-threads函数,但往往都是对其进行简单地wrapper,而非直接调用.其中最最基础的需要就是:<strong>mutex,thread,condition</strong>的封装.</p>
+<h2 id="5-多线程服务器实现要点"><a href="#5-多线程服务器实现要点" class="headerlink" title="5.多线程服务器实现要点"></a>5.多线程服务器实现要点</h2><p>在使用c/C++实现时,虽然必须要使用一部分posix threads函数,但往往都是对其进行简单地wrapper,而非直接调用.其中最最基础的需要就是:<strong>mutex,thread,condition</strong>的封装.</p>
 <p>其中mutex直接使用的情况不少,而对于thread一般也很少直接使用,通常在线程池中使用.</p>
 <p>谈到<code>thread</code>的实现的话,首要问题就是如何唯一地标识一个<code>thread</code>呢?</p>
 <p>posix的设计中确实有<code>pthread_t</code>这个数据类型可以作为标识符,并且有<code>pthread_self</code>可以获取该值,并且有<code>pthread_equal</code>作为比较标识符相等的函数.</p>
 <p>但是<code>pthread_t</code>这个变量有一个明显的问题,它的数值类型不确定,有可能是整型,指针或者结构体.所以print起来不方便,大小不能计算,也不能作为k-v中的key.</p>
-<p>并且如果是glibc的话,其pthread_t是一个结构体指针(unsigned
-long),指向动态分配的内存,反复使用的内存相对而言导致重复率比较高.</p>
+<p>并且如果是glibc的话,其pthread_t是一个结构体指针(unsigned long),指向动态分配的内存,反复使用的内存相对而言导致重复率比较高.</p>
 <p>所以<code>gettid(2)</code>是比较好的标识线程的方式.不过这个API并不是系统库中的,而是自己封装的.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token class-name">pid_t</span> <span class="token function">gettid</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//是对于syscall的封装</span>
   <span class="token keyword keyword-return">return</span> static_cast<span class="token operator">&lt;</span><span class="token class-name">pid_t</span><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token operator">::</span><span class="token function">syscall</span><span class="token punctuation">(</span>SYS_gettid<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
 <p>返回值是int,是固定的,并且保证不重复,也便于在外界使用系统监控工具进行监控.</p>
 <p>在muduo中,对于tid的获取做出了优化,并非每次查看都调用这个API,而是为每个线程缓存这个值(相当于在线程内部的一个全局变量),只有第一次调用该线程时才会触发这个系统调用.正如下所示:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-int">int</span> <span class="token function">tid</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -568,13 +560,14 @@ long),指向动态分配的内存,反复使用的内存相对而言导致重复�
     t_tidStringLength <span class="token operator">=</span> <span class="token function">snprintf</span><span class="token punctuation">(</span>t_tidString<span class="token punctuation">,</span> <span class="token keyword keyword-sizeof">sizeof</span> t_tidString<span class="token punctuation">,</span> <span class="token string">"%5d "</span><span class="token punctuation">,</span> t_cachedTid<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>除此之外,muduo中善于利用<code>__thread</code>,用此来缓存线程中的tid,这个可以将其理解为每个线程独有的线程内的“全局变量”.读取效率挺高.但是需要注意的是,它不可以表示class类型的变量,比如说string等,一般是整型,指针等.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-int">int</span> t_cachedTid<span class="token punctuation">;</span>
 <span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-char">char</span> t_tidString<span class="token punctuation">[</span><span class="token number">32</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-int">int</span> t_tidStringLength<span class="token punctuation">;</span>
 <span class="token keyword keyword-extern">extern</span> __thread <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span><span class="token operator">*</span> t_threadName<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="一些c-raii的使用">6.一些C++ RAII的使用</h2>
-<p>在使用一个资源的时候,最容易使人忽视的一个环节就是销毁资源的环节,比如说内存泄漏.但是我们可以利用RAII去管理资源,正如<code>effective C++</code>中所言.其原理可以简单地概括为,为管理某个资源专门设计一个class,借助局部对象的构造函数进行初始化,当离开作用域,会借助析构函数自动地释放资源.所以在使用时,在特定的作用域内直接定义一个该类型的对象即可.</p>
+
+<h2 id="6-一些C-RAII的使用"><a href="#6-一些C-RAII的使用" class="headerlink" title="6.一些C++ RAII的使用"></a>6.一些C++ RAII的使用</h2><p>在使用一个资源的时候,最容易使人忽视的一个环节就是销毁资源的环节,比如说内存泄漏.但是我们可以利用RAII去管理资源,正如<code>effective C++</code>中所言.其原理可以简单地概括为,为管理某个资源专门设计一个class,借助局部对象的构造函数进行初始化,当离开作用域,会借助析构函数自动地释放资源.所以在使用时,在特定的作用域内直接定义一个该类型的对象即可.</p>
 <p>比如说muduo中,mutexguard类则是在构造函数中对一个mutex上锁,在析构函数中unlock.</p>
 <p>一个进程中会维护其所打开的文件描述符,所以对于多线程而言,所打开的文件描述符是一种共享资源,对于<code>socket</code>这个API的特点就是<strong>其返回值必须是当前可使用的最小描述符fd</strong>.所以当多线程有read,close,open出现时,容易导致并发问题.比如说:</p>
 <ul>
@@ -583,15 +576,13 @@ long),指向动态分配的内存,反复使用的内存相对而言导致重复�
 <li>线程3,又得到一个新的socket,fd 8又打开了.</li>
 </ul>
 <p>会发生什么呢?</p>
-<p><strong>会导致线程1处理完后,要将响应发送给fd
-8的时候,但此时已经不再是当时fd 8了</strong>.</p>
+<p><strong>会导致线程1处理完后,要将响应发送给fd 8的时候,但此时已经不再是当时fd 8了</strong>.</p>
 <p>虽然可以采取加锁的机制避免,但是并不好用.</p>
 <p>比较理想的方式就是采用RAII对Socket描述符进行包装.析构函数则关闭描述符.</p>
 <p>关于现代C++对象生命周期的管理,有的对象需要长期运行,比如说<code>server</code>,可以做成<strong>静态单例模式或者main函数中的栈上对象</strong>,而对于一些短命的对象,比如说<code>TcpConnection</code>等,我们需要借助引用计数进行管理,我们很难确定什么时候会没有对该对象的引用,所以难以手动delete.</p>
 <p>关于<code>shared_ptr</code>引用计数的使用,在muduo中,对<code>TcpConnection</code>对象的管理使用,这样可以<strong>防止TCP串话.</strong></p>
 <p>至此,回想RAII机制的使用,其中很关键的一点在于,确保构造和析构一一对应被调用.</p>
-<h2 id="简单的总结">7.简单的总结</h2>
-<ul>
+<h2 id="7-简单的总结"><a href="#7-简单的总结" class="headerlink" title="7.简单的总结"></a>7.简单的总结</h2><ul>
 <li>尽可能地利用线程池来避免频繁地反复创建和销毁线程.</li>
 <li>线程的指责尽可能清晰,比如I/O,计算等.</li>
 <li>线程之间的通信尽可能使用消息传递,就像<code>golang</code>中的<code>channel</code>就是充分利用这种思想.</li>

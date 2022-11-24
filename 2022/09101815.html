@@ -502,41 +502,31 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="实现基础">1.实现基础</h2>
-<h3 id="索引系统">1) 索引系统</h3>
-<p>之前的lab中,Tuple在文件中的分布是没有规律的,而且想要在表对应的文件中查询一个Tuple,不得不在该文件中逐页地遍历查找,至于删除,插入等操作亦复如是.</p>
-<p>而索引系统(这里主要围绕着B+
-tree展开).其作用在于,能够根据某个字段或者多个字段,加速其查找.也可以说,索引是在原始存储的数据中,所抽象出来的一层将数据中的键值根据某种方式组织成的便于查找的数据结构,比如说在本次lab中,就会将文件中的数据中的某个键组织成一颗B+树,之后关于对文件的增删查操作都会现在B+
-树上进行,找到目标后,就返回其对应的Page.这样显然避免了对整个文件的遍历.</p>
+                <h2 id="1-实现基础"><a href="#1-实现基础" class="headerlink" title="1.实现基础"></a>1.实现基础</h2><h3 id="1-索引系统"><a href="#1-索引系统" class="headerlink" title="1) 索引系统"></a>1) 索引系统</h3><p>之前的lab中,Tuple在文件中的分布是没有规律的,而且想要在表对应的文件中查询一个Tuple,不得不在该文件中逐页地遍历查找,至于删除,插入等操作亦复如是.</p>
+<p>而索引系统(这里主要围绕着B+ tree展开).其作用在于,能够根据某个字段或者多个字段,加速其查找.也可以说,索引是在原始存储的数据中,所抽象出来的一层将数据中的键值根据某种方式组织成的便于查找的数据结构,比如说在本次lab中,就会将文件中的数据中的某个键组织成一颗B+树,之后关于对文件的增删查操作都会现在B+ 树上进行,找到目标后,就返回其对应的Page.这样显然避免了对整个文件的遍历.</p>
 <p>此外,一个原始数据文件可以有多个索引文件,每个不同的索引文件可以代表不同键值处所构造的索引.在本次lab中,通常是将一个文件有一个索引文件实现的.此外,索引还有稀疏或者稠密之分,稠密的索引就是一个文件中所有Record都有索引项的方式,否则就是稀疏的.</p>
-<h3 id="b树">2) B+树</h3>
-<p>首先B+树有几个基本的特点:</p>
+<h3 id="2-B-树"><a href="#2-B-树" class="headerlink" title="2) B+树"></a>2) B+树</h3><p>首先B+树有几个基本的特点:</p>
 <ul>
 <li>除了leaf节点之外,不存储实际的数据.</li>
 <li>叶子结点以链表的方式连接起来,所以B+树具有范围查找的能力,相比之下,B树的leaf节点并没有串起来,所以没有范围查找的能力.</li>
 <li>每个leaf的高度是一样的,相比一般的二叉树,其增长过程是从leaf开始,自下向上的,很多树都是自顶向下插入的.</li>
 </ul>
-<p>此外,由于这里数据库系统做I/O操作的基本单位是Page,而一个B+树节点也就是一个Page.因此,在这里,如果将一个文件(只有一个索引键)对应一个B+树的话,文件中的所有数据都在leaf上,想要定位一个数据就得查找到其所在的leaf
-Page.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2010%2016%2045%2019%201662799519%201662799519534%20dpwghL%20image-20220910164519396%20.png" alt="image-20220910164519396" style="zoom: 50%;"></p>
+<p>此外,由于这里数据库系统做I/O操作的基本单位是Page,而一个B+树节点也就是一个Page.因此,在这里,如果将一个文件(只有一个索引键)对应一个B+树的话,文件中的所有数据都在leaf上,想要定位一个数据就得查找到其所在的leaf Page.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2010%2016%2045%2019%201662799519%201662799519534%20dpwghL%20image-20220910164519396%20.png" alt="image-20220910164519396" style="zoom: 50%;">
+
 <p>关于检索,插入,删除等操作的执行过程,在下面的每个练习中会细说.</p>
 <blockquote>
 <p><strong>1.B树系列为什么适合磁盘上的读写操作?</strong></p>
-<p>​
-B树相比于红黑树等数据结构,不在限制于“二叉”的性质,而且一个节点可以包含多个数据项,所以一般情况下,相同的数量的数据n,一个B树所呈现的高度更低,对于存储于磁盘上的数据,操作系统I/O的基本单位是一个block,此外在读取或者写数据时,I/O时间要显著多于CPU时间,因此节省I/O时间是提升读写磁盘数据的关键.</p>
-<p>由于B树作为多叉树的特点,可以有更低的高度,和更少的节点,一般B树一个节点对应disk上的一个block,因此访问block的次数大大减少,进而导致I/O开销大大减少,一个节点可以有多个数据项也充分地利用了disk分块作为单位读写的特点.</p>
-<p>​
-虽然一个节点有多个数据项的特点导致在查找时,需要多花费时间在遍历一个节点上,但是由于局部性的特点,这点开销不大.</p>
+<p>​    B树相比于红黑树等数据结构,不在限制于“二叉”的性质,而且一个节点可以包含多个数据项,所以一般情况下,相同的数量的数据n,一个B树所呈现的高度更低,对于存储于磁盘上的数据,操作系统I/O的基本单位是一个block,此外在读取或者写数据时,I/O时间要显著多于CPU时间,因此节省I/O时间是提升读写磁盘数据的关键.</p>
+<p>   由于B树作为多叉树的特点,可以有更低的高度,和更少的节点,一般B树一个节点对应disk上的一个block,因此访问block的次数大大减少,进而导致I/O开销大大减少,一个节点可以有多个数据项也充分地利用了disk分块作为单位读写的特点.</p>
+<p>​    虽然一个节点有多个数据项的特点导致在查找时,需要多花费时间在遍历一个节点上,但是由于局部性的特点,这点开销不大.</p>
 <p><strong>2.B树,B+树的区别有什么?</strong></p>
-<p>​ 在实际的磁盘存储中,B+树用得比B树多一些.</p>
+<p>​    在实际的磁盘存储中,B+树用得比B树多一些.</p>
 <p>(1).B+树只有叶子结点保存数据,再结合B+树平衡的特性,任何查找工作经过的路径长度都是相同的,因此B+树的查找开销是更加稳定的.</p>
 <p>(2).B+树的叶子结点之间是具有指针连接的,这点使得B+树具有范围查找的能力.</p>
 <p>(3).B+树的中间节点不保存数据,</p>
 </blockquote>
-<h2 id="实现过程">2.实现过程</h2>
-<h3 id="exercise-1-btreefile.findleafpage">1) Exercise 1:
-BTreeFile.findLeafPage()</h3>
-<p>这一部分的实现是比较简单的,类似于一般的二叉树的递归,但是B+树是多叉树,因此每一步向下递归的过程中,还会涉及到对于一个节点上的数据项的遍历.</p>
+<h2 id="2-实现过程"><a href="#2-实现过程" class="headerlink" title="2.实现过程"></a>2.实现过程</h2><h3 id="1-Exercise-1-BTreeFile-findLeafPage"><a href="#1-Exercise-1-BTreeFile-findLeafPage" class="headerlink" title="1) Exercise 1: BTreeFile.findLeafPage()"></a>1) Exercise 1: BTreeFile.findLeafPage()</h3><p>这一部分的实现是比较简单的,类似于一般的二叉树的递归,但是B+树是多叉树,因此每一步向下递归的过程中,还会涉及到对于一个节点上的数据项的遍历.</p>
 <pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-private">private</span> <span class="token class-name">BTreeLeafPage</span> <span class="token function">findLeafPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span> <span class="token class-name">BTreePageId</span> pid<span class="token punctuation">,</span> <span class="token class-name">Permissions</span> perm<span class="token punctuation">,</span>
                                       <span class="token class-name">Field</span> f<span class="token punctuation">)</span>
 				<span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
@@ -565,22 +555,14 @@ BTreeFile.findLeafPage()</h3>
 		<span class="token punctuation">}</span>
 		<span class="token keyword keyword-return">return</span> <span class="token punctuation">(</span><span class="token class-name">BTreeLeafPage</span><span class="token punctuation">)</span> <span class="token function">getPage</span><span class="token punctuation">(</span>tid<span class="token punctuation">,</span>dirtypages<span class="token punctuation">,</span>pageId<span class="token punctuation">,</span>perm<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>直到遍历到一个leaf
-Page即为到达终点,其中需要注意的是对于<code>null</code>来说,一直向左递归就可以了,还有关于向下递归的条件,究竟应该是”大于等于“还是“大于”.我之前是按照大于做的,但是这样会导致错误,尤其是对于有重复的情况.在此举一个例子:</p>
-<figure>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2010%2023%2017%2054%201662823074%201662823074233%20kCHVVZ%201191DF3D9BB32CD2F8B39AE3E736E033%20.jpg" alt="1191DF3D9BB32CD2F8B39AE3E736E033">
-<figcaption aria-hidden="true">1191DF3D9BB32CD2F8B39AE3E736E033</figcaption>
-</figure>
-<p>对于图中的情况,如果等到“&gt;"才向下左递归的话,如果想要查找1,这样递归到根下面的一层后,就会朝最右方递归,这明显导致所读的leaf
-Page数据不全的情况,如果想要查找的是2的话,则会递归到[2,3,3,3]这一个叶子结点,仍然是不能得到一个含有2的完整的leaf
-Page.对于所要查找的值,正好等于一个中间节点(下一层就是leaf的情况),如果递归到左子则不一定含有该数值,但是由于leaf
-Page相连的特点,还是可以遍历到下一个leaf
-Page,进而达到完整地遍历该数值对应的leaf
-Page的.如果是“&gt;”的条件就向左下遍历,那么容易造成缺页,进而无法完整遍历该数值所在的leaf
-page.</p>
+
+
+
+<p>直到遍历到一个leaf Page即为到达终点,其中需要注意的是对于<code>null</code>来说,一直向左递归就可以了,还有关于向下递归的条件,究竟应该是”大于等于“还是“大于”.我之前是按照大于做的,但是这样会导致错误,尤其是对于有重复的情况.在此举一个例子:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2010%2023%2017%2054%201662823074%201662823074233%20kCHVVZ%201191DF3D9BB32CD2F8B39AE3E736E033%20.jpg" alt="1191DF3D9BB32CD2F8B39AE3E736E033"></p>
+<p>对于图中的情况,如果等到“&gt;”才向下左递归的话,如果想要查找1,这样递归到根下面的一层后,就会朝最右方递归,这明显导致所读的leaf Page数据不全的情况,如果想要查找的是2的话,则会递归到[2,3,3,3]这一个叶子结点,仍然是不能得到一个含有2的完整的leaf Page.对于所要查找的值,正好等于一个中间节点(下一层就是leaf的情况),如果递归到左子则不一定含有该数值,但是由于leaf Page相连的特点,还是可以遍历到下一个leaf Page,进而达到完整地遍历该数值对应的leaf Page的.如果是“&gt;”的条件就向左下遍历,那么容易造成缺页,进而无法完整遍历该数值所在的leaf page.</p>
 <p>B+树的叶子结点中的key呈现单调不下降的特点,当叶子进行分裂并将m/2项放到上一层节点的时候,未必就能保证该Tuple右边的一定就大,左边的就一定要小,它们还有可能是相等的.所以在这里我认为,不能认为左子树一定是小于的,右子树一定是大于的,左右子树都可以有等于的情况在其中.</p>
-<h3 id="exercise-2-splitting-pages">2) Exercise 2: Splitting Pages</h3>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">BTreeInternalPage</span> <span class="token function">splitInternalPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
+<h3 id="2-Exercise-2-Splitting-Pages"><a href="#2-Exercise-2-Splitting-Pages" class="headerlink" title="2) Exercise 2: Splitting Pages"></a>2) Exercise 2: Splitting Pages</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token class-name">BTreeInternalPage</span> <span class="token function">splitInternalPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
 		<span class="token class-name">BTreeInternalPage</span> page<span class="token punctuation">,</span> <span class="token class-name">Field</span> field<span class="token punctuation">)</span> 
 				<span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
 
@@ -613,10 +595,11 @@ page.</p>
 	<span class="token punctuation">}</span>
 	<span class="token keyword keyword-return">return</span> page<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这一部分的实现相对来说比较简单,这里只列举<code>splitInternalPage</code>.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2008%2054%2028%201662857668%201662857668375%20ylrF7i%20image-20220911085428235%20.png" alt="image-20220911085428235" style="zoom: 50%;"></p>
-<p>其中分裂的规则就是两方对半平分,至于<code>Internal,Leaf</code>的主要区别就在于,是否需要将第m/2个节点移除,由于B+树的特点就是所有的叶子结点必须涵盖所有的数据,因此当leaf
-Page进行split时无需将第m/2个节点移除,如果是Internal的话,则需要进行移除.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2008%2054%2028%201662857668%201662857668375%20ylrF7i%20image-20220911085428235%20.png" alt="image-20220911085428235" style="zoom: 50%;">
+
+<p>其中分裂的规则就是两方对半平分,至于<code>Internal,Leaf</code>的主要区别就在于,是否需要将第m/2个节点移除,由于B+树的特点就是所有的叶子结点必须涵盖所有的数据,因此当leaf Page进行split时无需将第m/2个节点移除,如果是Internal的话,则需要进行移除.</p>
 <p>所以在<code>splitInternalPage</code>的实现中,主要分为如下过程:</p>
 <ul>
 <li>将page的部分节点移除(对半平分),并且插入到newpage中.</li>
@@ -626,13 +609,8 @@ Page进行split时无需将第m/2个节点移除,如果是Internal的话,则需�
 <li>将mid项插入(注意左右child的设置),到父节点.</li>
 <li>缓存脏页并返回.</li>
 </ul>
-<p>理解了<code>split</code>操作后,就可以将insert概括为,首先<code>findLeafPage</code>找到目标应该所在的leaf
-Page,然后根据其当前大小判断是否要进行split,如果不需要就直接加入,否则就将其分裂出一个new
-leaf
-Page,并且加入一个新的中间结点,如果中间节点也出现了超出数量的情况,则继续递归到中间节点,并执行split,再加入新的中间结点,以此类推,知道不需要分裂或者到达根节点为止.</p>
-<h3 id="exercise-3-redistributing-pages">3) Exercise 3: Redistributing
-pages</h3>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">stealFromLeftInternalPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
+<p>理解了<code>split</code>操作后,就可以将insert概括为,首先<code>findLeafPage</code>找到目标应该所在的leaf Page,然后根据其当前大小判断是否要进行split,如果不需要就直接加入,否则就将其分裂出一个new leaf Page,并且加入一个新的中间结点,如果中间节点也出现了超出数量的情况,则继续递归到中间节点,并执行split,再加入新的中间结点,以此类推,知道不需要分裂或者到达根节点为止.</p>
+<h3 id="3-Exercise-3-Redistributing-pages"><a href="#3-Exercise-3-Redistributing-pages" class="headerlink" title="3) Exercise 3: Redistributing pages"></a>3) Exercise 3: Redistributing pages</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">stealFromLeftInternalPage</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
 		<span class="token class-name">BTreeInternalPage</span> page<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> leftSibling<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> parent<span class="token punctuation">,</span>
 		<span class="token class-name">BTreeEntry</span> parentEntry<span class="token punctuation">)</span> <span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
 	<span class="token class-name">Iterator</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">BTreeEntry</span><span class="token punctuation">&gt;</span></span> rit <span class="token operator">=</span> leftSibling<span class="token punctuation">.</span><span class="token function">reverseIterator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -664,10 +642,15 @@ pages</h3>
 	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>parent<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>parent<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
 <p>关于删除操作需要涉及到的操作有<code>steal</code>和<code>Merge</code>,前者的原则仍然是对半平分.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2002%2030%201662865350%201662865350896%20fm1lfg%20image-20220911110230782%20.png" alt="image-20220911110230782" style="zoom:50%;"></p>
-<h3 id="exercise-4-merging-pages">4) Exercise 4: Merging pages</h3>
-<pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">mergeInternalPages</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2002%2030%201662865350%201662865350896%20fm1lfg%20image-20220911110230782%20.png" alt="image-20220911110230782" style="zoom:50%;">
+
+
+
+<h3 id="4-Exercise-4-Merging-pages"><a href="#4-Exercise-4-Merging-pages" class="headerlink" title="4) Exercise 4: Merging pages"></a>4) Exercise 4: Merging pages</h3><pre class="line-numbers language-java" data-language="java"><code class="language-java"><span class="token keyword keyword-public">public</span> <span class="token keyword keyword-void">void</span> <span class="token function">mergeInternalPages</span><span class="token punctuation">(</span><span class="token class-name">TransactionId</span> tid<span class="token punctuation">,</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">PageId</span><span class="token punctuation">,</span> <span class="token class-name">Page</span><span class="token punctuation">&gt;</span></span> dirtypages<span class="token punctuation">,</span>
 		<span class="token class-name">BTreeInternalPage</span> leftPage<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> rightPage<span class="token punctuation">,</span> <span class="token class-name">BTreeInternalPage</span> parent<span class="token punctuation">,</span> <span class="token class-name">BTreeEntry</span> parentEntry<span class="token punctuation">)</span> 
 				<span class="token keyword keyword-throws">throws</span> <span class="token class-name">DbException</span><span class="token punctuation">,</span> <span class="token class-name">IOException</span><span class="token punctuation">,</span> <span class="token class-name">TransactionAbortedException</span> <span class="token punctuation">{</span>
    
@@ -690,24 +673,21 @@ pages</h3>
 	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>rightPage<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>rightPage<span class="token punctuation">)</span><span class="token punctuation">;</span>
 	dirtypages<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>parent<span class="token punctuation">.</span><span class="token function">getId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>parent<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其中以<code>mergeInternalPages</code>为例,这里的实现过程(将右leaf
-Page合并到左leaf Page)如下:</p>
+
+<p>其中以<code>mergeInternalPages</code>为例,这里的实现过程(将右leaf Page合并到左leaf Page)如下:</p>
 <ul>
 <li>将需要移除的BTreeEntry追加到left page中(注意child的设置).</li>
 <li>将所有right page中的项移除,并insert到left leaf page.</li>
-<li>更新left page的child的父母节点,将已经合并的righht
-page设置为null,移除父节点中对应的项.</li>
+<li>更新left page的child的父母节点,将已经合并的righht page设置为null,移除父节点中对应的项.</li>
 <li>缓存脏页.</li>
 </ul>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2006%2022%201662865582%201662865582427%20HpWI7l%20image-20220911110622307%20.png" alt="image-20220911110622307" style="zoom:50%;"></p>
-<p>在这里关于<code>merge</code>的实现,其中中间节点和leaf结点的区别在于,同样都需要将对应的某个parent进行移除,但是移除的时候是否还需要将这个移除的项加入到子节点中呢?如果是leaf
-page,直接移除就可以,其他不需要做什么,如果是中间节点,则还需要将移除的节点项加入到某个child
-Page中.因为在其他的操作中,都不会破坏leaf page维护全部数据的性质.</p>
-<p>接下来可以简单地梳理一下<code>delete</code>过程,仍然是先找到目标所在的leaf
-page.然后检查该leaf
-page的数量,如果去掉一个后不少于一半就直接移除该项,否则进行<code>steal</code>或者<code>merge</code>,首先进行steal,如果steal之后发现仍然有一方数量不足就进行merge.一直向上递归,知道递归到某个节点的数量符合要求或者到达根节点.</p>
-<h2 id="小结">3.小结</h2>
-<p>这个lab怎么说呢,B+树的实现方面细节比较多,这算是一个难点,但是这次lab并不会涉及到太多关于整个database的架构的理解.至于这次lab的实现,我有个很遗憾的地方在于,并没有通过附加题中的<code>BTreetest</code>.我想应该是我在<code>Lock Manager</code>方面出的问题吧,暂时先鸽了.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2011%2011%2006%2022%201662865582%201662865582427%20HpWI7l%20image-20220911110622307%20.png" alt="image-20220911110622307" style="zoom:50%;">
+
+
+
+<p>在这里关于<code>merge</code>的实现,其中中间节点和leaf结点的区别在于,同样都需要将对应的某个parent进行移除,但是移除的时候是否还需要将这个移除的项加入到子节点中呢?如果是leaf page,直接移除就可以,其他不需要做什么,如果是中间节点,则还需要将移除的节点项加入到某个child Page中.因为在其他的操作中,都不会破坏leaf page维护全部数据的性质.</p>
+<p>接下来可以简单地梳理一下<code>delete</code>过程,仍然是先找到目标所在的leaf page.然后检查该leaf page的数量,如果去掉一个后不少于一半就直接移除该项,否则进行<code>steal</code>或者<code>merge</code>,首先进行steal,如果steal之后发现仍然有一方数量不足就进行merge.一直向上递归,知道递归到某个节点的数量符合要求或者到达根节点.</p>
+<h2 id="3-小结"><a href="#3-小结" class="headerlink" title="3.小结"></a>3.小结</h2><p>这个lab怎么说呢,B+树的实现方面细节比较多,这算是一个难点,但是这次lab并不会涉及到太多关于整个database的架构的理解.至于这次lab的实现,我有个很遗憾的地方在于,并没有通过附加题中的<code>BTreetest</code>.我想应该是我在<code>Lock Manager</code>方面出的问题吧,暂时先鸽了.</p>
 
                 
             </div>

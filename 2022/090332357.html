@@ -469,7 +469,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.7k
+                    1.6k
                 </div>
                 
 
@@ -494,71 +494,53 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="query-processing">Query Processing</h1>
-<h2 id="overview">1.Overview</h2>
-<p><code>Query processig</code>一般包含三个部分:</p>
+                <h1 id="Query-Processing"><a href="#Query-Processing" class="headerlink" title="Query Processing"></a>Query Processing</h1><h2 id="1-Overview"><a href="#1-Overview" class="headerlink" title="1.Overview"></a>1.Overview</h2><p><code>Query processig</code>一般包含三个部分:</p>
 <ul>
 <li>解析,翻译.也就是将数据库操作语言解析并翻译成可以对存储系统进行操作的表达方式.</li>
 <li>优化.</li>
 <li>评估性能.</li>
 </ul>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2003%2014%2029%2016%201662186556%201662186556872%20fyeL3P%20image-20220903142916759%20.png" alt="image-20220903142916759" style="zoom: 33%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2003%2014%2029%2016%201662186556%201662186556872%20fyeL3P%20image-20220903142916759%20.png" alt="image-20220903142916759" style="zoom: 33%;">
+
 <p>比如说,SQL语言可以经过解析和翻译变成关系代数的形式,然而对于相同的关系代数又可以有不同的方法执行,比如说,如果需要寻找每一个小于75000的数,那么这个时候可以直接遍历<code>instructor</code>中的每一个tuple或者借助B+树的索引来查找.</p>
 <p>所以这个时候,一个关系代数需要标识出其处理方式,因此标识了处理方式的关系代数被称为<code>evaluation primitive</code>.由一个查询行为拆解成的一个个<code>evaluation primitive</code>序列称为<code>query-execution plan</code>.</p>
-<p><code>optimizer</code>会根据statistics和关系代数表达式生成<code>execution plan</code>,进而交给evaluation
-engine执行并输出查询结果.<code>optimizer</code>会产生一种开销比较小的方案.</p>
-<h2 id="measures-of-query-cost">2.Measures of Query Cost</h2>
-<p>在这里讨论<code>optimizer</code>需要对查询开销进行测量的方法.</p>
+<p><code>optimizer</code>会根据statistics和关系代数表达式生成<code>execution plan</code>,进而交给evaluation engine执行并输出查询结果.<code>optimizer</code>会产生一种开销比较小的方案.</p>
+<h2 id="2-Measures-of-Query-Cost"><a href="#2-Measures-of-Query-Cost" class="headerlink" title="2.Measures of Query Cost"></a>2.Measures of Query Cost</h2><p>在这里讨论<code>optimizer</code>需要对查询开销进行测量的方法.</p>
 <p>其中主要考虑:disk的访问次数,CPU占用时间,分布式系统中网络开销等方面.</p>
 <p>一般来说在大型数据库中,I/O是主要的开销,但是随着闪存和SSD以及主存大小增大并更充分地利用,I/O的开销大大减小了.CPU开销占比增大,关于CPU的开销,数据库系统常会配置有关的参数,将参数与执行过程中的tuple数量等做乘积因此估算CPU开销.</p>
 <p>在此将“传输磁盘的块数”以及“随机访问I/O次数”作为重要指标,一般来说随机读的耗时要多不少.比如说,传输一个block花费0.1ms,而随机读4ms.</p>
 <p>此外读写磁盘块开销不同,写大概是读的两倍,因为写完后还需要读取一遍验证写操作的成功,书中的讨论中忽略这个细节,假定两者几乎相等,此外缓冲区的大小也是重要的因素.</p>
 <p>由于缓冲区的影响,开始读取数据时总是假定从disk中读出,不考虑已经在buffer中的情况,这也是书中的悲观估计.</p>
 <p><strong>这一章剩余的部分,很大程度上是在介绍不同operator的各种算法,不同的算法有不同的开销计算方式适合不同的场景,这一部分日后再深入研究</strong></p>
-<h1 id="query-optimization">Query Optimization</h1>
-<h2 id="overview-1">1.Overview</h2>
-<p>同一个sql语句可以转化成多个不同样式的关系表达式,也就可以有多个不同的<code>query-evaluation plan</code>,然而如何从众多不同的plan中挑选出最低开销的呢?不同的plan又该如何进行开销的计算和比较呢?</p>
+<h1 id="Query-Optimization"><a href="#Query-Optimization" class="headerlink" title="Query Optimization"></a>Query Optimization</h1><h2 id="1-Overview-1"><a href="#1-Overview-1" class="headerlink" title="1.Overview"></a>1.Overview</h2><p>同一个sql语句可以转化成多个不同样式的关系表达式,也就可以有多个不同的<code>query-evaluation plan</code>,然而如何从众多不同的plan中挑选出最低开销的呢?不同的plan又该如何进行开销的计算和比较呢?</p>
 <p>这些工作都交给<code>optimizer</code>来做,首先它会生成多个不同的等价的<code>query-evalution plan</code>,这个过程可以分为3步:</p>
 <ul>
 <li>生成逻辑等价的表达式.</li>
 <li>增加注释,形成<code>query-evalution</code>.</li>
 <li>计算开销,相互比较,选出其中一个.</li>
 </ul>
-<h2 id="transformation-of-relational-expressions">2. Transformation of
-Relational Expressions</h2>
-<p>等价的关系表达式最终会生成相同的输出,这个不言而喻,但是产生的Tuple的顺序不保证一致.</p>
+<h2 id="2-Transformation-of-Relational-Expressions"><a href="#2-Transformation-of-Relational-Expressions" class="headerlink" title="2. Transformation of Relational Expressions"></a>2. Transformation of Relational Expressions</h2><p>等价的关系表达式最终会生成相同的输出,这个不言而喻,但是产生的Tuple的顺序不保证一致.</p>
 <p>下面书中则列举了一堆关系代数的等价转换法则,不再枚举.</p>
 <p>其中多个等价plan中,很重要的一个地方在于<code>Join Order</code>.良好的顺序使得因为Join而产生的中间输出中,其中包含的Tuple会比较少,这往往有利于减小开销.</p>
-<h2 id="estimating-statistics-of-expression-results">3. Estimating
-Statistics of Expression Results</h2>
-<p>对于一个operation的计算,需要知道输入及其<code>statistics</code>.比如说
-r ⋈ (s ⋈ t),就要先得出 s ⋈ t的statistics.</p>
+<h2 id="3-Estimating-Statistics-of-Expression-Results"><a href="#3-Estimating-Statistics-of-Expression-Results" class="headerlink" title="3. Estimating Statistics of Expression Results"></a>3. Estimating Statistics of Expression Results</h2><p>对于一个operation的计算,需要知道输入及其<code>statistics</code>.比如说 r ⋈ (s ⋈ t),就要先得出 s ⋈ t的statistics.</p>
 <p>对应一个生成的表达式或者plan,可以将其组织成一个树,自底向上地进行递归,每经历一个node就可以利用Catalog中的statistics进行计算,最终递归到root也就得出了这个表达式下的cost.</p>
 <p>不过需要注意的是,虽然我们确实经过一定的statistics进行估价,但是这并不是完全精确的评估,很多被估出的结果,在真实运行中可能也不是最低开销的.</p>
-<h3 id="catalog-information">1) Catalog Information</h3>
-<p>Catalog用来存储整个Database中全局的表的信息,这些信息很多都会用于table的statistics的计算中,究竟有哪些信息呢:
-tuple的数量,blocks的数量,每个tuple的size,一个block中的tuple数等等.</p>
+<h3 id="1-Catalog-Information"><a href="#1-Catalog-Information" class="headerlink" title="1) Catalog Information"></a>1) Catalog Information</h3><p>Catalog用来存储整个Database中全局的表的信息,这些信息很多都会用于table的statistics的计算中,究竟有哪些信息呢: tuple的数量,blocks的数量,每个tuple的size,一个block中的tuple数等等.</p>
 <p>除此以外还有一些关于索引的信息也储存在Catalog中.</p>
 <p>Catalog中的table是处于动态变化中的,这意味着statistics也需要进行动态地变化吗?一般系统中不会这么做,这样做太频繁,开销太大.这也更体现了查询优化的statistics并不是完全精确的.</p>
-<p>为了描述数据的分布状况,数据库中会使用直方图.直方图的横轴一般是一个个value
-range,纵轴则表示某个range对应的frequency.</p>
+<p>为了描述数据的分布状况,数据库中会使用直方图.直方图的横轴一般是一个个value range,纵轴则表示某个range对应的frequency.</p>
 <p>对于某些数据库系统的应用中,通常还会有某些数据出现特别频繁的情况,这个时候为了更好地查询结果,还会维护一个list,其中有n个频率最高的value.而直方图中则不会有这list中的几个value.</p>
-<h3 id="selection-size-estimation">2.Selection Size Estimation</h3>
-<p><code>size estimate</code>的状况与<code>selection predicate</code>.其中几种常见的<code>predicate</code>op都是和直方图的性质息息相关的,自己就能推出来,在mit
-6.830 中这一部分也是重点实现,所以就不再多说.</p>
-<h3 id="join-size-estimation">3. Join Size Estimation</h3>
-<p>在此说明一下,有关于<code>Join Size</code>的计算.</p>
+<h3 id="2-Selection-Size-Estimation"><a href="#2-Selection-Size-Estimation" class="headerlink" title="2.Selection Size Estimation"></a>2.Selection Size Estimation</h3><p><code>size estimate</code>的状况与<code>selection predicate</code>.其中几种常见的<code>predicate</code>op都是和直方图的性质息息相关的,自己就能推出来,在mit 6.830 中这一部分也是重点实现,所以就不再多说.</p>
+<h3 id="3-Join-Size-Estimation"><a href="#3-Join-Size-Estimation" class="headerlink" title="3. Join Size Estimation"></a>3. Join Size Estimation</h3><p>在此说明一下,有关于<code>Join Size</code>的计算.</p>
 <p>在这里分了几个不同的情况:</p>
 <ul>
 <li>如果R交S是空,也就是两者没有共同属性,那么就是<code>N_r * N_s</code>个.</li>
 <li>如果R中为主键,这个结果就不会大于s,如果S是主键而R不是的话,相反.</li>
 <li>如果R^ S既不是R的码也不是S的码,这种情况最难确定.</li>
 </ul>
-<h2 id="choice-of-evaluation-plans">4. Choice of Evaluation Plans</h2>
-<p>表达式并不等于plan,还需要附加上特定的算法才可以算是plan.</p>
-<p>在这里主要介绍<code>cost-based optimizer</code>.很多时候,应用场景是where语句中使用Join
-predicate.倘若对多个关系Join的操作,全部枚举出来,数量过于庞大.在此设计了一种动态规划的算法,动态规划算法的一个特点在于利用递推避免了过多的枚举,最终推导出来结果.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2003%2023%2029%2052%201662218992%201662218992395%200Zg6SD%20image-20220903232952270%20.png" alt="image-20220903232952270" style="zoom: 50%;"></p>
+<h2 id="4-Choice-of-Evaluation-Plans"><a href="#4-Choice-of-Evaluation-Plans" class="headerlink" title="4. Choice of Evaluation Plans"></a>4. Choice of Evaluation Plans</h2><p>表达式并不等于plan,还需要附加上特定的算法才可以算是plan.</p>
+<p>在这里主要介绍<code>cost-based optimizer</code>.很多时候,应用场景是where语句中使用Join predicate.倘若对多个关系Join的操作,全部枚举出来,数量过于庞大.在此设计了一种动态规划的算法,动态规划算法的一个特点在于利用递推避免了过多的枚举,最终推导出来结果.</p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2003%2023%2029%2052%201662218992%201662218992395%200Zg6SD%20image-20220903232952270%20.png" alt="image-20220903232952270" style="zoom: 50%;">
 
                 
             </div>

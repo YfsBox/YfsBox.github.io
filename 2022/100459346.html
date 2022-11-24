@@ -494,32 +494,33 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="modern-c-浅谈">0.Modern C++ 浅谈</h2>
-<h2 id="类型推导与auto">1.类型推导与auto</h2>
-<p>在C++11之后引进了auto和decltype.</p>
+                <h2 id="0-Modern-C-浅谈"><a href="#0-Modern-C-浅谈" class="headerlink" title="0.Modern C++ 浅谈"></a>0.Modern C++ 浅谈</h2><h2 id="1-类型推导与auto"><a href="#1-类型推导与auto" class="headerlink" title="1.类型推导与auto"></a>1.类型推导与auto</h2><p>在C++11之后引进了auto和decltype.</p>
 <p>auto的作用不再多说,在此说一下<code>decltype</code>,<strong>auto只能对变量进行类型推导,而不能对一个表达式进行类型推导</strong>.</p>
 <p>其用法如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-decltype">decltype</span><span class="token punctuation">(</span>expression<span class="token punctuation">)</span> var<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
 <p>其中推导的判断逻辑如下:</p>
 <ul>
-<li><p>如果括号内部仅仅就是一个变量,那么结果就和这个变量一样.</p></li>
-<li><p>如果内部是一个函数调用,那么就与函数返回值相同,但是该函数不会调用.</p></li>
-<li><p>如果是一个被括号括起来的变量,那么结果就是引用.</p></li>
-<li><p>上面的都不满足就是和表达式的结果相同.</p></li>
+<li><p>如果括号内部仅仅就是一个变量,那么结果就和这个变量一样.</p>
+</li>
+<li><p>如果内部是一个函数调用,那么就与函数返回值相同,但是该函数不会调用.</p>
+</li>
+<li><p>如果是一个被括号括起来的变量,那么结果就是引用.</p>
+</li>
+<li><p>上面的都不满足就是和表达式的结果相同.</p>
+</li>
 </ul>
-<p>此外在《Effective Modern
-C++》中,建议开发者多使用auto的,auto是需要必须有右值进行初始化的,因此即使是一个简单的变量,也可以起到预防未初始化的效果.对于迭代器就更比说了,迭代器的代码一般都挺长,写起来麻烦.并且一些容器的返回值,是比较复杂生疏的,如果不使用auto就意味着我们必须要记住它的类型及其写法,这是很烦人的.比如说这样:</p>
+<p>此外在《Effective Modern C++》中,建议开发者多使用auto的,auto是需要必须有右值进行初始化的,因此即使是一个简单的变量,也可以起到预防未初始化的效果.对于迭代器就更比说了,迭代器的代码一般都挺长,写起来麻烦.并且一些容器的返回值,是比较复杂生疏的,如果不使用auto就意味着我们必须要记住它的类型及其写法,这是很烦人的.比如说这样:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span> m<span class="token punctuation">;</span>
 <span class="token keyword keyword-for">for</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span><span class="token operator">&amp;</span> p <span class="token operator">:</span>m<span class="token punctuation">)</span> <span class="token punctuation">{</span>
 <span class="token punctuation">}</span>
 <span class="token comment">//写成这样:</span>
 <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>kv<span class="token operator">:</span> m<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//带有引用表示可写</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>auto的出现,让我们在很多时候都没必要熟悉函数的返回值(很多时候!=所有时候)</p>
-<h2 id="右值引用与移动">2.右值引用与移动</h2>
-<p>先不看了.</p>
-<h2 id="智能指针">3.智能指针</h2>
-<p>首先我们细数raw pointer的弊端:</p>
+<h2 id="2-右值引用与移动"><a href="#2-右值引用与移动" class="headerlink" title="2.右值引用与移动"></a>2.右值引用与移动</h2><p>先不看了.</p>
+<h2 id="3-智能指针"><a href="#3-智能指针" class="headerlink" title="3.智能指针"></a>3.智能指针</h2><p>首先我们细数raw pointer的弊端:</p>
 <ul>
 <li>不能通过指针区分,其用作一个数组还是对象,这会引来delete还是delete[]的烦恼.</li>
 <li>当我们使用时,我们难以直观地观察出是否已经销毁.</li>
@@ -527,13 +528,9 @@ C++》中,建议开发者多使用auto的,auto是需要必须有右值进行初�
 <li>悬垂指针问题.</li>
 </ul>
 <p>关于智能指针主要是<code>unique_ptr</code>和<code>shared_ptr</code>.</p>
-<h3 id="智能指针与所有权">1) 智能指针与所有权</h3>
-<p><code>unique_ptr</code>是独占所有权的.它所占的大小与raw
-pointer相当,执行效率也挺快,都接近raw
-pointer.它的独占所有权是如何体现的呢?</p>
+<h3 id="1-智能指针与所有权"><a href="#1-智能指针与所有权" class="headerlink" title="1) 智能指针与所有权"></a>1) 智能指针与所有权</h3><p><code>unique_ptr</code>是独占所有权的.它所占的大小与raw pointer相当,执行效率也挺快,都接近raw pointer.它的独占所有权是如何体现的呢?</p>
 <p>因为它不会有copy,只有move,一旦涉及到一些穿参数或者返回等操作的拷贝,那么其实执行的是move,并且不可以将raw指针转化成unique_ptr.再定一个<code>unique_ptr</code>时可以自定义析构函数(默认的是delete).关于自定义析构函数这一部分还没有深究.</p>
-<p>此外<code>unique_ptr</code>还提供了两种形式,一种是指向单个对象的模式,另一种是数组的模式:<code>std::unique_ptr&lt;T&gt;和std::unique_ptr&lt;T[]&gt;</code>的模式.因此这不会像raw
-pointer那样的困扰,</p>
+<p>此外<code>unique_ptr</code>还提供了两种形式,一种是指向单个对象的模式,另一种是数组的模式:<code>std::unique_ptr&lt;T&gt;和std::unique_ptr&lt;T[]&gt;</code>的模式.因此这不会像raw pointer那样的困扰,</p>
 <p>不过相比<code>std::array, std::vector</code>等容器,不太常用.</p>
 <p>不过对于将<code>unique_ptr</code>转化成<code>shared_ptr</code>开放给所有权还是比较方便的,反之不大行.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">//可以将std::unique_ptrz转换为std::shared_ptr</span>
@@ -542,6 +539,7 @@ std<span class="token double-colon punctuation">::</span>shared_ptr<span class="
 <span class="token comment">//不可以std::shared_ptr转换为std::unique_ptr</span>
 std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span> <span class="token function">u</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span> p <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>u<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>由于<code>shared_ptr</code>中需要一个指针用来做引用计数,所以尺寸至少是裸指针的两倍,此外还有一个该资源的控制块,其中控制块有关于shared_ptr的模块有这些:引用计数,弱计数,自定义deletor,自定义allocator等等.其中关于控制块的规则如下:</p>
 <ul>
 <li>make_shared会创建控制块,并且伴随一个新的资源对象的new.</li>
@@ -578,28 +576,27 @@ std<span class="token double-colon punctuation">::</span>unique_ptr<span class="
     a<span class="token operator">-&gt;</span>pointer <span class="token operator">=</span> b<span class="token punctuation">;</span>
     b<span class="token operator">-&gt;</span>pointer <span class="token operator">=</span> a<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>在这个实例中,两个对象的引用计数都是2,但是当离开作用域时,只能将引用计数-1,最终引用计数不为0,也就有内存泄漏的风险,对于<code>std::weak_ptr</code>则不会增加引用计数,因此最终避免了这种循环引用问题.由于有一个弱引用指向A,所以离开作用域时,A的引用计数为0,因此A也就析构了,进而B的引用计数也就变成了0,因此析构.</p>
 <p>简而言之,循环引用就是,两者互相引用,如果一方想要引用计数清零(被析构),就得等另一方被析构,但是另一方又得等对方引用计数清零,类似于死锁.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2004%2022%2012%2014%201664892734%201664892734066%20YlxsXL%20image-20221004221213944%20.png" alt="image-20221004221213944" style="zoom: 33%;"></p>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2010%2004%2022%2012%2014%201664892734%201664892734066%20YlxsXL%20image-20221004221213944%20.png" alt="image-20221004221213944" style="zoom: 33%;">
+
 <p>weak的作用非常有限,因为没有*和-&gt;方法,用于检查是否有相应的shared_ptr存在,其中<code>expired</code>,会在资源未被释放的时候返回false,还可以从weak_ptr中获取对应的std::shared_ptr(借助lock方法).</p>
-<h3 id="关于make的使用">2) 关于make的使用</h3>
-<p>这里鼓励使用<code>make_shared</code>和<code>make_unique</code>代替new.</p>
+<h3 id="2-关于make的使用"><a href="#2-关于make的使用" class="headerlink" title="2) 关于make的使用"></a>2) 关于make的使用</h3><p>这里鼓励使用<code>make_shared</code>和<code>make_unique</code>代替new.</p>
 <p>其使用方式如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-auto">auto</span> <span class="token function">upw1</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_unique</span><span class="token generic class-name"><span class="token operator">&lt;</span>Widget<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>Widget<span class="token operator">&gt;</span> <span class="token function">upw2</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> Widget<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 <p>此外关于这种采用基于new来初始化智能指针的情况,有个弊端在于,如果new出现了异常,那么就不会赋值给shared_ptr,该指针得不到有效管理,进而带来内存泄漏的危险.</p>
-<p>此外性能也有一定程度的提升,使用new进行初始化首先new出一个对象然后new出来控制块,进行两次动态内存分配,而make_shared则将对象和控制块同时分配.<strong>这种性能提升主要是针对make_shared的情况.</strong>也就是说make_shared分配的shared_ptr内存不是分离的,而是一体的.</p>
-<p>但是make_shared和make_unique不能指定析构器.对于一些自定义的operator
-new和operator
-delete都不能用std::make_shared.也就是一些自定义内存管理类.</p>
-<h2 id="其他grammatical-sugar">4.其他Grammatical sugar</h2>
-<h3 id="golang一般的c-if">1) golang一般的C++ if</h3>
-<p>这是在C++ 17之后引入的特性.写起来就跟go语言一样.</p>
+<p>此外性能也有一定程度的提升,使用new进行初始化首先new出一个对象然后new出来控制块,进行两次动态内存分配,而make_shared则将对象和控制块同时分配.**这种性能提升主要是针对make_shared的情况.**也就是说make_shared分配的shared_ptr内存不是分离的,而是一体的.</p>
+<p>但是make_shared和make_unique不能指定析构器.对于一些自定义的operator new和operator delete都不能用std::make_shared.也就是一些自定义内存管理类.</p>
+<h2 id="4-其他Grammatical-sugar"><a href="#4-其他Grammatical-sugar" class="headerlink" title="4.其他Grammatical sugar"></a>4.其他Grammatical sugar</h2><h3 id="1-golang一般的C-if"><a href="#1-golang一般的C-if" class="headerlink" title="1) golang一般的C++ if"></a>1) golang一般的C++ if</h3><p>这是在C++ 17之后引入的特性.写起来就跟go语言一样.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 将临时变量放到 if 语句内</span>
 <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span><span class="token double-colon punctuation">::</span>iterator itr <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">find</span><span class="token punctuation">(</span>vec<span class="token punctuation">.</span><span class="token function">begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> vec<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     itr <span class="token operator">!=</span> vec<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token operator">*</span>itr <span class="token operator">=</span> <span class="token number">4</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>同理swicth也是这样的.</p>
 <p>此外类似的语法糖还有区间for循环的迭代,这通常用于循环迭代一些容器.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-int">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -613,20 +610,21 @@ delete都不能用std::make_shared.也就是一些自定义内存管理类.</p>
     <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> element <span class="token operator">:</span> vec<span class="token punctuation">)</span>
         std<span class="token double-colon punctuation">::</span>cout <span class="token operator">&lt;&lt;</span> element <span class="token operator">&lt;&lt;</span> std<span class="token double-colon punctuation">::</span>endl<span class="token punctuation">;</span> <span class="token comment">// read only</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="nullptr的优越性">2) nullptr的优越性</h3>
-<p>只是在C++ 11之后引入的新特性,这个常量的功能旨在替代NULL.</p>
+
+<h3 id="2-nullptr的优越性"><a href="#2-nullptr的优越性" class="headerlink" title="2) nullptr的优越性"></a>2) nullptr的优越性</h3><p>只是在C++ 11之后引入的新特性,这个常量的功能旨在替代NULL.</p>
 <p>首先我们需要明白的是NULL是什么,NULL是一个宏定义(0).可以将其视为一个整形.如果将NULL传递给int等类型的参数或者返回值什么的,也是可以通过的.因此对于下面这种情况是容易出问题的:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">function1</span><span class="token punctuation">(</span>Object <span class="token operator">*</span>gf<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-void">void</span> <span class="token function">function1</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> num<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token comment">//调用方式</span>
 <span class="token function">function</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//会调用第二个!</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
 <p>这是一种超出预期的结果!所以总的来说,NULL终究只是一个宏,是一个整型(有时候是int有时候是long),一旦涉及到类型转换就会遇到风险.为了避免类似的问题,我们应该尽可能地使用nullptr.</p>
 <p>它可以被隐式转换成任何类型的指针.此外,关于智能指针也有对于nullptr的支持,虽然智能指针不是指针而是对象.像下面的这种用法是可以的.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">shared_ptr<span class="token operator">&lt;</span>Girlfriend<span class="token operator">&gt;</span> gfPtr <span class="token operator">=</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">;</span>
 unique_ptr<span class="token operator">&lt;</span>Boyfriend<span class="token operator">&gt;</span> bfPtr <span class="token operator">=</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">;</span>    <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
 <p>总的来说,相比NULL,避免了因为NULL是整型而导致的因为隐式转换的意外的重载匹配.</p>
-<h2 id="lambda与functional">5.Lambda与functional</h2>
-<p>Lambda类似于匿名函数的作用,我们什么时候会比较需要一个函数呢?</p>
+<h2 id="5-Lambda与functional"><a href="#5-Lambda与functional" class="headerlink" title="5.Lambda与functional"></a>5.Lambda与functional</h2><p>Lambda类似于匿名函数的作用,我们什么时候会比较需要一个函数呢?</p>
 <p>比如说我们需要使用某个函数,但是有没有太大的必要去声明并定义它.</p>
 <p>我们可以将std::function作为函数容器来看待,因此函数可以像其他对象那样进行复制,调用,复制等操作,因此抽象了复杂的函数指针等操作.一般情况下,对于functional的定义除了采用lambda之外,还可以采用bind进行定义.std::bind结合std::placeholder可以灵活地处理一些参数不固定的问题.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-int">int</span> <span class="token function">foo</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> a<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> b<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> c<span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -639,6 +637,9 @@ unique_ptr<span class="token operator">&lt;</span>Boyfriend<span class="token op
     <span class="token comment">// 这时调用 bindFoo 时，只需要提供第一个参数即可</span>
     <span class="token function">bindFoo</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
 
                 
             </div>
