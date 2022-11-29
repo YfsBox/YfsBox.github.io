@@ -502,8 +502,10 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="1-代码分析"><a href="#1-代码分析" class="headerlink" title="1. 代码分析"></a>1. 代码分析</h2><p>在本次project中,如果想要正确实现,需要阅读大量的相关的代码,所以在此先讲相关的代码及其架构分析一下.</p>
-<h3 id="1-Catalog"><a href="#1-Catalog" class="headerlink" title="1) Catalog"></a>1) Catalog</h3><p>关于Catalog,简而言之是一个数据库系统记录一些全局信息的数据结构,在后面的执行器中,可以通过Catalog,检索到所需要的信息,比如说Index,Table等.</p>
+                <h2 id="代码分析">1. 代码分析</h2>
+<p>在本次project中,如果想要正确实现,需要阅读大量的相关的代码,所以在此先讲相关的代码及其架构分析一下.</p>
+<h3 id="catalog">1) Catalog</h3>
+<p>关于Catalog,简而言之是一个数据库系统记录一些全局信息的数据结构,在后面的执行器中,可以通过Catalog,检索到所需要的信息,比如说Index,Table等.</p>
 <p>首先看<code>catalog.h</code>中的Catalog,其中的私有成员如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-private">private</span><span class="token operator">:</span>
  <span class="token punctuation">[</span><span class="token punctuation">[</span>maybe_unused<span class="token punctuation">]</span><span class="token punctuation">]</span> BufferPoolManager <span class="token operator">*</span>bpm_<span class="token punctuation">;</span>
@@ -517,7 +519,6 @@
  std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>index_oid_t<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>IndexInfo<span class="token operator">&gt;&gt;</span> indexes_<span class="token punctuation">;</span>
  std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>string<span class="token punctuation">,</span> index_oid_t<span class="token operator">&gt;&gt;</span> index_names_<span class="token punctuation">;</span>
  std<span class="token double-colon punctuation">::</span>atomic<span class="token operator">&lt;</span>index_oid_t<span class="token operator">&gt;</span> next_index_oid_<span class="token punctuation">{</span><span class="token number">0</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>由此可见,可以由<code>table_oid_t</code>来得到相应的<code>TableInfo</code>.还有name字符串道相应的<code>table_oid_t</code>.下面还有与索引的相关的.其中主要的API有:GetTable,GetIndex等,大多数API的实现都是围绕着上面几个map数据结构的操作的.但是除了这些之外,像CreateIndex,CreateTable这些API则会涉及到更加复杂的BufferPoolManager的操作.</p>
 <p>然后看<code>schema.h</code>,这个数据结构定义了一个表的模式,主要包括每一列的信息(类型,大小)等.其中核心的数据结构如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-uint32_t">uint32_t</span> length_<span class="token punctuation">;</span>
@@ -527,26 +528,26 @@ std<span class="token double-colon punctuation">::</span>vector<span class="toke
 <span class="token keyword keyword-bool">bool</span> tuple_is_inlined_<span class="token punctuation">;</span>
 <span class="token comment">/** Indices of all uninlined columns. */</span>
 std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span><span class="token keyword keyword-uint32_t">uint32_t</span><span class="token operator">&gt;</span> uninlined_columns_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中比较常用的API是<code>GetColumns</code>,<code>GetColumn</code>等,这些关于Get的实现一般都是比较简单的.</p>
 <p>但是<code>column.h</code>中有什么呢?一个表的Scheme是由多个<code>Column</code>(如同前面的vector数据成员)组成的,其中包含一些内部信息(name,type,length,offset)等.此外值得注意的是每一个<code>Colmns</code>成员中还会有:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">/** Expression used to create this column **/</span>
 <span class="token keyword keyword-const">const</span> AbstractExpression <span class="token operator">*</span>expr_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
 <p>及其相关的Get接口.至于其具体作用,在后面具体分析.</p>
-<h3 id="2-Table"><a href="#2-Table" class="headerlink" title="2) Table"></a>2) Table</h3><h4 id="Tuple"><a href="#Tuple" class="headerlink" title="Tuple"></a>Tuple</h4><p>相关的类主要是:<code>Tuple,TableHeap,TableIterator</code>.其中<code>Tuple</code>之最基础的单位,即为“元组”,表示关系中的一个条目.其中的数据成员如下:</p>
+<h3 id="table">2) Table</h3>
+<h4 id="tuple">Tuple</h4>
+<p>相关的类主要是:<code>Tuple,TableHeap,TableIterator</code>.其中<code>Tuple</code>之最基础的单位,即为“元组”,表示关系中的一个条目.其中的数据成员如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> allocated_<span class="token punctuation">{</span><span class="token boolean">false</span><span class="token punctuation">}</span><span class="token punctuation">;</span>  <span class="token comment">// is allocated?</span>
  RID rid_<span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>              <span class="token comment">// if pointing to the table heap, the rid is valid</span>
  <span class="token keyword keyword-uint32_t">uint32_t</span> size_<span class="token punctuation">{</span><span class="token number">0</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
  <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>data_<span class="token punctuation">{</span><span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中rid是一个用来在磁盘上检索Tuple的索引(更具体地说,表明了所属的page_id,以及再改page_id中对应的slot的位置),size表明了该Tuple的大小,其中data是一个缓冲区对应该tuple的实际内容.其中相关的API主要是一些Get操作,其中有:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Tuple <span class="token function">KeyFromTuple</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Schema <span class="token operator">&amp;</span>schema<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> Schema <span class="token operator">&amp;</span>key_schema<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span><span class="token keyword keyword-uint32_t">uint32_t</span><span class="token operator">&gt;</span> <span class="token operator">&amp;</span>key_attrs<span class="token punctuation">)</span><span class="token punctuation">;</span>
 Value <span class="token function">GetValue</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Schema <span class="token operator">*</span>schema<span class="token punctuation">,</span> <span class="token keyword keyword-uint32_t">uint32_t</span> column_idx<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
 <p>API比较关键,也比较复杂.<code>GetTuple</code>用于从缓冲区的内容中,根据一个shema提取出column_idx,并将其“翻译”成Value类型,作为返回.关于<code>KeyFromTuple</code>比较复杂,在后面也多次用到,留到后面再说.</p>
 <p>总的来说关于其中Value的读取,主要根据参数中Scheme中的Colmns来在Tuple中的data缓冲区中定位到数据,然后翻译成Value.</p>
-<h4 id="TableHeap"><a href="#TableHeap" class="headerlink" title="TableHeap"></a>TableHeap</h4><p><code>TableHeap</code>表示的是一个磁盘中的物理页(不是内存),一个物理页中包含多个TablePage(也就对应于Buffer Pool中可以装载的内存页).其中对于这些TablePage的访问,是通过TableIterator进行的(提供了Begin,Next等迭代器接口).其余的API主要围绕着对于Tuple的操作,其中RID是TableHeap检索Tuple的重要参数.比如说下面的UpdateTuple中:</p>
+<h4 id="tableheap">TableHeap</h4>
+<p><code>TableHeap</code>表示的是一个磁盘中的物理页(不是内存),一个物理页中包含多个TablePage(也就对应于Buffer
+Pool中可以装载的内存页).其中对于这些TablePage的访问,是通过TableIterator进行的(提供了Begin,Next等迭代器接口).其余的API主要围绕着对于Tuple的操作,其中RID是TableHeap检索Tuple的重要参数.比如说下面的UpdateTuple中:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">TableHeap</span><span class="token double-colon punctuation">::</span><span class="token function">UpdateTuple</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Tuple <span class="token operator">&amp;</span>tuple<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> RID <span class="token operator">&amp;</span>rid<span class="token punctuation">,</span> Transaction <span class="token operator">*</span>txn<span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token comment">// Find the page which contains the tuple.</span>
   <span class="token keyword keyword-auto">auto</span> page <span class="token operator">=</span> <span class="token generic-function"><span class="token function">reinterpret_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>TablePage <span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>buffer_pool_manager_<span class="token operator">-&gt;</span><span class="token function">FetchPage</span><span class="token punctuation">(</span>rid<span class="token punctuation">.</span><span class="token function">GetPageId</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -567,13 +568,12 @@ Value <span class="token function">GetValue</span><span class="token punctuation
   <span class="token punctuation">}</span>
   <span class="token keyword keyword-return">return</span> is_updated<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>首先会借助RID中的Fetch获取其所处的页,然后进行对该页的Update(也就是基于我们所熟悉的BufferPool的一些API完成).</p>
-<h4 id="TableIterator"><a href="#TableIterator" class="headerlink" title="TableIterator"></a>TableIterator</h4><p>前面提到过,TableHeap中有提供的迭代器接口(Begin,End)可以用来遍历其中的Page,其返回类型为TableIterator.每一个TableIterator的数据成员如下:</p>
+<h4 id="tableiterator">TableIterator</h4>
+<p>前面提到过,TableHeap中有提供的迭代器接口(Begin,End)可以用来遍历其中的Page,其返回类型为TableIterator.每一个TableIterator的数据成员如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">TableHeap <span class="token operator">*</span>table_heap_<span class="token punctuation">;</span>
  Tuple <span class="token operator">*</span>tuple_<span class="token punctuation">;</span>
  Transaction <span class="token operator">*</span>txn_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p>一个TableIterator的原子单位是该Page中的一个tuple,也就是上面的tuple指针,而table_heap_也就是该迭代器所处的TableHeap.至于内部关于迭代器的一些重载实现,我们主要关注迭代器中最重要的,比如*,-&gt;,++操作的实现.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Tuple <span class="token operator">*</span>TableIterator<span class="token double-colon punctuation">::</span><span class="token keyword keyword-operator">operator</span><span class="token operator">-&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token function">assert</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span> <span class="token operator">!=</span> table_heap_<span class="token operator">-&gt;</span><span class="token function">End</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -583,28 +583,32 @@ Value <span class="token function">GetValue</span><span class="token punctuation
   <span class="token function">assert</span><span class="token punctuation">(</span><span class="token operator">*</span><span class="token keyword keyword-this">this</span> <span class="token operator">!=</span> table_heap_<span class="token operator">-&gt;</span><span class="token function">End</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token keyword keyword-return">return</span> <span class="token operator">*</span>tuple_<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>上面的实现比较简单都是基于TableIterator的最小操作单位,也就是一个Tuple.</p>
-<p>而关于++的实现则是比较复杂的.结合前面的理解,一个++操作意味着Tuple指针移动到当前table_heap中的下一个Tuple.因此这涉及到了需要借助Buffer Pool的Fetch,Unpin,GetTuple`等操作,可能涉及到不只一个内存页的读取和Unpin.</p>
-<h3 id="3-Executor"><a href="#3-Executor" class="headerlink" title="3) Executor"></a>3) Executor</h3><h4 id="ExecutorContext"><a href="#ExecutorContext" class="headerlink" title="ExecutorContext"></a>ExecutorContext</h4><p>顾名思义,该类为执行器提供一些全局性的信息(也就是执行器背景).其中成员函数是这些全局性信息的指针(比如说Catalog,Buffer Pool,Lock Manafer等),主要API也是GET类型的,比如说:</p>
+<p>而关于++的实现则是比较复杂的.结合前面的理解,一个++操作意味着Tuple指针移动到当前table_heap中的下一个Tuple.因此这涉及到了需要借助Buffer
+Pool的Fetch,Unpin,GetTuple`等操作,可能涉及到不只一个内存页的读取和Unpin.</p>
+<h3 id="executor">3) Executor</h3>
+<h4 id="executorcontext">ExecutorContext</h4>
+<p>顾名思义,该类为执行器提供一些全局性的信息(也就是执行器背景).其中成员函数是这些全局性信息的指针(比如说Catalog,Buffer
+Pool,Lock Manafer等),主要API也是GET类型的,比如说:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">Transaction <span class="token operator">*</span><span class="token function">GetTransaction</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> transaction_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 Catalog <span class="token operator">*</span><span class="token function">GetCatalog</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> catalog_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 BufferPoolManager <span class="token operator">*</span><span class="token function">GetBufferPoolManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> bpm_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 LogManager <span class="token operator">*</span><span class="token function">GetLogManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
 LockManager <span class="token operator">*</span><span class="token function">GetLockManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> lock_mgr_<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 TransactionManager <span class="token operator">*</span><span class="token function">GetTransactionManager</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> txn_mgr_<span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h4 id="ExecutorPlan"><a href="#ExecutorPlan" class="headerlink" title="ExecutorPlan"></a>ExecutorPlan</h4><p>对于一个SQL查询语句,内核会将其组织称一个树状的形式,自树的leaf道root递归地计算,最终从root得到最终的结果.其中每个ExecutorPlan代表查询树中的一个节点.</p>
+<h4 id="executorplan">ExecutorPlan</h4>
+<p>对于一个SQL查询语句,内核会将其组织称一个树状的形式,自树的leaf道root递归地计算,最终从root得到最终的结果.其中每个ExecutorPlan代表查询树中的一个节点.</p>
 <p>其中为了对应多态实现的Executor,Executor也是多态的,首先说明一下其中抽象类的实现(数据成员):</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-private">private</span><span class="token operator">:</span>
  <span class="token keyword keyword-const">const</span> Schema <span class="token operator">*</span>output_schema_<span class="token punctuation">;</span>
  std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span><span class="token keyword keyword-const">const</span> AbstractPlanNode <span class="token operator">*</span><span class="token operator">&gt;</span> children_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p>output_schema定义了执行完该节点后所得到Tuple的模式(相当于于投影机制).而children则对应了查询树中的子结点.关于其所能提供的API,也是一些围绕着<code>output_schema_</code>和<code>children_</code>展开的.至于其派生类,后面结合Executor的实现,进行分析.</p>
-<h4 id="ExecutorFactory"><a href="#ExecutorFactory" class="headerlink" title="ExecutorFactory"></a>ExecutorFactory</h4><p>这个类的实现采用了工厂模式.由于容器在bustub中的实现是基于多态实现的,也就是说定义一个执行器基类,然后可以定义不同种类的执行器.其中相关的接口如下:</p>
+<h4 id="executorfactory">ExecutorFactory</h4>
+<p>这个类的实现采用了工厂模式.由于容器在bustub中的实现是基于多态实现的,也就是说定义一个执行器基类,然后可以定义不同种类的执行器.其中相关的接口如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-static">static</span> std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>AbstractExecutor<span class="token operator">&gt;</span> <span class="token function">CreateExecutor</span><span class="token punctuation">(</span>ExecutorContext <span class="token operator">*</span>exec_ctx<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> AbstractPlanNode <span class="token operator">*</span>plan<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-<h2 id="2-代码实现"><a href="#2-代码实现" class="headerlink" title="2.代码实现"></a>2.代码实现</h2><h3 id="1-SeqScanExecutor"><a href="#1-SeqScanExecutor" class="headerlink" title="1) SeqScanExecutor"></a>1) SeqScanExecutor</h3><p>是整个project中最最基础的Executor类型,其他像UpdateExecutor,DeleteExector等类型往往都是以SeqScanExecutor作为child_executor的.</p>
+<h2 id="代码实现">2.代码实现</h2>
+<h3 id="seqscanexecutor">1) SeqScanExecutor</h3>
+<p>是整个project中最最基础的Executor类型,其他像UpdateExecutor,DeleteExector等类型往往都是以SeqScanExecutor作为child_executor的.</p>
 <p>我的实现中有如下几个数据成员及其构造函数:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"> <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
   <span class="token comment">/** The sequential scan plan node to be executed */</span>
@@ -615,29 +619,25 @@ TransactionManager <span class="token operator">*</span><span class="token funct
   
   <span class="token class-name">SeqScanExecutor</span><span class="token double-colon punctuation">::</span><span class="token function">SeqScanExecutor</span><span class="token punctuation">(</span>ExecutorContext <span class="token operator">*</span>exec_ctx<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> SeqScanPlanNode <span class="token operator">*</span>plan<span class="token punctuation">)</span>
     <span class="token operator">:</span> <span class="token function">AbstractExecutor</span><span class="token punctuation">(</span>exec_ctx<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">info_</span><span class="token punctuation">(</span><span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">iterator_</span><span class="token punctuation">(</span><span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">plan_</span><span class="token punctuation">(</span>plan<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>构造函数中有一个plan和exec_ctx.其中exec_ctx封装了一些全局的对象,比如说当前的事务,Catalog,BufferPool等.而关于plan对象,其数据成员如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-const">const</span> AbstractExpression <span class="token operator">*</span>predicate_<span class="token punctuation">;</span>
 <span class="token comment">/** The table whose tuples should be scanned */</span>
 table_oid_t table_oid_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p>再结合相关的API,我们可以知道这个对象会给出SeqScan作用的表id以及相关的谓词判断,用于执行条件过滤.</p>
 <p>围绕着这几个数据成员,在Init函数中会初始化<code>iterator_</code>(设置成TableHeap的Begin),还有<code>info_</code>指针的设置.</p>
 <p>关于Next的实现,基于遍历TableIterator实现,最终只返回一个,其中的重点是对于每个遍历的Tuple需要借助谓词来筛选.相关的代码如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>plan_<span class="token operator">-&gt;</span><span class="token function">GetPredicate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span> <span class="token operator">||</span> plan_<span class="token operator">-&gt;</span><span class="token function">GetPredicate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">Evaluate</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>tup<span class="token punctuation">,</span> <span class="token operator">&amp;</span>info_<span class="token operator">-&gt;</span>schema_<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token generic-function"><span class="token function">GetAs</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-bool">bool</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
       <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
 <p>此外,对于遍历的Tuple还需要根据OutputScheme进行调整.其中相关的实现如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Value<span class="token operator">&gt;</span> values<span class="token punctuation">;</span>
 values<span class="token punctuation">.</span><span class="token function">reserve</span><span class="token punctuation">(</span>output_schema<span class="token operator">-&gt;</span><span class="token function">GetColumnCount</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> output_schema<span class="token operator">-&gt;</span><span class="token function">GetColumnCount</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   values<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>output_schema<span class="token operator">-&gt;</span><span class="token function">GetColumn</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">GetExpr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">Evaluate</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>tup<span class="token punctuation">,</span> <span class="token operator">&amp;</span>info_<span class="token operator">-&gt;</span>schema_<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="2-Insert"><a href="#2-Insert" class="headerlink" title="2) Insert"></a>2) Insert</h3><p>Insert有两种类型,需要根据plan判断:</p>
+<h3 id="insert">2) Insert</h3>
+<p>Insert有两种类型,需要根据plan判断:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token function">IsRawInsert</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token function">GetChildren</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
 <p>然后根据Insert的类型,确定在初始化时是否需要对child_executor进行初始化.</p>
 <p>关于Next操作,需要注意的是Next操作是一次性将插入全部,而不是一次性插入一个.其方法基本上是遍历RawValues或者chile_executor,从中获取或者构造出一个Tuple,然后插入调用InsertEntry.其中需要注意的是索引相关的更新.其相关代码如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-auto">auto</span> indexes <span class="token operator">=</span> exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetCatalog</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">GetTableIndexes</span><span class="token punctuation">(</span>info_<span class="token operator">-&gt;</span>name_<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -646,17 +646,19 @@ values<span class="token punctuation">.</span><span class="token function">reser
       tmp_next<span class="token punctuation">.</span><span class="token function">KeyFromTuple</span><span class="token punctuation">(</span>info_<span class="token operator">-&gt;</span>schema_<span class="token punctuation">,</span> index<span class="token operator">-&gt;</span>key_schema_<span class="token punctuation">,</span> index<span class="token operator">-&gt;</span>index_<span class="token operator">-&gt;</span><span class="token function">GetKeyAttrs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> tmp_rid<span class="token punctuation">,</span>
       AbstractExecutor<span class="token double-colon punctuation">::</span>exec_ctx_<span class="token operator">-&gt;</span><span class="token function">GetTransaction</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>关于Update,Delete与之类似.</p>
-<h3 id="3-Nested-Loop-Join"><a href="#3-Nested-Loop-Join" class="headerlink" title="3) Nested Loop Join"></a>3) Nested Loop Join</h3><p>这个无非就是在初始化(Init)的时候将两个表设置到Init,Next中就是两重循环(也就是对应两个表).并且需要检查条件,如果符合条件则返回,一次返回一个.关于条件判断的部分,代码如下:</p>
+<h3 id="nested-loop-join">3) Nested Loop Join</h3>
+<p>这个无非就是在初始化(Init)的时候将两个表设置到Init,Next中就是两重循环(也就是对应两个表).并且需要检查条件,如果符合条件则返回,一次返回一个.关于条件判断的部分,代码如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>plan_<span class="token operator">-&gt;</span><span class="token function">Predicate</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span> <span class="token operator">||</span> plan_<span class="token operator">-&gt;</span><span class="token function">Predicate</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
                                          <span class="token operator">-&gt;</span><span class="token function">EvaluateJoin</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>curr_left_tuple_<span class="token punctuation">,</span> left_executor_<span class="token operator">-&gt;</span><span class="token function">GetOutputSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
                                                         <span class="token operator">&amp;</span>right_tup<span class="token punctuation">,</span> right_executor_<span class="token operator">-&gt;</span><span class="token function">GetOutputSchema</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
                                          <span class="token punctuation">.</span><span class="token generic-function"><span class="token function">GetAs</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-bool">bool</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
  
 <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="4-Hash-Join"><a href="#4-Hash-Join" class="headerlink" title="4) Hash Join"></a>4) Hash Join</h3><p>实现的基本思路是,首先将其中一个表将其中与Hash Join有关的key构造一个Hash Map.这个Hash Map的key是这些表中有关的键值,value则是一个个的Tuple.其中具体的实现如下:</p>
+<h3 id="hash-join">4) Hash Join</h3>
+<p>实现的基本思路是,首先将其中一个表将其中与Hash
+Join有关的key构造一个Hash Map.这个Hash
+Map的key是这些表中有关的键值,value则是一个个的Tuple.其中具体的实现如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">SimpleHashJoinHashTable</span> <span class="token punctuation">{</span>
  <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
   <span class="token keyword keyword-using">using</span> tuples <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>Tuple<span class="token operator">&gt;</span><span class="token punctuation">;</span>
@@ -689,8 +691,8 @@ values<span class="token punctuation">.</span><span class="token function">reser
  <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
   std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span>HashJoinKey<span class="token punctuation">,</span> tuples<span class="token punctuation">,</span> HashJoinHashFunc<span class="token operator">&gt;</span> buckets_<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>其中这个类的数据成员是一个<code>std::unordered_map</code>,HashJoin也就对应了一个表中和Hash Join有关的键值.其中关于<code>std::unordered_map</code>的一些有关于STL的操作还是值得注意的.独具键值来说HashJoinKey是一个对象,其中的‘==’是需要重载的.还有关于仿函数的定义和设置:</p>
+<p>其中这个类的数据成员是一个<code>std::unordered_map</code>,HashJoin也就对应了一个表中和Hash
+Join有关的键值.其中关于<code>std::unordered_map</code>的一些有关于STL的操作还是值得注意的.独具键值来说HashJoinKey是一个对象,其中的‘==’是需要重载的.还有关于仿函数的定义和设置:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">HashJoinKey</span> <span class="token punctuation">{</span>
  <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
   Value value_<span class="token punctuation">;</span>
@@ -708,14 +710,23 @@ values<span class="token punctuation">.</span><span class="token function">reser
     <span class="token keyword keyword-return">return</span> curr_hash<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>定义好<code>SimpleHashJoinTable</code>的数据结构,就可以实现Init和Next.其中Init需要将其中一个表遍历一遍,将该表记为left child,每遍历一个Tuple都需要根据plan中的<code>LeftJoinKeyExpression</code>来从Tuple中提取Value,然后构造出<code>{joinkey, tuple}</code>.插入到<code>SimpleHashJoinTable</code>中.在Next中,遍历的线索有两条,第一条是SimpleHashJoinTable中的key,第二条则是另一个表(没有在Init中用来构造哈希表的,记为right child).更具体地说,我们遍历另一个表,得出其中的Value,然后代入到Hash Table中可以得出对应Tuple,每次Next返回一个.因此我们需要借助额外的变量记录上一次Next所到达的left child的Tuple.如下:</p>
+<p>定义好<code>SimpleHashJoinTable</code>的数据结构,就可以实现Init和Next.其中Init需要将其中一个表遍历一遍,将该表记为left
+child,每遍历一个Tuple都需要根据plan中的<code>LeftJoinKeyExpression</code>来从Tuple中提取Value,然后构造出<code>{joinkey, tuple}</code>.插入到<code>SimpleHashJoinTable</code>中.在Next中,遍历的线索有两条,第一条是SimpleHashJoinTable中的key,第二条则是另一个表(没有在Init中用来构造哈希表的,记为right
+child).更具体地说,我们遍历另一个表,得出其中的Value,然后代入到Hash
+Table中可以得出对应Tuple,每次Next返回一个.因此我们需要借助额外的变量记录上一次Next所到达的left
+child的Tuple.如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>HashJoinKey<span class="token punctuation">,</span> <span class="token keyword keyword-int32_t">int32_t</span><span class="token operator">&gt;</span> curr_left_tuple_<span class="token punctuation">;</span>
 Tuple curr_right_tuple_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
-<h3 id="5-Aggregation"><a href="#5-Aggregation" class="headerlink" title="5) Aggregation"></a>5) Aggregation</h3><p>Aggregation的实现思路和Hash Join差不多,都需要借助一个Hash Table,但是其实现相对来说比较简单,对于这个Hash表,直接使用了给出的<code>SimpleAggregationHashTable</code>.只有Distinct也差不多,不过Distinct对于<code>SimpleAggregationHashTable</code>上,我将key设置成一个Tuple的Value,而Hash Table中的value我设置为null(就是什么都没有).因为我们只需要实现一个去重的作用.</p>
-<h2 id="3-其他记录"><a href="#3-其他记录" class="headerlink" title="3.其他记录"></a>3.其他记录</h2><p>最后的结果,继续冲!</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2004%2013%2024%2039%201667539479%201667539479662%20FQ74mO%20image-20221104132439512%20.png" alt="image-20221104132439512"></p>
+<h3 id="aggregation">5) Aggregation</h3>
+<p>Aggregation的实现思路和Hash Join差不多,都需要借助一个Hash
+Table,但是其实现相对来说比较简单,对于这个Hash表,直接使用了给出的<code>SimpleAggregationHashTable</code>.只有Distinct也差不多,不过Distinct对于<code>SimpleAggregationHashTable</code>上,我将key设置成一个Tuple的Value,而Hash
+Table中的value我设置为null(就是什么都没有).因为我们只需要实现一个去重的作用.</p>
+<h2 id="其他记录">3.其他记录</h2>
+<p>最后的结果,继续冲!</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2004%2013%2024%2039%201667539479%201667539479662%20FQ74mO%20image-20221104132439512%20.png" alt="image-20221104132439512">
+<figcaption aria-hidden="true">image-20221104132439512</figcaption>
+</figure>
 
                 
             </div>

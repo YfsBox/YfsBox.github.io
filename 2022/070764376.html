@@ -494,17 +494,20 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="0-Abstract"><a href="#0-Abstract" class="headerlink" title="0.Abstract"></a>0.Abstract</h2><p><code>MapReduce</code>是一种编程模型,一般用于在分布式系统上并行地处理大规模数据.</p>
+                <h2 id="abstract">0.Abstract</h2>
+<p><code>MapReduce</code>是一种编程模型,一般用于在分布式系统上并行地处理大规模数据.</p>
 <p>对于在此框架上开发的程序员来说,主要制定<code>map</code>和<code>reduce</code>这两个函数,一般情况下,前者的输入和输出都是k-v的,后者则合并前者生成的中间结果.</p>
-<h2 id="1-Introduction"><a href="#1-Introduction" class="headerlink" title="1.Introduction"></a>1.Introduction</h2><p>其实在很多大规模计算的场景下,难点并不在于原始计算本身,而在于<strong>在分布式系统中,如何并行计算,分配数据,容错处理等问题</strong>.</p>
+<h2 id="introduction">1.Introduction</h2>
+<p>其实在很多大规模计算的场景下,难点并不在于原始计算本身,而在于<strong>在分布式系统中,如何并行计算,分配数据,容错处理等问题</strong>.</p>
 <p><code>MapReduce</code>的核心作用就在于提供一种抽象,不需要考虑太多上述问题.</p>
 <p>其设计思想:很多计算可以视为,将数据分解为一个个记录,每个记录可以经过一个<code>Map</code>函数,形成一个k-v元组,而<code>Reduce</code>可以将相同<code>key</code>值的元组合并在一起.</p>
 <p>这是一种<strong>分而治之</strong>的思想.</p>
-<h2 id="2-Programming-Model"><a href="#2-Programming-Model" class="headerlink" title="2. Programming Model"></a>2. Programming Model</h2><p><code>User</code>在设计时,主要考虑的是<code>Map</code>和<code>Reduce</code>.</p>
+<h2 id="programming-model">2. Programming Model</h2>
+<p><code>User</code>在设计时,主要考虑的是<code>Map</code>和<code>Reduce</code>.</p>
 <p>一个比较简单的应用就是统计单词数量.</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2044%2014%201657208654%201657208654216%208vHJaN%20image-20220707234414092%20.png" alt="image-20220707234414092" style="zoom: 50%;">
-
-<p>一个<code>map</code>处理的是一个k-v对,每处理一个k-v对,就将相应的w的value + 1.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2044%2014%201657208654%201657208654216%208vHJaN%20image-20220707234414092%20.png" alt="image-20220707234414092" style="zoom: 50%;"></p>
+<p>一个<code>map</code>处理的是一个k-v对,每处理一个k-v对,就将相应的w的value
++ 1.</p>
 <p>一个<code>reduce</code>只处理一个<code>key</code>,参数中的迭代器是从中间结果中收集的<code>values</code>,将这些<code>values</code></p>
 <p>累加起来即可.累加结束后,形成最终的key对应的结果.</p>
 <p>除此之外还有其他应用:</p>
@@ -515,11 +518,9 @@
 <li>分布式排序.</li>
 </ul>
 <p>总体的运行图如下:</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" alt="image-20220707235622564" style="zoom:50%;">
-
-
-
-<h2 id="3-Implementation"><a href="#3-Implementation" class="headerlink" title="3.Implementation"></a>3.Implementation</h2><p>这一部分描述的实现方式主要适用于(使用交换式以太网连接的):</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" alt="image-20220707235622564" style="zoom:50%;"></p>
+<h2 id="implementation">3.Implementation</h2>
+<p>这一部分描述的实现方式主要适用于(使用交换式以太网连接的):</p>
 <ul>
 <li>x86双处理器,linux系统,内存2-4GB.</li>
 <li>一个集群数百或者上千个机器.</li>
@@ -533,9 +534,12 @@
 <li>规模(机器数量).</li>
 <li>网络带宽与存储(硬件和软件).</li>
 </ul>
-<h3 id="3-1-Execution-Overview"><a href="#3-1-Execution-Overview" class="headerlink" title="3.1 Execution Overview"></a>3.1 Execution Overview</h3><p>再次复现一下这个过程,结合上面的图片:</p>
+<h3 id="execution-overview">3.1 Execution Overview</h3>
+<p>再次复现一下这个过程,结合上面的图片:</p>
 <ul>
-<li>在用户程序中所使用的<code>MapReduce</code>库,将输入的文件<code>split</code>成(16-64 MB)大小的部分(M个),然后 MapReduce 在一个机器集群上启动很多个程序的副本.</li>
+<li>在用户程序中所使用的<code>MapReduce</code>库,将输入的文件<code>split</code>成(16-64
+MB)大小的部分(M个),然后 MapReduce
+在一个机器集群上启动很多个程序的副本.</li>
 <li>在这些启动的程序副本中,分为<code>master</code>和<code>worker</code>,前者是特殊的,一般有一个.由M个<code>Map</code>任务,<code>R</code>个<code>Reduce</code>任务,<code>master</code>具有为<code>worker</code>分工的功能.</li>
 <li>对于分工到<code>Map</code>任务的<code>worker</code>读取到一份<code>split</code>,然后解析出输入的k-v,并带入<code>Map</code>函数,进而产生结果,结果缓存在内存中.</li>
 <li>缓存在内存中的<code>intermediate pairs</code>会被写的disk中,会被<code>partitioning function</code>分成<code>R</code>份,被写到的disk的位置会告知<code>master</code>,进而可以使<code>master</code>在分配<code>Reduce</code>任务时,告知<code>worker</code>的需要的输入路径.</li>
@@ -543,19 +547,28 @@
 <li><code>worker</code>将排好序的数组进行遍历,将每个key值对应的<code>values</code>集合,根据<code>reduce</code>得出结果,最终输出到文件.</li>
 <li>当所有<code>map</code>和<code>reduce</code>结束,<code>master</code>唤醒用户进程,<code>MapReduce</code>调用返回.</li>
 </ul>
-<h3 id="3-2-Master-Data-Structures"><a href="#3-2-Master-Data-Structures" class="headerlink" title="3.2 Master Data Structures"></a>3.2 Master Data Structures</h3><ul>
+<h3 id="master-data-structures">3.2 Master Data Structures</h3>
+<ul>
 <li>记录任务状态.包括<code>Map</code>和<code>Reduce</code>的状态(空闲,处理中,完成).</li>
 <li>R个中间结果的位置与大小.</li>
 </ul>
-<h3 id="3-3-Fault-Tolerance"><a href="#3-3-Fault-Tolerance" class="headerlink" title="3.3 Fault Tolerance"></a>3.3 Fault Tolerance</h3><h4 id="Worker-Failure"><a href="#Worker-Failure" class="headerlink" title="Worker Failure"></a>Worker Failure</h4><p><code>master</code>会周期性地ping <code>workers</code>.超出特定时间没有回应就说明此<code>worker</code>宕机.</p>
+<h3 id="fault-tolerance">3.3 Fault Tolerance</h3>
+<h4 id="worker-failure">Worker Failure</h4>
+<p><code>master</code>会周期性地ping
+<code>workers</code>.超出特定时间没有回应就说明此<code>worker</code>宕机.</p>
 <p>宕机的<code>worker</code>相应的任务会被设置为空闲,然后进行重新分配.</p>
 <p><code>Reduce</code>已经完成但是宕机的任务无需重新执行,因为其输出文件在全局文件系统中,而<code>Map</code>则需要重新做,因为其输出文件一般在已经故障的机器的本地disk上.</p>
 <p>如果有一个<code>Map</code>任务因故障而重新分配了,此时所有正在运行的<code>Reduce</code>都需要重做.</p>
-<h4 id="Master-Failure"><a href="#Master-Failure" class="headerlink" title="Master Failure"></a>Master Failure</h4><p>一般情况下,只有一个<code>master</code>故障的可能性比较低,一旦故障就会终止整个<code>MapReduce</code>.</p>
+<h4 id="master-failure">Master Failure</h4>
+<p>一般情况下,只有一个<code>master</code>故障的可能性比较低,一旦故障就会终止整个<code>MapReduce</code>.</p>
 <p>对于任务的状态,<code>master</code>会进行维护,故障后新的<code>master</code>可以继续从最近的任务状态检查点进行.</p>
-<h4 id="Semantics-in-the-Presence-of-Failures"><a href="#Semantics-in-the-Presence-of-Failures" class="headerlink" title="Semantics in the Presence of Failures"></a>Semantics in the Presence of Failures</h4><p>暂鸽</p>
-<h3 id="3-4-Locality"><a href="#3-4-Locality" class="headerlink" title="3.4 Locality"></a>3.4 Locality</h3><p>网络带宽是一种稀缺的资源.</p>
-<p>论文中的实验部署在GFS中,GFS 将每个文件划分为多个 64MB 的块,每个块都会存几个副本(一般是 3 个)在不同的机器上.</p>
+<h4 id="semantics-in-the-presence-of-failures">Semantics in the Presence
+of Failures</h4>
+<p>暂鸽</p>
+<h3 id="locality">3.4 Locality</h3>
+<p>网络带宽是一种稀缺的资源.</p>
+<p>论文中的实验部署在GFS中,GFS 将每个文件划分为多个 64MB
+的块,每个块都会存几个副本(一般是 3 个)在不同的机器上.</p>
 <p>尽可能地从本地磁盘上读取数据是一种节省网络带宽的好办法.所以<code>master</code>在分配<code>Map</code>任务时,尽可能保证分配到一个有该任务相应副本的机器.</p>
 <p>最终呈现的效果是,在大规模运行时,<code>worker</code>大多数输入数据是从本地读取的.</p>
 
@@ -715,13 +728,13 @@
                 Next&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2022/06211691.html">
+                <a href="/2022/06211699.html">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:进程管理与同步">
+                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:内存管理">
                         
-                        <span class="card-title">linux 0.11源码分析:进程管理与同步</span>
+                        <span class="card-title">linux 0.11源码分析:内存管理</span>
                     </div>
                 </a>
                 <div class="card-content article-content">

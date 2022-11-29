@@ -494,8 +494,10 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="1-基于libbpf开发bpf程序的工作流"><a href="#1-基于libbpf开发bpf程序的工作流" class="headerlink" title="1. 基于libbpf开发bpf程序的工作流"></a>1. 基于libbpf开发bpf程序的工作流</h2><p>在libbpf中的应用程序中,往往有两个部分是必要的:</p>
-<p>**app.bpf.c.对应的是内核空间的代码逻辑.**其中一般有定义的断点,探针及其执行的handle,可能还有“.map”等内核数据结构.这一部分的代码是面向内核的,因为我们知道bpf技术一种可以向内核注册一系列的事件,并且对其事件定义相应的回调代码的技术,这种技术无需对内核代码进行修改或者重新编译.</p>
+                <h2 id="基于libbpf开发bpf程序的工作流">1.
+基于libbpf开发bpf程序的工作流</h2>
+<p>在libbpf中的应用程序中,往往有两个部分是必要的:</p>
+<p><strong>app.bpf.c.对应的是内核空间的代码逻辑.</strong>其中一般有定义的断点,探针及其执行的handle,可能还有“.map”等内核数据结构.这一部分的代码是面向内核的,因为我们知道bpf技术一种可以向内核注册一系列的事件,并且对其事件定义相应的回调代码的技术,这种技术无需对内核代码进行修改或者重新编译.</p>
 <p><strong>app.c,对应的是用户空间的代码逻辑</strong>.将bpf代码打开并加载,并和内核事件进行交互.</p>
 <blockquote>
 <p>其实用户空间对应的程序完全可以用C++写.</p>
@@ -512,7 +514,6 @@
     <span class="token keyword keyword-target_link_libraries">target_link_libraries</span><span class="token punctuation">(</span><span class="token punctuation">${</span>app_stem<span class="token punctuation">}</span> <span class="token punctuation">${</span>app_stem<span class="token punctuation">}</span>_skel Nanolog<span class="token punctuation">)</span>
     <span class="token keyword keyword-install">install</span><span class="token punctuation">(</span>TARGETS <span class="token punctuation">${</span>app_stem<span class="token punctuation">}</span> DESTINATION lib<span class="token punctuation">)</span>
 <span class="token keyword keyword-endforeach">endforeach</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>首先根据app.bpf.c生成一个app_skel的头文件,该文件将会被用户态程序中作为头文件.之后才生成最终的可执行的程序.</p>
 <p>其中关于生成的app_skel文件,其中模式大体如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token comment">/* SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause) */</span>
@@ -548,9 +549,10 @@
 <span class="token keyword keyword-static">static</span> <span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-void">void</span> <span class="token function">minimal_bpf__detach</span><span class="token punctuation">(</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">minimal_bpf</span> <span class="token operator">*</span>obj<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> <span class="token punctuation">}</span>
 
 <span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">endif</span> <span class="token comment">/* __MINIMAL_BPF_SKEL_H__ */</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>其中用户态空间可以通过maps中的bss来访问.bpf.c程序中定义的“.map”数据结构,比如说ring buffer,map等.关于<code>progs</code>可以通过它对.bpf.c中的handle进行访问,links的作用类似于此.而对于<code>minimal_bpf__bss</code>这一部分,则可以通过它在用户空间访问到它所定义的所有全局变量.</p>
-<p>结合很多bpf demo的分析和上述的API,我们整理一下一个常规的bpf程序的模式:</p>
+<p>其中用户态空间可以通过maps中的bss来访问.bpf.c程序中定义的“.map”数据结构,比如说ring
+buffer,map等.关于<code>progs</code>可以通过它对.bpf.c中的handle进行访问,links的作用类似于此.而对于<code>minimal_bpf__bss</code>这一部分,则可以通过它在用户空间访问到它所定义的所有全局变量.</p>
+<p>结合很多bpf
+demo的分析和上述的API,我们整理一下一个常规的bpf程序的模式:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">minimal_bpf</span> <span class="token operator">*</span>skel<span class="token punctuation">;</span>
  <span class="token keyword keyword-int">int</span> err<span class="token punctuation">;</span>
 
@@ -589,8 +591,7 @@
  cleanup<span class="token operator">:</span>
  <span class="token function">minimal_bpf__destroy</span><span class="token punctuation">(</span>skel<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 对skel进行清理</span>
  <span class="token keyword keyword-return">return</span> <span class="token operator">-</span>err<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>简而言之: </p>
+<p>简而言之:</p>
 <ul>
 <li><code>libbpf_set_print</code>和<code>bump_memlock_rlimit</code>.</li>
 <li><code>skel = *_bpf__open()</code>,返回一个对象,该对象对应了我们之前定义的bpf.</li>
@@ -599,14 +600,15 @@
 <li>while循环.</li>
 <li>clean代码段,用于程序结束或者出错情况下执行,一般有<code>*_bpf__destroy, ring_buffer__free</code>等API.</li>
 </ul>
-<h2 id="2-libbpf中的常用API"><a href="#2-libbpf中的常用API" class="headerlink" title="2. libbpf中的常用API"></a>2. libbpf中的常用API</h2><p><code>libbpf_set_print(libbpf_output)</code>,设置<code>libbpf</code>中的日志输出函数,libbpf 执行过程中的日志会通过 <code>libbpf_output</code> 函数进行输出.<code>bpf_get_current_pid_tgid</code>该函数通常在bpf中的内核态代码中执行,该程序往往用来获取触发某种事件的进程的pid.比如说,如下的方式:</p>
+<h2 id="libbpf中的常用api">2. libbpf中的常用API</h2>
+<p><code>libbpf_set_print(libbpf_output)</code>,设置<code>libbpf</code>中的日志输出函数,libbpf
+执行过程中的日志会通过 <code>libbpf_output</code>
+函数进行输出.<code>bpf_get_current_pid_tgid</code>该函数通常在bpf中的内核态代码中执行,该程序往往用来获取触发某种事件的进程的pid.比如说,如下的方式:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> pid <span class="token operator">=</span> <span class="token function">bpf_get_current_pid_tgid</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;&gt;</span> <span class="token number">32</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
 <p><code>bpf_ktime_get_ns</code>该API用来获取系统中的时间戳,其单位为ns.</p>
 <p><code>bpf_get_current_task</code>获取触发该事件的进程其对应的<code>task</code>,一种内核中表示进程的数据结构.其中示例代码如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token operator">*</span>task<span class="token punctuation">;</span>
 task <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token operator">*</span><span class="token punctuation">)</span> <span class="token function">bpf_get_current_task</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
 <p><code>BPF_CORE_READ</code>,这个API和下面所要说的<code>bpf_probe_read_str</code>的API都涉及到内核数据字段的拷贝.比如说从内核中读取某个字段的值.比如说<code>bpf_core_read(dst, sz, src)</code>.其中有代码如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token operator">*</span>task <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token punctuation">)</span><span class="token function">bpf_get_current_task</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token keyword keyword-struct">struct</span> <span class="token class-name">task_struct</span> <span class="token operator">*</span>parent_task<span class="token punctuation">;</span>
@@ -614,40 +616,35 @@ task <span class="token operator">=</span> <span class="token punctuation">(</sp
 <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>err<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token comment">/* handle error */</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p><code>bpf_probe_read_str</code>,用于拷贝字符串,将内容拷贝到指定的缓冲区中.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token function">bpf_probe_read_str</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>e<span class="token operator">-&gt;</span>filename<span class="token punctuation">,</span> <span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>e<span class="token operator">-&gt;</span>filename<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token punctuation">)</span>ctx <span class="token operator">+</span> fname_off<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
-
-
 <p><code>bpf_get_current_comm</code>,用来获取当前该进程的进程名字,其中的参数是一个缓冲区,及其size.比如说如下所示:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token function">bpf_get_current_comm</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>e<span class="token operator">-&gt;</span>comm<span class="token punctuation">,</span> <span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span>e<span class="token operator">-&gt;</span>comm<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
 <p><code>bpf_printk</code></p>
-<h2 id="3-其他要点"><a href="#3-其他要点" class="headerlink" title="3. 其他要点"></a>3. 其他要点</h2><h3 id="1-BPF-maps"><a href="#1-BPF-maps" class="headerlink" title="1) BPF maps"></a>1) BPF maps</h3><p>这个东西的作用十分类似于STL,是一种可以在内核中使用的抽象数据容器.有<code>BPF_MAP_TYPE_HASH</code>,<code>BPF_MAP_TYPE_RINGBUF</code>等.下面是关于<code>BPF_MAP_TYPE_HASH</code>.这个东西和C++中的map颇为相似.其中实例如下:</p>
+<h2 id="其他要点">3. 其他要点</h2>
+<h3 id="bpf-maps">1) BPF maps</h3>
+<p>这个东西的作用十分类似于STL,是一种可以在内核中使用的抽象数据容器.有<code>BPF_MAP_TYPE_HASH</code>,<code>BPF_MAP_TYPE_RINGBUF</code>等.下面是关于<code>BPF_MAP_TYPE_HASH</code>.这个东西和C++中的map颇为相似.其中实例如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
     <span class="token function">__uint</span><span class="token punctuation">(</span>type<span class="token punctuation">,</span> BPF_MAP_TYPE_HASH<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">__uint</span><span class="token punctuation">(</span>max_entries<span class="token punctuation">,</span> <span class="token number">8192</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">__type</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> <span class="token class-name">pid_t</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">__type</span><span class="token punctuation">(</span>value<span class="token punctuation">,</span> u64<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span> exec_start <span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">".maps"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中分别对应的了.maps的类型,最大条目数,key,value,<strong>其中关于max_entries的设置,一般必须得是内核页size的大小</strong>,知道了基本的定义方式之后,我们需要搞明白的就是对于操作这么一个数据结构都需要哪些API.其中主要有<code>bpf_map_update_elem,bpf_map_lookup_elem,bpf_map_delete_elem</code>.其中详细的使用情况如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token function">bpf_map_update_elem</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>exec_start<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pid<span class="token punctuation">,</span> <span class="token operator">&amp;</span>ts<span class="token punctuation">,</span> BPF_ANY<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// BPF_ANY表示的更新现有这对map,或者增加新的map.</span>
 <span class="token function">bpf_map_delete_elem</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>exec_start<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 移除exec_start中pid对应的map</span>
 start_ts <span class="token operator">=</span> <span class="token function">bpf_map_lookup_elem</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>exec_start<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pid<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 其返回值是一个value</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="2-BPF-Ring-Buffer"><a href="#2-BPF-Ring-Buffer" class="headerlink" title="2) BPF Ring Buffer"></a>2) BPF Ring Buffer</h3><p>buffer这种数据结构的使用时常被用于做数据传递,尤其是一些“生产者-消费者”的场景,Ring buffer就是这么一种数据结构,可以用来给内核空间和用户空间做数据交换.其中相比之前<code>perf buffer</code>来说,有更高的效率使用内存,并且可以保证事件顺序.</p>
+<h3 id="bpf-ring-buffer">2) BPF Ring Buffer</h3>
+<p>buffer这种数据结构的使用时常被用于做数据传递,尤其是一些“生产者-消费者”的场景,Ring
+buffer就是这么一种数据结构,可以用来给内核空间和用户空间做数据交换.其中相比之前<code>perf buffer</code>来说,有更高的效率使用内存,并且可以保证事件顺序.</p>
 <p>其中对其定义一半如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
     <span class="token function">__uint</span><span class="token punctuation">(</span>type<span class="token punctuation">,</span> BPF_MAP_TYPE_RINGBUF<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">__uint</span><span class="token punctuation">(</span>max_entries<span class="token punctuation">,</span> <span class="token number">256</span> <span class="token operator">*</span> <span class="token number">1024</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span> rb <span class="token function">SEC</span><span class="token punctuation">(</span><span class="token string">".maps"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 这个buf往往是作为内核态到用户态的桥梁的.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中关于<code>ring buffer</code>,最常用的API是<code>bpf_ringbuf_reserve()/pf_ringbuf_commit()</code>.其中使用情况如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c">e <span class="token operator">=</span> <span class="token function">bpf_ringbuf_reserve</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>rb<span class="token punctuation">,</span> <span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>e<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token function">bpf_ringbuf_submit</span><span class="token punctuation">(</span>e<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-
 <p>通过<code>reserve</code>的好处在于可以通过返回结果判断是否还有足够的空间加入数据.一旦返回是一个非NULL,就表示这个数据成功地在buffer中分配了空间,后续的commit也保证了一定会成功.当执行commit的时候,用户空间可以看到传递过来的数据,这个放置于<code>ring buffer</code>中的数据往往是用户自己定义的,比如说像下面这样子.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">event</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-int">int</span> pid<span class="token punctuation">;</span>
@@ -658,10 +655,8 @@ start_ts <span class="token operator">=</span> <span class="token function">bpf_
     <span class="token keyword keyword-char">char</span> filename<span class="token punctuation">[</span>MAX_FILENAME_LEN<span class="token punctuation">]</span><span class="token punctuation">;</span>
     bool exit_event<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>如此之外,还有一个<code>ring_buffer__new</code>.这表示的是对于一个<code>ring buffer</code>的初始化操作,其中的第一个参数对应的是我们在内核空间中定义的<code>ring buffer</code>,第二参数对应了<code>commit</code>事件的回调函数,这个函数往往是我们在用户态空间定义的,在用户态运行的.其返回值是<code>ring buffer</code>的指针.</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c">rb <span class="token operator">=</span> <span class="token function">ring_buffer__new</span><span class="token punctuation">(</span><span class="token function">bpf_map__fd</span><span class="token punctuation">(</span>skel<span class="token operator">-&gt;</span>maps<span class="token punctuation">.</span>rb<span class="token punctuation">)</span><span class="token punctuation">,</span> handle_event<span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">,</span> <span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
 <p>此外关于<code>ring_buffer__poll</code>这一个函数,这个函数时常被用在用户态程序的主循环之中的.比如说:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span><span class="token operator">!</span>exiting<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     err <span class="token operator">=</span> <span class="token function">ring_buffer__poll</span><span class="token punctuation">(</span>rb<span class="token punctuation">,</span> <span class="token number">100</span> <span class="token comment">/* timeout, ms */</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -674,11 +669,15 @@ start_ts <span class="token operator">=</span> <span class="token function">bpf_
         <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h2 id="4-Reference"><a href="#4-Reference" class="headerlink" title="4.Reference"></a>4.Reference</h2><p><a target="_blank" rel="noopener" href="https://nakryiko.com/posts/bpf-ringbuf/">BPF ring buffer</a></p>
-<p><a target="_blank" rel="noopener" href="https://nakryiko.com/posts/bcc-to-libbpf-howto-guide/#bpf-skeleton-and-bpf-app-lifecycle">BCC to libbpf conversion guide</a></p>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/467647354">ebpf:基于 uprobe 的自定义例程</a></p>
-<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/494293133">[译] BPF CO-RE 参考指南</a></p>
+<h2 id="reference">4.Reference</h2>
+<p><a target="_blank" rel="noopener" href="https://nakryiko.com/posts/bpf-ringbuf/">BPF ring
+buffer</a></p>
+<p><a target="_blank" rel="noopener" href="https://nakryiko.com/posts/bcc-to-libbpf-howto-guide/#bpf-skeleton-and-bpf-app-lifecycle">BCC
+to libbpf conversion guide</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/467647354">ebpf:基于 uprobe
+的自定义例程</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/494293133">[译] BPF CO-RE
+参考指南</a></p>
 
                 
             </div>
@@ -788,30 +787,28 @@ start_ts <span class="token operator">=</span> <span class="token function">bpf_
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;Current
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/112312684.html">
+                <a href="/2022/112534552.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png" class="responsive-img" alt="The Google File System 论文阅读笔记">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="bpf学习笔记">
-                        
-                        <span class="card-title">bpf学习笔记</span>
+                        <span class="card-title">The Google File System 论文阅读笔记</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            一种内核观测技术,这里的学习主要以libbpf这个库为主.
+                            google分布式三驾马车之一.
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-11-23
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-11-25
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -820,12 +817,15 @@ start_ts <span class="token operator">=</span> <span class="token function">bpf_
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/bpf/">
-                        <span class="chip bg-color">bpf</span>
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
+                    </a>
+                    
+                    <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">存储系统</span>
                     </a>
                     
                 </div>

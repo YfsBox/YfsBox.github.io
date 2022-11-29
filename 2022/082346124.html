@@ -509,9 +509,10 @@
                 <p>6.824 lab2</p>
 <p>已经完成lab2,经过500次以上连续测试,无一FAIL.</p>
 <p>这篇博客除了整理实现的思路之外,还会分析一下测试中的情景,结合这些情景来加深对于raft的理解.</p>
-<h2 id="1-实现要点"><a href="#1-实现要点" class="headerlink" title="1.实现要点"></a>1.实现要点</h2><h3 id="1-总体框架-状态机"><a href="#1-总体框架-状态机" class="headerlink" title="1) 总体框架:状态机"></a>1) 总体框架:状态机</h3><p>参照<code>raft</code>的论文可知,其中的关于每一个节点的状态及其触发事件是非常清晰明了的,所以在此就很容易采用状态机的总体框架进行编程.</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2008%2051%2046%201661215906%201661215906938%20gr9GPd%20image-20220823085146815%20.png" alt="image-20220823085146815" style="zoom: 50%;">
-
+<h2 id="实现要点">1.实现要点</h2>
+<h3 id="总体框架状态机">1) 总体框架:状态机</h3>
+<p>参照<code>raft</code>的论文可知,其中的关于每一个节点的状态及其触发事件是非常清晰明了的,所以在此就很容易采用状态机的总体框架进行编程.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2008%2051%2046%201661215906%201661215906938%20gr9GPd%20image-20220823085146815%20.png" alt="image-20220823085146815" style="zoom: 50%;"></p>
 <p>很容易就划分为三个状态:<code>follower,candidate,leader</code>.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-const">const</span> <span class="token punctuation">(</span>
 	followerState  <span class="token operator">=</span> <span class="token number">1</span>
@@ -526,7 +527,6 @@
 	rf<span class="token punctuation">.</span><span class="token function">persist</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 	rf<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中<code>Running</code>可以视为main函数中的主线程.用来不断地做状态的变化.其中<code>doMachine</code>是一个<code>switch</code>分支,内部对应了各种状态的动作.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>rf <span class="token operator">*</span>Raft<span class="token punctuation">)</span> <span class="token function">doMachine</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
 	rf<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -572,20 +572,21 @@
 		rf<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 	<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中<code>follower</code>状态的所做的动作就是<code>ticker</code>,ticker是一个用来周期性地检查心态的函数,只要心跳不过期,<code>ticker</code>就会不断地处于循环中,当心跳过期,进而就会跳出循环,而当<code>follower</code>结束时,它的下一状态是唯一的,也就是<code>candidate</code>.而对于<code>candidate</code>来说,其核心的任务也就是选举(<code>sendRequestVote</code>).但是其下一状态并不是确定的,我在实现<code>sendRequestVote</code>的时候,其返回值就是下一个状态.因为相对于<code>leader</code>和<code>follower</code>,<code>candidate</code>的状态并不是确定的,如果获得了大多数选票则是<code>leader</code>,如果接收到了来自<code>leader</code>的心跳,则退化成<code>follower</code>,如果选票不足就继续是<code>candidate</code>.</p>
 <p>在<code>doMachine</code>中,其中关于mutex的使用也是值得注意的.这个函数运行在<code>Running</code>中,并不是唯一正在运行的协程,还有<code>Applier</code>等.不止一个协程需要读取或者改变state.所以在<code>switch</code>中需要上锁.并且还要注意解锁的时机,因为像<code>ticker</code>,<code>sendRequestVote</code>等函数内部都含有对锁的占有与释放,所以在调用这些函数之前都需要先解锁,否则会造成死锁.如果将这些函数设计成只在外部上锁,而内部无锁怎么样呢?更是不可以的,因为这些函数内部含有阻塞动作,比如说<code>ticker</code>中的sleep等,更会导致死锁.</p>
 <p>除此之外,对于当状态需要变化成<code>follower</code>和<code>leader</code>时都需要刷新<code>voteForId</code>.</p>
-<h3 id="2-RPC的处理技巧"><a href="#2-RPC的处理技巧" class="headerlink" title="2) RPC的处理技巧"></a>2) RPC的处理技巧</h3><p>我最初在实现<code>RPC</code>处理的时候吃了不少苦头.我在最初的处理中,会对于每个RPC操作都开一个协程进行处理,这样会导致在测试用例中出现协程数过多的错误.</p>
+<h3 id="rpc的处理技巧">2) RPC的处理技巧</h3>
+<p>我最初在实现<code>RPC</code>处理的时候吃了不少苦头.我在最初的处理中,会对于每个RPC操作都开一个协程进行处理,这样会导致在测试用例中出现协程数过多的错误.</p>
 <p>其实现的基本思路,就是将call动作单纯地封装于一个协程中,并且协程借助一个<code>channel</code>与主协程(调用该协程的协程)进行通信,此外在后来的测试用例中,会给RPC动作增加延迟,所以为了防止RPC过长时间地阻塞下去,还要使用<code>select</code>增加一个分支,设定一个超时时间.如下所示.</p>
 <p>其中关于过期RPC的处理相当重要,这出现于每个RPC返回后,检查结果的时候.就如下所示:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-if">if</span> rf<span class="token punctuation">.</span>state <span class="token operator">!=</span> leaderState <span class="token operator">||</span> args<span class="token punctuation">.</span>Term <span class="token operator">!=</span> rf<span class="token punctuation">.</span>currentTerm <span class="token operator">||</span> result<span class="token punctuation">.</span>Term <span class="token operator">==</span> <span class="token operator">-</span><span class="token number">1</span> <span class="token punctuation">{</span>
 		<span class="token keyword keyword-return">return</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-
-<p>其中的<code>rf.state != leaderState || args.Term != rf.currentTerm </code>就体现了对于过期情况的判断与检查.</p>
-<h3 id="3-applier类似于一种滑动窗口"><a href="#3-applier类似于一种滑动窗口" class="headerlink" title="3) applier类似于一种滑动窗口"></a>3) applier类似于一种滑动窗口</h3><p>其中对于<code>raft</code>就像tcp一样,是一种具有可靠性保证的协议.</p>
-<h3 id="4-Fast-Backup"><a href="#4-Fast-Backup" class="headerlink" title="4) Fast Backup"></a>4) Fast Backup</h3><p>在<code>leader</code>将自己的log发送到<code>follower</code>节点之前,需要确保寻找到一个一致点,也就是<code>leader</code>的nextId数组所维护的数据.最原始的实现是,对于每次失败的<code>appendEntry</code>,<code>leader</code>接收到失败的相应后会将对应的<code>nextId</code>进行减1,由于<code>appendEntry</code>是靠心跳进行驱动的,所以如果每次都只是-1.当数据量大到一定程度之后,则需要等待好几个心跳周期才能找到一致点,这样耗费的时间较长,所以应当采取某种方法进行优化.</p>
+<p>其中的<code>rf.state != leaderState || args.Term != rf.currentTerm</code>就体现了对于过期情况的判断与检查.</p>
+<h3 id="applier类似于一种滑动窗口">3) applier类似于一种滑动窗口</h3>
+<p>其中对于<code>raft</code>就像tcp一样,是一种具有可靠性保证的协议.</p>
+<h3 id="fast-backup">4) Fast Backup</h3>
+<p>在<code>leader</code>将自己的log发送到<code>follower</code>节点之前,需要确保寻找到一个一致点,也就是<code>leader</code>的nextId数组所维护的数据.最原始的实现是,对于每次失败的<code>appendEntry</code>,<code>leader</code>接收到失败的相应后会将对应的<code>nextId</code>进行减1,由于<code>appendEntry</code>是靠心跳进行驱动的,所以如果每次都只是-1.当数据量大到一定程度之后,则需要等待好几个心跳周期才能找到一致点,这样耗费的时间较长,所以应当采取某种方法进行优化.</p>
 <p>在这里采取的优化方法其实现如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go">reply<span class="token punctuation">.</span>LogSuccess <span class="token operator">=</span> <span class="token boolean">false</span>
 			tmpterm <span class="token operator">:=</span> rf<span class="token punctuation">.</span><span class="token function">getEntryById</span><span class="token punctuation">(</span>args<span class="token punctuation">.</span>PreLogId<span class="token punctuation">)</span><span class="token punctuation">.</span>Term
@@ -599,11 +600,12 @@
 					<span class="token punctuation">}</span>
 				<span class="token punctuation">}</span>
 		<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>这段代码出现在,<code>follower</code>接受心跳包,关于log一致比对失败的分支中,如果是<code>!have</code>,也就是<code>follower</code>的最高日志小于所收到的心跳包中的<code>nextId</code>的情况,这种情况直接将<code>reply.NextIndex</code>设置成此<code>follower</code>的当前最高索引.如果不是这种情况,而是因为对应项的任期不同所导致,那么就是从此index向后回退,直到找到一个任期于此相等的index为止.</p>
 <p>之后在<code>leader</code>收到之后,会将对应的<code>nextId</code>设置成reply中的nextId.</p>
-<p>其中根据任期来比对一致性的原理是什么呢? 任期(term)使整个系统中的逻辑时钟,一个term内就会对应一个唯一的<code>leader</code>,如果任期不一样则说明这个log项不一致.</p>
-<h3 id="5-index的改造"><a href="#5-index的改造" class="headerlink" title="5) index的改造"></a>5) index的改造</h3><p>由于lab2D需要实现日志紧缩.日志紧锁要求每个节点的日志,一旦达到一定的大小,就要将超出的部分(已经应用的抛弃).所以在这个时候就不能够用Log数组的长度去求取日志的最后一个索引,也不能直接根据数组index求取log项的索引,因此需要再增加一层抽象,这样可以适应于加入日志紧锁之后的要求.</p>
+<p>其中根据任期来比对一致性的原理是什么呢?
+任期(term)使整个系统中的逻辑时钟,一个term内就会对应一个唯一的<code>leader</code>,如果任期不一样则说明这个log项不一致.</p>
+<h3 id="index的改造">5) index的改造</h3>
+<p>由于lab2D需要实现日志紧缩.日志紧锁要求每个节点的日志,一旦达到一定的大小,就要将超出的部分(已经应用的抛弃).所以在这个时候就不能够用Log数组的长度去求取日志的最后一个索引,也不能直接根据数组index求取log项的索引,因此需要再增加一层抽象,这样可以适应于加入日志紧锁之后的要求.</p>
 <p>其实现如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go">
 <span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>rf <span class="token operator">*</span>Raft<span class="token punctuation">)</span> <span class="token function">getEntryById</span><span class="token punctuation">(</span>index <span class="token builtin">int</span><span class="token punctuation">)</span> Log <span class="token punctuation">{</span>
@@ -634,9 +636,11 @@
 		<span class="token keyword keyword-return">return</span> rf<span class="token punctuation">.</span>Logs<span class="token punctuation">[</span>idx<span class="token punctuation">:</span><span class="token punctuation">]</span>
 	<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中<code>getEntrys</code>中的第一个分支中的情况就是:<code>follower</code>中最新的情况已经是<code>leader</code>已经抛弃,生成snapshot的部分.这种情况则需要<code>leader</code>向该<code>follower</code>发送快照,然后根据快照进行更新.</p>
-<h2 id="2-实现过程"><a href="#2-实现过程" class="headerlink" title="2.实现过程"></a>2.实现过程</h2><h3 id="1-选举"><a href="#1-选举" class="headerlink" title="1)选举"></a>1)选举</h3><h3 id="2-心跳"><a href="#2-心跳" class="headerlink" title="2) 心跳"></a>2) 心跳</h3><p>我最初在做lab2A的时候比较短视,将心跳和<code>appendEntry</code>是分离着写的,但是后来合并在了一起.因为本质上,<code>appendEntry</code>是靠心跳驱动的,也就是说,心跳承包了比对一致点和追加日志项的功能.</p>
+<h2 id="实现过程">2.实现过程</h2>
+<h3 id="选举">1)选举</h3>
+<h3 id="心跳">2) 心跳</h3>
+<p>我最初在做lab2A的时候比较短视,将心跳和<code>appendEntry</code>是分离着写的,但是后来合并在了一起.因为本质上,<code>appendEntry</code>是靠心跳驱动的,也就是说,心跳承包了比对一致点和追加日志项的功能.</p>
 <p>而<code>start</code>只是通知<code>leader</code>,有一个新的log到来,并且将其加入到本地.至于start中是否要进行广播log,这个做不做都可以,如果做广播的话,还是会快一点.但耗费的rpc相对而言也会多一些.</p>
 <p>其实现如下:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>rf <span class="token operator">*</span>Raft<span class="token punctuation">)</span> <span class="token function">BeatLeader</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -653,7 +657,6 @@
 	<span class="token punctuation">}</span>
 	<span class="token comment">//DPrintf("The %v back to follower......\n", rf.me)</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>以上循环,结合前面的状态机可知,这是在<code>leader</code>状态的主循环.在此,虽然<code>Start</code>中是nil,在我的设计中,如果是nil,将不会追加任何新的log到<code>leader</code>中.只是相当于普通的心跳.下面是关于<code>Start</code>的实现.其中调用<code>BroadCastLog</code>,用来广播log.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>rf <span class="token operator">*</span>Raft<span class="token punctuation">)</span> <span class="token function">Start</span><span class="token punctuation">(</span>command <span class="token keyword keyword-interface">interface</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token punctuation">(</span><span class="token builtin">int</span><span class="token punctuation">,</span> <span class="token builtin">int</span><span class="token punctuation">,</span> <span class="token builtin">bool</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">//一定要确保start不要是并行的,应该是线性的</span>
 	index <span class="token operator">:=</span> <span class="token operator">-</span><span class="token number">1</span>
@@ -675,7 +678,6 @@
 	<span class="token comment">// Your code here (2B).</span>
 	<span class="token keyword keyword-return">return</span> index<span class="token punctuation">,</span> term<span class="token punctuation">,</span> isLeader
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>关于Log的广播的实现.其中cmd表示新增log的内容,而index则表示最后一个log的index.之前提到过有nil充当普通心跳的情况,这种情况下不进行append,并且还对于之前求的<code>lastid</code>进行-1,这样才保证<code>lastid</code>是最后一个log.之后再除了自己之外,进行<code>AppendEachLog</code>.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>rf <span class="token operator">*</span>Raft<span class="token punctuation">)</span> <span class="token function">BroadCastLog</span><span class="token punctuation">(</span>index <span class="token builtin">int</span><span class="token punctuation">,</span> term <span class="token builtin">int</span><span class="token punctuation">,</span> cmd <span class="token keyword keyword-interface">interface</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
 	rf<span class="token punctuation">.</span>mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -700,9 +702,8 @@
 		<span class="token punctuation">}</span>
 	<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>其中<code>AppendEachLog</code>是比较核心的部分.首先要做的就是构造args,其中重在求取<code>PreLogId,PreLogTerm,Entry</code>.前者直接根据<code>NextId</code>中的内容得到其中的日志项即可得出.然后对于Entry则是从该点之后的一个slice.在这里我们可以看出,NextId用来寻找leader与某个<code>follower</code>的一致点,并且这个数组以一种试探的方式,在一次次心跳的驱动下,最终找到真正的一致点.找到之后,完成log的追加.相比于<code>matchId</code>,match则真实跟踪了每个<code>follower</code>持有日志的情况,根据<code>matchId</code>的数组,<code>leader</code>可以确定更新commitId.</p>
-<p>如果求出的Entry是nil,也就是<code> rf.getEntrys(prelogid)</code>为nil的情况,这种情况属于需要发送快照的情况.所以不继续往下进行RPC调用,而是调用<code>SendSnapshot</code>.</p>
+<p>如果求出的Entry是nil,也就是<code>rf.getEntrys(prelogid)</code>为nil的情况,这种情况属于需要发送快照的情况.所以不继续往下进行RPC调用,而是调用<code>SendSnapshot</code>.</p>
 <p>之后调用RPC之后,对于结果进行判断,在第一个分支中就是因为任期而出问题的情况,即<code>!result.Success &amp;&amp; result.Term &gt; rf.currentTerm</code>,其中<code>Success</code>在我的实现中表示的是因为leader任期小于follower的情况,这个时候则需要更新自己的状态和任期.</p>
 <p>下面的两个分支,分别对应了日志比对成功和不成功的情况,成功的话,同时更新<code>NextId,Match</code>数组,并且进行updateCommit.否则就采用<code>Fast Backup</code>更新NextId.为下一次比对做准备.</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token punctuation">(</span>rf <span class="token operator">*</span>Raft<span class="token punctuation">)</span> <span class="token function">AppendEachLog</span><span class="token punctuation">(</span>lastid <span class="token builtin">int</span><span class="token punctuation">,</span> index <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -755,7 +756,6 @@
 		rf<span class="token punctuation">.</span>NextIdMap<span class="token punctuation">[</span>index<span class="token punctuation">]</span> <span class="token operator">=</span> result<span class="token punctuation">.</span>NextIndex
 	<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p>至于此RPC的响应的实现,我的代码又丑又冗长,所以这里不想都贴上去了,感觉也没有太多好说的.在末尾需要判断是否更新其commitId.如下所示:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-if">if</span> args<span class="token punctuation">.</span>LeaderCommit <span class="token operator">&gt;=</span> rf<span class="token punctuation">.</span>commitId <span class="token punctuation">{</span> <span class="token comment">//这种情况下说明leader已经提交了,那么follow自己也应该提交了</span>
 		<span class="token keyword keyword-if">if</span> args<span class="token punctuation">.</span>LeaderCommit <span class="token operator">&lt;</span> loglastid <span class="token punctuation">{</span>
@@ -764,22 +764,30 @@
 			rf<span class="token punctuation">.</span>commitId <span class="token operator">=</span> loglastid
 		<span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
-<h3 id="3-applier"><a href="#3-applier" class="headerlink" title="3) applier"></a>3) applier</h3><h3 id="4-日志紧缩与快照"><a href="#4-日志紧缩与快照" class="headerlink" title="4) 日志紧缩与快照"></a>4) 日志紧缩与快照</h3><h2 id="3-测试分析"><a href="#3-测试分析" class="headerlink" title="3.测试分析"></a>3.测试分析</h2><p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2013%2013%2021%201661231601%201661231601053%208wSq86%20image-20220823131320917%20.png" alt="image-20220823131320917"></p>
+<h3 id="applier">3) applier</h3>
+<h3 id="日志紧缩与快照">4) 日志紧缩与快照</h3>
+<h2 id="测试分析">3.测试分析</h2>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2013%2013%2021%201661231601%201661231601053%208wSq86%20image-20220823131320917%20.png" alt="image-20220823131320917">
+<figcaption aria-hidden="true">image-20220823131320917</figcaption>
+</figure>
 <p>关于测试样例,再6.824整个实验中给我的感觉就是,我的code太依赖于test,这是我的一个不足之处,所以我希望在以后的coding中能够用于强大的独立测试的能力,能够编写高质量的测试程序.所以在这里我希望能够阅读测试程序,从中提炼一些比较有意思的情景.</p>
 <p>上面是我的测试结果,其实我的测试用时要比guide里的快几十秒,感觉还不错,或许与我其中的某些时间间隔设置得比较小有关,但也导致了我耗费RPC数量较多.</p>
-<h3 id="1-2A"><a href="#1-2A" class="headerlink" title="1) 2A"></a>1) 2A</h3><p>2A中其中的测试用例都是有关于选举的.其中<code>TestReElection2A</code>体现了:非宕机节点只要超过总数的一半,就可以立刻选举出合法的<code>leader</code>,更详细地说,在这个测试用例中有一个情景就是3个节点中断开了2个,因此也就无法选出一个新的<code>leader</code>了,因为选举成功的条件就在于大于等于<code>总节点数/2 + 1</code>.所以这也就是整个系统可靠性的大前提.</p>
+<h3 id="a">1) 2A</h3>
+<p>2A中其中的测试用例都是有关于选举的.其中<code>TestReElection2A</code>体现了:非宕机节点只要超过总数的一半,就可以立刻选举出合法的<code>leader</code>,更详细地说,在这个测试用例中有一个情景就是3个节点中断开了2个,因此也就无法选出一个新的<code>leader</code>了,因为选举成功的条件就在于大于等于<code>总节点数/2 + 1</code>.所以这也就是整个系统可靠性的大前提.</p>
 <p>而<code>TestManyElections2A</code>测试用例则是比较简单,采用一轮轮for循环,批量地进行宕机,如果其中宕机的有当前的leader,那么就需要马上重新选举出一个新的<code>leader</code>,否则就正常运行,leader不变.但无论如何宕机,也只是7个里面宕机3个,不会超过半数.</p>
 <p>可见,“过不过半”是一个重要的问题.</p>
-<h3 id="2-2B"><a href="#2-2B" class="headerlink" title="2) 2B"></a>2) 2B</h3><p>相对于2A中的测试数据,2B的测试数据则复杂了不少.</p>
+<h3 id="b">2) 2B</h3>
+<p>相对于2A中的测试数据,2B的测试数据则复杂了不少.</p>
 <p>在<code>TestFailAgree2B</code>中,将其中某个中途断开的<code>follower</code>也断开,并且验证重连后整体还可以恢复到一致性,这个得益于<code>appendEntrys</code>比较一致点然后追加的机制.</p>
 <p><code>TestFailNoAgree2B</code>中的,首先会断开3个,然后再追加数据,这种情况下,纵使在<code>leader</code>中会加入新的log条目,而仅存的一个<code>follower</code>也可以接收心跳,并且追加log项,但是由于成功追加的总数不足<code>总结点数/2 + 1</code>,所以<code>leader</code>的<code>commitId</code>也就不会更新,因此<code>follower</code>也不会进行更新,最终导致这一项根本就不会达到一致性.根本原因是,无法有足够数量的<code>follower</code>接收到此log项.当3个丢失的重新连接后,再尝试提交一个新的log,这是新的log会生效,而上一次所start的log项则会失效.</p>
-<p><code>TestRejoin2B</code>,首先先正常提交一个log,然后将当前的leader断开,然后连续start 3个log项,由于此时leader已经隔离,所以无法就这3个log达成一致,只是在<code>leader</code>本地增加了log项.然后再尝试提交一个log(103),由于其他节点收不到来自leader的心跳包,所以又有了一个新的<code>leader</code>.这算不算脑裂呢?其实不应该算,因为此时虽有两个<code>leader</code>,但是只有一个<code>leader</code>有效地工作,其中一个老<code>leader</code>无法和任何一个<code>follower</code>交流.所以说刚刚提交的一项应当达成一致(除去老leader).然后将新的leader断开,并将leader重连.这个过程就像是一个无缝地替换过程.</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2020%2048%2011%201661258891%201661258891976%20yKkunE%20image-20220823204811847%20.png" alt="image-20220823204811847" style="zoom:50%;">
-
+<p><code>TestRejoin2B</code>,首先先正常提交一个log,然后将当前的leader断开,然后连续start
+3个log项,由于此时leader已经隔离,所以无法就这3个log达成一致,只是在<code>leader</code>本地增加了log项.然后再尝试提交一个log(103),由于其他节点收不到来自leader的心跳包,所以又有了一个新的<code>leader</code>.这算不算脑裂呢?其实不应该算,因为此时虽有两个<code>leader</code>,但是只有一个<code>leader</code>有效地工作,其中一个老<code>leader</code>无法和任何一个<code>follower</code>交流.所以说刚刚提交的一项应当达成一致(除去老leader).然后将新的leader断开,并将leader重连.这个过程就像是一个无缝地替换过程.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2020%2048%2011%201661258891%201661258891976%20yKkunE%20image-20220823204811847%20.png" alt="image-20220823204811847" style="zoom:50%;"></p>
 <p>这个交替的过程略微有点复杂,重新登基的<code>leader1</code>在发送心跳包的时候,发现周围的节点的任期都比自己高,所以自己就要被打回<code>follower</code>了,这个时候,当<code>leader</code>下台,并且退化成<code>follower</code>后,这也验证了一个任期落后的<code>leader</code>即使重新与其他部分联通,也会因为自己落后的term导致失去<code>leader</code>身份,陷入整体无主的局面,这个时候就会有一个新的<code>leader</code>从中选举出来,然而这个新的<code>leader</code>究竟应该是谁呢?一定不是leader1,为什么呢?因为leader1的日志太旧,一旦该leader再断连后无法跟进新的任期,其之后的log也在任期上落后于其他的节点.所以之后的更新状况也就如图所示了.这个地方也就验证了论文中的叙述:</p>
 <blockquote>
-<p> If votedFor is null or candidateId, and candidate’s log is at least as up-to-date as receiver’s log, grant vote.</p>
+<p>If votedFor is null or candidateId, and candidate’s log is at least
+as up-to-date as receiver’s log, grant vote.</p>
 </blockquote>
 <p>对应的代码也就是:</p>
 <pre class="line-numbers language-go" data-language="go"><code class="language-go">loglast <span class="token operator">:=</span> rf<span class="token punctuation">.</span><span class="token function">getLastLog</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
@@ -788,27 +796,25 @@
 	<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> loglast<span class="token punctuation">.</span>Term <span class="token operator">==</span> args<span class="token punctuation">.</span>LastLogTerm <span class="token punctuation">{</span>
 		oklog <span class="token operator">=</span> loglast<span class="token punctuation">.</span>Index <span class="token operator">&lt;=</span> args<span class="token punctuation">.</span>LastLogIndex
 	<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-
 <p><code>TestBackup2B</code>.仍然是5个节点,其过程用下面的图来概括吧.</p>
 <p>其中将logs抽象成图中的方块,每个方块是一个三元组(日志索引,是否提交,阶段).其中m代表提交,um代表不提交.</p>
 <p>每一阶段的事件对应如下:</p>
-<ol>
+<ol type="1">
 <li>全体提交一个log.</li>
 <li>假设s1是leader1,这个时候s3,4,5断开.这个时候连续提交50个,都没有commit.</li>
 <li>将阶段2的两个断开,然后将这三个重连,提交了50个并且达成一致.</li>
 <li>之后将这3个其中之一断开(非<code>leader</code>),然后再提交50个,但是没有commit.</li>
 </ol>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2021%2034%2020%201661261660%201661261660886%20Y3AM63%20image-20220823213420766%20.png" alt="image-20220823213420766" style="zoom: 33%;">
-
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2021%2034%2020%201661261660%201661261660886%20Y3AM63%20image-20220823213420766%20.png" alt="image-20220823213420766" style="zoom: 33%;"></p>
 <p>5.这时,会阶段4没有连接的3个重连,这时还会发生什么呢?这个时候会发生新的选举,竞争发生在s1,s2,s5之间,其中两个断开,所以最多只能得到3票,也只有得到3票的节点才会成为新的<code>leader</code>,而对于s1,s2来说,由于日志老旧,一定无法得到s5的票,也就无法得到3票,因此最终只有s5成为<code>leader</code>.</p>
 <p>6.第六阶段,此时所有的节点都已经连接上了,此时s5的地位仍然不会被撼动,s3,s4也会跟随s5的领导达成一致.</p>
-<h3 id="3-2C"><a href="#3-2C" class="headerlink" title="3) 2C"></a>3) 2C</h3><p>虽然在2C中,关于持久化的处理并不是太难,但是其测试用例相对而言比较复杂,所以即使过了lab2B,也未必能通过2C.尤其是其中有关于<code>Figure 8</code>的测试.还有2B之前都是在可靠的情况下,进行测试的,而对于2C又加入了不可靠的测试,这会导致一些RPC出现极大的延时,进而还会触发乱序的现象.</p>
+<h3 id="c">3) 2C</h3>
+<p>虽然在2C中,关于持久化的处理并不是太难,但是其测试用例相对而言比较复杂,所以即使过了lab2B,也未必能通过2C.尤其是其中有关于<code>Figure 8</code>的测试.还有2B之前都是在可靠的情况下,进行测试的,而对于2C又加入了不可靠的测试,这会导致一些RPC出现极大的延时,进而还会触发乱序的现象.</p>
 <p><code>TestFigure82C</code>.关于这个测试的分析,首先还是先来回忆一下raft论文中的图8.</p>
-<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2021%2054%2024%201661262864%201661262864575%20mdpT8z%20image-20220823215424462%20.png" alt="image-20220823215424462" style="zoom:50%;">
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2008%2023%2021%2054%2024%201661262864%201661262864575%20mdpT8z%20image-20220823215424462%20.png" alt="image-20220823215424462" style="zoom:50%;"></p>
+<h3 id="d">4) 2D</h3>
+<h2 id="总结">4. 总结</h2>
 
-
-
-<h3 id="4-2D"><a href="#4-2D" class="headerlink" title="4) 2D"></a>4) 2D</h3><h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h2>
                 
             </div>
             <hr/>
