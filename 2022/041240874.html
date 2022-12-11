@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    5.6k
+                    6.8k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    19 Min
+                    23 Min
                 </div>
                 
 
@@ -499,6 +499,7 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <h2 id="chapter-7-类">Chapter 7 类</h2>
+<h3 id="this指针">1) this指针</h3>
 <p>对于this,是每个成员函数中的一个隐含的参数,它代表的是当前执行该成员函数的地址,在每次调用成员函数时,该对象都会将自己的地址初始化给成员函数中的this指针.我们可以将其理解为这种:</p>
 <pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">object.dosomething();
 //相当于
@@ -512,18 +513,49 @@ Object*类型,也就是说这个对象是不可修改的.也就相当于这个(�
   	return *this;
 }<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这是对于<code>=,+=,-=</code>等运算符常用的方式.</p>
+<h3 id="defualt的使用">2) = defualt的使用</h3>
 <p>关于构造函数中的<code>=default</code>表示的是,对于某人构造函数,我显式地声明我所使用的是编译器生成的版本.再primer书中的一些设计中,对于一些可以采用合成的构造函数,都将其设置为<code>=default</code>了.</p>
 <p>除了构造之外,析构、拷贝、赋值等操作都有编译器合成的现象.如果一个类内部涉及到一些动态管理内存的,那么使用合成的函数则不大妥当,如果是vector,string等数据类型的数据成员,由于这些容器内部已经做好了关于内存管理的方面的工作,因此合成的函数对于vector,string等类型的数据成员不会有一些不当的影响.</p>
 <blockquote>
-<p>primer中说,对于struct和class唯一的区别就在于默认的访问权限.</p>
+<p>primer中说,对于struct和class唯一的区别就在于默认的访问权限.其中有一种C++编程风格是:对于全public的类,使用struct!</p>
+<p>此外关于C++的封装,封装的有点一是可以确保User
+Code对与一个类对象的内部状态是可控的,此外一旦一些接口的内部细节需要变化,无需在调用处的用户代码作出改变,只需调整内部细节即可.这将给代码的维护带来极大的便利.</p>
 </blockquote>
-<p>关于类的向前声明,向程序中引入了名字Screen并且指明Screen是一种类类型,但之后的,在其定义之前是一个<strong>不完全类型</strong>,不清楚内部的数据成员以及方法等属性,在此期间只可以定义指针或者引用,也可以作为函数参数或者返回值.<strong>如果想要创建某个类的对象,必须要有该类的定义</strong>.向前声明时常用来解决互为成员的类,但是又不能抗头文件相互引用的情况.</p>
+<h3 id="向前声明">3) 向前声明</h3>
+<p>关于类的向前声明,向程序中引入了名字Screen并且指明Screen是一种类类型,但之后的,在其定义之前是一个<strong>不完全类型</strong>,不清楚内部的数据成员以及方法等属性,在此期间只可以定义指针或者引用,也可以作为函数参数或者返回值.<strong>如果想要创建某个类的对象,必须要有该类的定义</strong>.向前声明时常用来解决互为成员的类,但是又不能头文件相互引用的情况.(<strong>用来避免互相include头文件</strong>)</p>
+<h3 id="name-lookup和作用域规则">4) name lookup和作用域规则</h3>
+<p>一个类就对应了一个作用域,这一点很好理解,这也是为什么我们需要在类外访问一个成员时需要“Object::function”这种形式.比如说:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">YfsBox</span><span class="token double-colon punctuation">::</span><span class="token function">setBox</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> boxvec<span class="token operator">&amp;</span> bv<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 比如说这样的一个函数,其中函数名及其参数列表都可以说处于YfxBox这个class的作用域内部了,因此可以使用boxvec这个在YfsBox内部定义的类型.</span>
+  <span class="token comment">//......</span>
+<span class="token punctuation">}</span>
+YfsBox<span class="token double-colon punctuation">::</span>boxvec <span class="token class-name">YfsBox</span><span class="token double-colon punctuation">::</span><span class="token function">getVec</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 但如果这种情况,需要注意的是函数的返回值并没有处于YfsBox的作用域内,因此还需要额外加上“YfsBox::”</span>
+  <span class="token comment">//......</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>关于类中的<code>name lookup</code>和作用域的关系.这个过程比较简单:</p>
 <ul>
 <li>再该name所在的块寻找声明,只考虑该name引用前的声明.</li>
 <li>没有找到的话,就去外层找.</li>
-<li>如果一只没有找到就报错.</li>
+<li>如果一直没有找到就报错.</li>
 </ul>
+<p>这里需要注意的是类的编译的过程,<strong>一个类的编译分为了两个阶段,第一阶段遍历类及其内部的所有声明,第二阶段直到类都可见之后才编译类中的函数体</strong>.这里举一个例子:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-using">using</span> Money <span class="token operator">=</span> <span class="token keyword keyword-double">double</span><span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>string bal<span class="token punctuation">;</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">Account</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+  	Money <span class="token function">balance</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> bal<span class="token punctuation">;</span> <span class="token punctuation">}</span>
+  	<span class="token keyword keyword-void">void</span> <span class="token function">dump</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> hight<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-return">return</span> hight <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">;</span> <span class="token comment">// 这个hight究竟是参数中的hight还是private中的hight呢?是参数中的hight,name loopup会优先找到参数中的hight,这样的弊端在于private中的hight将会被隐藏,只能通过this来访问.</span>
+    <span class="token punctuation">}</span>
+  <span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+  	<span class="token keyword keyword-using">using</span> Money <span class="token operator">=</span> <span class="token keyword keyword-int">int</span><span class="token punctuation">;</span> <span class="token comment">//这个将无法对前面声明的Money有效,因为该类型名的定义出现在前面的声明之后.</span>
+  	Money bal<span class="token punctuation">;</span>
+  	<span class="token keyword keyword-int">int</span> hight<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先我们看类中的声明,比如说balance,其中的Money作为返回类型,首先在Account内部寻找,没有找到因此在向外层寻找,找到其中的<code>using Money = double</code>的定义.之后对于函数体的定义的编译,在此之前类内部的bal已经被声明,因此返回的是private的bal.</p>
+<blockquote>
+<p>往往将using或者typedef放在一个类的开始处.</p>
+</blockquote>
+<p>也就是说自内而外地过程.关于这一部分容易出现的问题在于,内部的name可以将外部的name隐藏,因此一些情况下原本想要访问外部的,单却访问到了内部的name的情况.</p>
 <h2 id="chapt-13-拷贝控制">Chapt 13 拷贝控制</h2>
 <h3 id="拷贝控制">1. 拷贝控制</h3>
 <p>这一部分有两个核心的概念:<strong>右值引用,移动操作</strong>.主要说copy
@@ -538,7 +570,7 @@ constructor,copy-assignment,move-assignment,destructor等函数.</p>
 <figcaption aria-hidden="true">image-20220831232358680</figcaption>
 </figure>
 <p>其中拷贝初始化发生的时机有:<strong>通过=定义,传参与返回,花括号列表初始化数组或者某个class中的成员.关于函数的传参与返回,</strong>很大关系上和参数或者返回值是否是引用类型有关.</p>
-<p>正义因为函数传参的过程中会触发拷贝构造,所以拷贝构造的定义应该是引用,否则就会陷入“鸡生蛋,蛋生鸡”的死循环问题.</p>
+<p>正是因为函数传参的过程中会触发拷贝构造,所以拷贝构造的定义应该是引用,否则就会陷入“鸡生蛋,蛋生鸡”的死循环问题.</p>
 <p>关于<code>explicit</code>对于拷贝初始化的限制问题,这个关键字通常作用于:<strong>告诉编译器是否可以隐式初始化对象</strong>.对于加上<code>explicit</code>的拷贝构造函数后,对于像=,函数传参数和返回等会触发隐式拷贝构造的情况会禁止,只有直接地调用拷贝构造函数才可以.直接构造函数也是同理.</p>
 <figure>
 <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2001%2011%2006%2042%201662001602%201662001602602%201bCjBY%20image-20220901110642492%20.png" alt="image-20220901110642492">
@@ -547,8 +579,10 @@ constructor,copy-assignment,move-assignment,destructor等函数.</p>
 <p>其中第二行代码代表赋值操作会触发隐式地出发构造函数的一种场景,因此会被<code>explicit</code>拦截.</p>
 <p>对与合成拷贝赋值函数,会对内部的每个非静态成员进行拷贝赋值,如果是数组则是逐个元素地进行.</p>
 <p>关于析构函数,由于没有参数的存在,因此也不会被重载,每个类都是唯一的.对于销毁的动作,如果是一个内置类型,什么也不需要做,对于类成员则会调用它自己的析构函数.</p>
-<p>关于一个类被析构的时机,其中最重要的是:离开作用域,当一个对象被析构其成员也会被销毁,对于动态分配的对象,当它的指针被delete时因此也会触发该对象的析构函数.</p>
-<p>如果是容器类型,当离开一个vector的作用域,其内部的元素会逐个析构.</p>
+<p>关于一个类被析构的时机,其中最重要的是:<strong>(1)离开作用域(2)当一个对象被析构其成员也会被销毁(3)对于动态分配的对象,当它的指针被delete时因此也会触发该对象的析构函数.(5)对于临时对象来说,创建其的表达式结束时(6)如果是容器类型,当离开一个vector的作用域,其内部的元素会逐个析构.</strong>首先执行析构函数函数体中的代码,然后将成员逐个销毁,其销毁顺序与初始化的顺序是逆序的(此时对于其成员的销毁将会调用各自的析构函数).</p>
+<blockquote>
+<p>=delete和private拷贝构造的好处在于private不能禁止友元函数和类内的调用.</p>
+</blockquote>
 <p>下面是一些建议:</p>
 <ul>
 <li>需要析构函数的类往往也需要拷贝和赋值操作,如果内部有一个指针,析构函数如果会释放该指针的内存,如果这个时候用的合成的拷贝和赋值函数,则会在其他对象对该指针有浅拷贝,一旦被析构函数delete,那么其他地方的浅拷贝就会持有死亡的指针.</li>
@@ -572,8 +606,10 @@ used.当调用析构函数时,这个值-1,当减到0时,将其所维护的指针
 <p>移动用于不可以被共享的资源,只能有一个所有者.</p>
 <p>在内存的操作上,move和copy(深拷贝)的区别在于,<strong>是否分配新的内存空间.</strong></p>
 <p>其中<code>string,stl容器,shared_ptr</code>既支持移动也支持拷贝,IO类和unique_ptr可以移动但是不能拷贝.</p>
-<p>右值引用也就是&amp;&amp;,重要的特点就是只能绑定到一个将要销毁的对象中.对于做只来说可以通过<code>std::move</code>来进行.</p>
-<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">int &amp;&amp;rr3 = std::move(rr1);<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>右值引用也就是&amp;&amp;,重要的特点就是<strong>只能绑定到一个将要销毁的对象中</strong>.对于左值来说可以通过<code>std::move</code>来进行.</p>
+<pre class="line-numbers language-c++" data-language="c++"><code class="language-c++">int &amp;&amp;rr3 = std::move(rr1);
+int &amp;&amp;rr4 = 40; // 将rr4绑定到40上.<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>关于左值和右值的区别,左值是一个持久存在的变量,而右值则是短暂的,一般是字面常量或者临时对象.<strong>因此对于右值引用的作用,我们可以理解为,从一个将要消亡的对象中接管.</strong></p>
 <h4 id="移动构造函数">移动构造函数</h4>
 <p>为了可以实现这种操作,比如<code>Object obj(std::move(robj));</code>.这种操作并不能通过一般的构造函数来完成,因此需要移动构造函数.除了初始化左值还要将原来的右值设置为空.</p>
 <figure>
@@ -581,9 +617,11 @@ used.当调用析构函数时,这个值-1,当减到0时,将其所维护的指针
 <figcaption aria-hidden="true">image-20220901162559946</figcaption>
 </figure>
 <p>由图中的操作可见,相比于浅拷贝,多了一步,也就是将原来的指针设置成nullptr.当移动操作结束后,原本的源对象会被调用析构函数因此而被销毁,由于这个时候内部的指针已经成空的了,所以即使被delete也不会影响到被move到的对象.</p>
-<p>而对于移动赋值操作,这一部分相比拷贝赋值操作,一般来说,对于“自移动”的操作来说,不需要做任何处理,操作和移动构造函数类似.当源对象被移动后,源对象应当保持有效,可析构的状态.</p>
+<p>移动赋值操作相比移动拷贝来说有一点不同的地方在于,应该将原本左值中的资源释放掉,然后在“赋值”,<strong>不过需要防止的情况就是右值和左值中有相同指针的情况</strong>.</p>
 <p>至于编译器合成的移动构造函数,其合成发生的条件:没有定义任何自己的拷贝构造函数,并且每个非static都是可以移动的(对于类成员来说,如果它有move操作那么就可以).</p>
-<p><strong>定义了一个移动构造函数和移动赋值运算符也必须定义自己的拷贝操作,否则会将这些成员默认地定义为删除的</strong>.</p>
+<p><strong>此外对于源对象虽然要将其中的指针设置为nullptr,但也要考虑是否出现析构安全问题,或者说有效状态,访问其中的一些方法不会出现一些异常,能够被再次赋新值.</strong></p>
+<p><strong>定义了一个移动构造函数和移动赋值运算符也必须定义自己的拷贝操作,否则会将这些成员默认地定义为删除的,一般情况下如果我们不定义移动拷贝/赋值函数就不会有编译器生成,这一点不同于一般的拷贝/赋值等</strong>.关于移动被定义为delete的条件:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2005%2000%2041%2043%201670172103%201670172103103%20X3b8Pt%20image-20221205004142974%20.png" alt="image-20221205004142974" style="zoom:50%;"></p>
 <blockquote>
 <p><strong>如果没有移动构造函数只有拷贝构造的情况下,会发生什么?</strong></p>
 <p>这种情况下,Object &amp;&amp;会被转换成const Object
@@ -592,6 +630,8 @@ used.当调用析构函数时,这个值-1,当减到0时,将其所维护的指针
 <h4 id="结合swap的移动赋值操作">结合swap的移动赋值操作</h4>
 <p>如果结合其之前的swap操作,那么移动赋值运算符可以有怎样的实现呢?</p>
 <p>简单地说,就是将其参数设置成非引用的模式.函数内部采用之前实现的swap.这样实现,如果传入的是一个右值,就会借助移动构造函数进行初始化,否则就是拷贝构造函数进行初始化.当离开作用域后,该参数所对应的对象都将会被销毁.最终这个函数可以呈现一种“通用”的效果.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2005%2000%2057%2027%201670173047%201670173047307%20mfBVjb%20image-20221205005727197%20.png" alt="image-20221205005727197" style="zoom:33%;"></p>
+<p>不过像上面这段代码的前提是能够正确地实现拷贝构造和移动构造.</p>
 <h4 id="支持右值引用的成员函数">支持右值引用的成员函数</h4>
 <p>一个类的成员函数如何实现既支持const Obj &amp;,也支持Obj
 &amp;&amp;.就比如说STL vector中:</p>
@@ -671,8 +711,8 @@ Object&amp;,返回值就是一个Object.</p>
 <h3 id="基类和虚函数的定义">1.基类和虚函数的定义</h3>
 <p>关于基类的定义,需要注意的是<strong>将析构函数定义为<code>virtual</code>.</strong></p>
 <p>在定义派生类的虚函数时,通常在后面加上<code>override</code>比较好.</p>
-<p>关于类型转换方面值得一提,在此先不讨论多继承的情况.</p>
-<p>对于派生类向基类的转换,通常是基于指针或者引用的(会发生隐式地转换),不使用指针和引用则会slice,导致转换后派生类对象转换的结果不再是原来的完整的对象.</p>
+<p>关于类型转换方面值得一提,在此先不讨论多继承的情况.静态类型是在编译期间已知的类型,由变量声明或者表达式生成时的类型,而动态类型是在运行时才确定的类型,是变量或者表达式中对应的内存中的类型.对于非引用或者指针的数据类型,其动态类型和静态类型是一致的.</p>
+<p><strong>基类不可以向派生类发生隐式转换,如果需要转换则调用dynamic_cast</strong>,对于派生类向基类的转换,通常是基于指针或者引用的(会发生隐式地转换),不使用指针和引用则会slice,导致转换后派生类对象转换的结果不再是原来的完整的对象.</p>
 <p>此外,对于派生的构造函数,其中关于基类的部分借助基类的构造函数.一般情况下<strong>首先初始化基类的部分,然后按照声明的顺序依次初始化派生类的成员</strong>.</p>
 <p>在访问权限方面,private的在派生类中不可以访问.protected和public则可以.</p>
 <p>如何防止继承的发生呢?在基类后面加final.</p>
@@ -689,16 +729,20 @@ Object&amp;,返回值就是一个Object.</p>
 <p>如果想要强制执行某个虚函数版本,而不是动态绑定的结果,那么应该借助作用域运算符.比如说这样:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-double">double</span> undiscouted <span class="token operator">=</span> baseP<span class="token operator">-&gt;</span><span class="token class-name">Quote</span><span class="token double-colon punctuation">::</span><span class="token function">net_price</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <h3 id="抽象基类">3.抽象基类</h3>
-<p>抽象类不能直接定义该类的对象.抽象类的实现借助纯虚函数的声明来实现.需要注意的是,纯虚函数的函数体其实是可以定义的,但是需要在函数体之外进行定义.</p>
-<p>在派生类中,只会初始化它的直接基类,其初始化过程采用的是一种递归初始化的方式.</p>
-<p>关于继承体系中的友元,基类中的友元不可以被派生类所继承,并且每个类中的友元都不可以跨越其所处的继承层次,而去访问其他层次的数据成员,比如说某个派生类的友元不能访问其基类中的成员.</p>
+<p>抽象类不能直接定义该类的对象.抽象类的实现借助纯虚函数的声明来实现.需要注意的是,纯虚函数的函数体其实是可以定义的,但是需要在函数体之外进行定义.在派生类中,只会初始化它的直接基类,其初始化过程采用的是一种递归初始化的方式.</p>
+<p>关于继承体系中的友元,<strong>基类中的友元不可以被派生类所继承,并且每个类中的友元都不可以跨越其所处的继承层次,</strong>而去访问其他层次的数据成员,比如说某个派生类的友元不能访问其基类中的成员.</p>
+<blockquote>
+<p>关于struct和class的区别,还有默认继承权限的区别,struct的默认继承权限是public,而class的默认继承权限是private.</p>
+</blockquote>
 <h3 id="继承中的类作用域">4.继承中的类作用域</h3>
-<p>继承体系中作用域分布,通常是基类包住派生类的情况,因此派生类中可以自如地访问基类中的成员.</p>
+<p>继承体系中作用域分布,通常是基类包住派生类的情况,因此派生类中可以自如地访问基类中的成员(在访问权限允许的情况下).</p>
 <p>根据这种作用域的分布方式,我们可以因此推算某个成员名解析的过程:其基本过程是在继承体系中的本层逐渐向外层寻找.比如说<code>bulk.isbn()</code>会先在本层Bulk_quote查找,然后向<code>Disc_quote</code>查找,直到最外的基类.</p>
 <p>如果是一个基类类型成员的指针或者派生类成员的指针,前者的解析将会从基类这一层开始,后者将会层该派生类开始.</p>
 <p>当名字解析时遇到冲突会怎么样呢?这会使得高层的隐藏掉底层的,因为解析方式就是从继承体系高层向底层解析,遇到结果就返回,这个时候肯定优先就在高层返回了.如果想要使用被隐藏的成员,可以通过作用域去返回.如果是成员函数方法也是这样的.</p>
 <p>派生类的析构函数,是从本层开始,派生类自己的析构函数首先执行,一层层地到基类函数,最后析构完毕.</p>
 <p>如果某个构造函数或者析构函数调用了某个虚函数,应该执行与构造函数或析构函数所属类型相对应的虚函数版本.如果在调用某个基类的构造函数中,会调用某个虚函数的派生版本,这个虚函数可能会需要访问派生类中的成员,然而由于派生类的构造函数还没有执行,所以派生类成员还没有初始化,因此容易造成程序崩溃.</p>
+<p>关于name lookup和动态绑定的顺序,是先进行name
+lookup,然后在进行动态绑定的.</p>
 
                 
             </div>

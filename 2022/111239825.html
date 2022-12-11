@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    3.1k
+                    4.7k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    10 Min
+                    17 Min
                 </div>
                 
 
@@ -665,6 +665,124 @@ parser</a></p>
 <figcaption aria-hidden="true">image-20221113191618033</figcaption>
 </figure>
 <h4 id="lr0分析器">LR(0)分析器</h4>
+<h2 id="三.-语义分析">三. 语义分析</h2>
+<h3 id="上下文有关文法">1) 上下文有关文法</h3>
+<p>为什么需要进行语义分析呢?</p>
+<ul>
+<li><strong>需要捕获一些Parser捕获不了的错误</strong>.Parser只能从形式上的错误进行捕获(正所谓上下文无关文法).而一些语义上的错误却捕获不了(这种语义上的错误可以认为是上下文有关文法),因此还涉及到类型检查等工作.</li>
+<li><strong>对于程序中的Identifiers需要补充一些额外的信息(即符号表)</strong>.这在具体的实现上体现为符号表的构造及其Bindings的设置.</li>
+</ul>
+<p>然而关于一些语义上的问题,具体都是指什么呢?</p>
+<ul>
+<li>类型不匹配.</li>
+<li>class继承问题.</li>
+<li>重复定义问题等等.</li>
+</ul>
+<p>还有许多不再一一枚举,这些都是与某个语言的具体定义有关的,其本质上也就是<strong>上下文有关文法</strong>.</p>
+<h3 id="基本概念">2) 基本概念</h3>
+<p>接下来简要说明几个核心的概念:<strong>符号表,绑定,作用域</strong>.</p>
+<p>绑定是对于每个Identifier名及其相关信息所组成的数据结构,也就是符号表中的条目.一个Identifier最基本的信息就是类型(究竟是函数,还是变量,还是对象,对于同一种类型的Identifier还可以再往下区分类型,比如说int还是string等等),一般在实现时对于不同的Identifier会有不同类型的绑定,其中的字段也有所不同,比如说对于一个函数类型的绑定中往往会有参数,返回值等等.还有其他比较必要的信息,比如size.</p>
+<p>符号表是绑定的集合,一个符号表可以采用不同的数据结构来存储,比如说散列表等等,数据结构的选择是一个重要的问题.符号表在实现时往往会又一些增,删,查相关的接口.</p>
+<p>作用域也是和符号表息息相关的,因为绑定的有效性(也就是一个Identifier的生命周期往往是和作用域有关的),比如说当遇到某个变量的声明时,首先将其加入到当前作用域的符号表中,当离开该作用域时,就需要将该Identifier移除,很多Identifier遵循的是“先声明后引用”的原则,因此当对某个Identifier进行处理时都遵循从最近作用域向外部查找的方式.而对于一些语言中的class定义就不同(比如说cool),一般是不遵循“先声明后引用的原则”,因此其在处理上需要额外地先进行全局性地扫描.</p>
+<h3 id="结合tiger代码分析实现">3) 结合Tiger代码分析实现</h3>
+<p>虎书中介绍了一种基于散列表实现的符号表.</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">TAB_table_</span> <span class="token operator">*</span>S_table<span class="token punctuation">;</span>
+S_table <span class="token function">S_empty</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 返回一个空的符号表</span>
+<span class="token keyword keyword-void">void</span> <span class="token function">S_enter</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">,</span> S_symbol sym<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 将符号sym加入到当前作用域</span>
+<span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token function">S_look</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">,</span> S_symbol sym<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 从符号表t中查找符号Sym,</span>
+<span class="token keyword keyword-void">void</span> <span class="token function">S_beginScope</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 进入当前作用域</span>
+<span class="token keyword keyword-void">void</span> <span class="token function">S_endScope</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 离开当前作用域</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中符号表的具体定义如下:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">binder_</span> <span class="token operator">*</span>binder<span class="token punctuation">;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">binder_</span> <span class="token punctuation">{</span>  
+  <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>key<span class="token punctuation">;</span> 
+  <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>value<span class="token punctuation">;</span> 
+  binder next<span class="token punctuation">;</span> 
+  <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>prevtop<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-struct">struct</span> <span class="token class-name">TAB_table_</span> <span class="token punctuation">{</span>
+  binder table<span class="token punctuation">[</span>TABSIZE<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>top<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>由此可见,TAB_table主要是一个散列表,数组table的每一项对应每一个链表.其中<code>top</code>指针适合维护作用域息息相关的变量,可以说为了实现作用域,还需要维护一个辅助栈,在后续详细说明.</p>
+<p>此外还值得一提的是,符号表所接收的参数是<code>S_symbol</code>,这里本应该是一个表示Identifier的字符串,但是这里由于采用了散列,因此还需要实现与该散列相关的Hash函数,其中有关<code>S_symbol</code>的实现如下:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">S_symbol_</span> <span class="token punctuation">{</span>  
+  string name<span class="token punctuation">;</span> 
+  S_symbol next<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">SIZE</span> <span class="token expression"><span class="token number">109</span>  </span><span class="token comment">/* should be prime */</span></span>
+<span class="token keyword keyword-static">static</span> S_symbol hashtable<span class="token punctuation">[</span>SIZE<span class="token punctuation">]</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>因此我们可以得出这代表的是一个结点,其内容为一个Identifier的name.后面有一些与散列有关的实现.</p>
+<p>接下来是一些符号表中的具体操作的实现:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">S_enter</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">,</span> S_symbol sym<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">TAB_enter</span><span class="token punctuation">(</span>t<span class="token punctuation">,</span>sym<span class="token punctuation">,</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token function">S_look</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">,</span> S_symbol sym<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-return">return</span> <span class="token function">TAB_look</span><span class="token punctuation">(</span>t<span class="token punctuation">,</span>sym<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-static">static</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">S_symbol_</span> marksym <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token string">"&lt;mark&gt;"</span><span class="token punctuation">,</span><span class="token number">0</span><span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-void">void</span> <span class="token function">S_beginScope</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">)</span> <span class="token punctuation">{</span> 
+  <span class="token function">S_enter</span><span class="token punctuation">(</span>t<span class="token punctuation">,</span><span class="token operator">&amp;</span>marksym<span class="token punctuation">,</span><span class="token constant">NULL</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-void">void</span> <span class="token function">S_endScope</span><span class="token punctuation">(</span>S_table t<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  S_symbol s<span class="token punctuation">;</span>
+  <span class="token keyword keyword-do">do</span> s<span class="token operator">=</span><span class="token function">TAB_pop</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>s <span class="token operator">!=</span> <span class="token operator">&amp;</span>marksym<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中<code>enter</code>是通过直接调用<code>TAB_enter</code>实现的,<code>look</code>同理,<code>S_beginScope</code>的实现是基于<code>S_enter</code>实现的,可以将其理解为向符号表加入一种特殊的符号,也就是<code>&lt;mark&gt;</code>,专门标记一层作用域.关于<code>S_endScope</code>也就是其逆操作,一直pop,直到遇到<code>&lt;mark&gt;</code>标记之外.</p>
+<p>至此我们可以简单地推测在更底层的<code>TAB</code>相关的实现中,既要维护散列表,也要维护辅助栈.辅助栈的作用在于可以通过<code>&lt;mark&gt;</code>将入栈的一层层Identifier划分为不同层次的作用域.更多细节如下所示:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">TAB_enter</span><span class="token punctuation">(</span>TAB_table t<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>key<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-int">int</span> index<span class="token punctuation">;</span>
+  <span class="token function">assert</span><span class="token punctuation">(</span>t <span class="token operator">&amp;&amp;</span> key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  index <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span><span class="token punctuation">)</span>key<span class="token punctuation">)</span> <span class="token operator">%</span> TABSIZE<span class="token punctuation">;</span>
+  t<span class="token operator">-&gt;</span>table<span class="token punctuation">[</span>index<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">Binder</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> value<span class="token punctuation">,</span>t<span class="token operator">-&gt;</span>table<span class="token punctuation">[</span>index<span class="token punctuation">]</span><span class="token punctuation">,</span> t<span class="token operator">-&gt;</span>top<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  t<span class="token operator">-&gt;</span>top <span class="token operator">=</span> key<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token function">TAB_look</span><span class="token punctuation">(</span>TAB_table t<span class="token punctuation">,</span> <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>key<span class="token punctuation">)</span><span class="token punctuation">{</span>
+  <span class="token keyword keyword-int">int</span> index<span class="token punctuation">;</span>
+  binder b<span class="token punctuation">;</span>
+  <span class="token function">assert</span><span class="token punctuation">(</span>t <span class="token operator">&amp;&amp;</span> key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  index<span class="token operator">=</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span><span class="token punctuation">)</span>key<span class="token punctuation">)</span> <span class="token operator">%</span> TABSIZE<span class="token punctuation">;</span>
+  <span class="token keyword keyword-for">for</span><span class="token punctuation">(</span>b<span class="token operator">=</span>t<span class="token operator">-&gt;</span>table<span class="token punctuation">[</span>index<span class="token punctuation">]</span><span class="token punctuation">;</span> b<span class="token punctuation">;</span> b<span class="token operator">=</span>b<span class="token operator">-&gt;</span>next<span class="token punctuation">)</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>b<span class="token operator">-&gt;</span>key<span class="token operator">==</span>key<span class="token punctuation">)</span> <span class="token keyword keyword-return">return</span> b<span class="token operator">-&gt;</span>value<span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> <span class="token constant">NULL</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword keyword-void">void</span> <span class="token operator">*</span><span class="token function">TAB_pop</span><span class="token punctuation">(</span>TAB_table t<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-void">void</span> <span class="token operator">*</span>k<span class="token punctuation">;</span> binder b<span class="token punctuation">;</span> <span class="token keyword keyword-int">int</span> index<span class="token punctuation">;</span>
+  <span class="token function">assert</span> <span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  k <span class="token operator">=</span> t<span class="token operator">-&gt;</span>top<span class="token punctuation">;</span>
+  <span class="token function">assert</span> <span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  index <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span><span class="token punctuation">)</span>k<span class="token punctuation">)</span> <span class="token operator">%</span> TABSIZE<span class="token punctuation">;</span>
+  b <span class="token operator">=</span> t<span class="token operator">-&gt;</span>table<span class="token punctuation">[</span>index<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  <span class="token function">assert</span><span class="token punctuation">(</span>b<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  t<span class="token operator">-&gt;</span>table<span class="token punctuation">[</span>index<span class="token punctuation">]</span> <span class="token operator">=</span> b<span class="token operator">-&gt;</span>next<span class="token punctuation">;</span>
+  t<span class="token operator">-&gt;</span>top<span class="token operator">=</span>b<span class="token operator">-&gt;</span>prevtop<span class="token punctuation">;</span>
+  <span class="token keyword keyword-return">return</span> b<span class="token operator">-&gt;</span>key<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中<code>enter</code>是获取该symbol的散列值之后,将其加入到散列表中,并且直接入栈.对于look来说,直接从散列表中查询即可,而对于pop来说,既要从辅助栈中弹出,也要从散列表中移除.</p>
+<p>关于Binding中的具体信息,这些将会在types.h等文件中有所体现,也就对应了<code>binder_</code>中的value,由于使用了void*,因此可以实现一种类似于多态的机制:</p>
+<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">Ty_ty_</span> <span class="token punctuation">{</span>
+	<span class="token keyword keyword-enum">enum</span> <span class="token punctuation">{</span>
+    	Ty_record<span class="token punctuation">,</span> 
+    	Ty_nil<span class="token punctuation">,</span> 
+    	Ty_int<span class="token punctuation">,</span> 
+    	Ty_string<span class="token punctuation">,</span> 
+    	Ty_array<span class="token punctuation">,</span> 
+    	Ty_name<span class="token punctuation">,</span> 
+    	Ty_void<span class="token punctuation">}</span> kind<span class="token punctuation">;</span>
+	<span class="token keyword keyword-union">union</span> <span class="token punctuation">{</span>
+    			Ty_fieldList record<span class="token punctuation">;</span>
+		      Ty_ty array<span class="token punctuation">;</span>
+		      <span class="token keyword keyword-struct">struct</span> <span class="token punctuation">{</span>
+            	S_symbol sym<span class="token punctuation">;</span> 
+            	Ty_ty ty<span class="token punctuation">;</span>
+          <span class="token punctuation">}</span> name<span class="token punctuation">;</span>
+		    <span class="token punctuation">}</span> u<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="类型检查">4) 类型检查</h3>
+<p><strong>类型检查实际上是在遍历AST的过程中进行的.</strong>这个过程中需要更新和查看符号表.也就需要用到上面所介绍的接口.cs143的课程中还介绍到了类型检查有关的形式化表示,在此不再多说.在此主要叙述类型检查的实现.</p>
 
                 
             </div>

@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    7.1k
+                    8k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    26 Min
+                    29 Min
                 </div>
                 
 
@@ -800,9 +800,13 @@ Rational result<span class="token operator">=</span><span class="token number">2
 采用non-member</strong>比较好,如果不采用non-member,即使构造函数支持隐式转换,那么也就只有处于参数列表中的参数可以转换,而隐含的参数却不可以.</p>
 <h2 id="实现">5.实现</h2>
 <h3 id="尽可能延长定义式的出现时间">26)尽可能延长定义式的出现时间</h3>
-<p>即使一个对象没有被使用过，但在其生命周期中仍然会有构造和销毁的开销，这是一种浪费，应该尽可能避免这种浪费。</p>
-<p>首先对于一些需要构造新的对象，并且牵扯到一些异常处理的过程，我们应该尽可能将异常处理提前在对象的构造之前，这样是一定程度减少了该对象因为异常终止而没有被充分使用的状况。</p>
-<p>除此之外，不仅仅需要将该对象的定义延后到“必须使用该对象”为止，最好在构造函数中就定义好，而不是一般的default的构造。这种情况下，构造函数是需要参数值的，所以这个时候我们所谓的“延后”，也是为了等到需要的参数值都准备好了之后。</p>
+<p>在一个对象未被使用的情况下.其构造和析构成本是多余的,我们应该尽可能避免这种多余的成本.</p>
+<p>在此我们需要考虑,有哪些情况使得一个函数或者控制流终止,比如说异常和return等等.如果在真正使用某个对象之前就发生了这些行为,该对象的构造和析构成本就被浪费了.<strong>因此根据这里我们可以理解,延后对象的意义是等到非得使用它的时候.</strong></p>
+<blockquote>
+<p>​
+首先对于一些需要构造新的对象，并且牵扯到一些异常处理的过程，我们应该尽可能将异常处理提前在对象的构造之前，这样是一定程度减少了该对象因为异常终止而没有被充分使用的状况。</p>
+</blockquote>
+<p>除此之外，不仅仅需要将该对象的定义延后到“必须使用该对象”为止，最好在构造函数中就定义好，而不是一般的default的构造。这种情况下，构造函数是需要参数值的,<strong>毕竟一个对象的构造往往是需要参数的,这个时候我们所谓的“延后”,也是为了等到需要的参数值都准备好了之后.</strong></p>
 <p>而对于循环的状况，对于只在循环内部使用的临时变量呢，是在循环外部定一个对象，还是将对象定义在循环体之内呢？</p>
 <p>简而言之两种方式的成本如下:</p>
 <ul>
@@ -810,37 +814,51 @@ Rational result<span class="token operator">=</span><span class="token number">2
 <li>定义在内部:n构造+n析构。</li>
 </ul>
 <p>考虑赋值成本和“构造+析构”的成本对比。</p>
+<blockquote>
+<p>总的来说,这个条款考虑了三个情况: 1. 由异常和return所导致的未使用对象.
+2. 等待到所有参数准备就绪后定义. 3. 在for循环外部定义还是内部.</p>
+</blockquote>
 <h3 id="尽量少做转型动作">27)尽量少做转型动作</h3>
 <p>C++中几种新式转型动作:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token generic-function"><span class="token function">const_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">&gt;</span></span></span> <span class="token punctuation">(</span>expression<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//用于常量性移除</span>
-<span class="token generic-function"><span class="token function">dynamic_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">&gt;</span></span></span> <span class="token punctuation">(</span>expression<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//安全地向下转型,用于继承体系中</span>
+<span class="token generic-function"><span class="token function">dynamic_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">&gt;</span></span></span> <span class="token punctuation">(</span>expression<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//安全地向上转型,用于继承体系中,将某一个基类转成派生类(指针或者引用)</span>
 <span class="token generic-function"><span class="token function">reinterpret_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">&gt;</span></span></span> <span class="token punctuation">(</span>exprssion<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//执行低级转型</span>
 <span class="token generic-function"><span class="token function">static_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>T<span class="token operator">&gt;</span></span></span> <span class="token punctuation">(</span>expression<span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//强迫隐式转型</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
 <p>新式转型容易辨认并且目标精确.</p>
-<p>转型不仅仅是单纯地告诉编译器将某种类型视为另外一种类型,会真的有动作执行.</p>
+<p>转型不仅仅是单纯地告诉编译器将某种类型视为另外一种类型,会真的有动作执行.在设计某个函数的接口时,应该避免User需要将对象进行类型转换才能使用情形,应当将类型转换放在函数的实现中.</p>
 <h3 id="避免返回handles指向对象的内部成分">28)避免返回handles指向对象的内部成分</h3>
 <p>首先我们搞清楚handles是什么,handles就是引用,指针,迭代器等能够得到原对象进行修改控制的东西,就像是号码牌.</p>
 <p>对于一些类,如果其private成员是一些指向某些对象的指针,那么我们在设计对外接口的时候,如果出现了返回这些对象引用或者指针的,那么就使得用户获取了控制private数据对象的权利,破坏了封装性,危险性比较大.</p>
-<p>对于补救方式,比较好的就是使用const reference.</p>
+<blockquote>
+<p>主要问题在于:</p>
+<ol type="1">
+<li><p>打破private不可被外界访问的规则.</p></li>
+<li><p>cosnt类型的成员函数不应该使得调用者有修改内部数据成员的可能.</p></li>
+</ol>
+</blockquote>
+<p>如果非得返回handle,,应该使用const reference.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Rectangle</span><span class="token punctuation">{</span>
 <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
     <span class="token keyword keyword-const">const</span> Point<span class="token operator">&amp;</span> <span class="token function">upperLeft</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> pData<span class="token operator">-&gt;</span>ulhc<span class="token punctuation">;</span> <span class="token punctuation">}</span>
     <span class="token keyword keyword-const">const</span> Point<span class="token operator">&amp;</span> <span class="token function">lowerRight</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> pData<span class="token operator">-&gt;</span>lrhc<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这样,即使用户拿到了handles也没有修改对象的权利了.</p>
-<p>但即使这样,用户拿到的handle还是有悬空引用的危险的.</p>
+<p>这样,即使用户拿到了handles也没有修改对象的权利了.但即使这样,用户拿到的handle还是有悬空引用的危险的.</p>
 <h3 id="为异常安全努力">29)为“异常安全”努力</h3>
 <h3 id="inlining的里里外外">30)inlining的里里外外</h3>
 <p>inlining调用起来像是函数,但是却没有一般函数所有的开销.</p>
+<p>首先我们需要明确的是inline的定义方式,分为隐式地或者显式地,前者是在class作用域内部的,后者是在通过关键字inline的.关于不会被转化到inline的函数,要么是太复杂的函数(带有循环和递归或者virtual函数).</p>
+<p>这一条款的核心在于<strong>inline只是一个对编译器的申请,而不是强制性的</strong>,也就是说带有inline的函数并不一定真的是内联的,对于inline的处理(将函数调用动作转化为该函数的主体)是在编译期间进行的,如果没有被inline的话就会给出警告信息.</p>
 <p>内联函数也不是完美的,因为其总体思想在于“将对某个函数的调用”,都用函数本体替换,导致代码量增加,所消耗内存加大,但如果本身就是很简短的函数,那么产出的代码就会比较小.</p>
-<p>我们还要明白有那些因素:</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Person</span><span class="token punctuation">{</span>
-<span class="token keyword keyword-public">public</span><span class="token operator">:</span>
-    <span class="token keyword keyword-int">int</span> <span class="token function">age</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span><span class="token keyword keyword-return">return</span> theAge<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token comment">//这个是一个隐式的函数定义</span>
-
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p><strong>暂鸽</strong></p>
+<p><strong>构造函数和析构函数往往不是理想的inline函数候选者</strong>.</p>
+<p>此外如果一个程序关于内联函数中的具体内容发生变化时,整个程序都需要进行重新编译,如果不是内联函数,就会只需要重新链接即可.</p>
+<blockquote>
+<p>书中还给出了一个建议,不要忙目地将函数定义为内联函数,最好一开始都不使用内联函数(或者有绝对把握的).往往是在优化的过程中,根据2/8原则,确定程序中的热点后,对这些热点代码进行优化时,考虑将其中一部分代码改成inline的.</p>
+</blockquote>
 <h3 id="将文件间的编译依存关系降到最低">31)将文件间的编译依存关系降到最低</h3>
+<p>这一条主要讨论了class定义(#include)和向前声明对于编译依存关系的不同影响.</p>
+<p>对于前者来说,如果我们通过#include的方式引用了某个class的定义,一旦这个class对应的.h文件被修改,就会导致所有引用该.h文件的代码都被重新编译,这带来了较大的编译负担.这时可以考虑只使用向前声明而非定义,但是这会导致一个class因为其中的某些object这是声明而不是定义导致的占用空间未知的情况,因此这种方法对于一个class中含有object的情况并不适用,但是我们可以将object的使用改成指针或者引用类型,这样这个class总体所占空间的大小就是已知的了.</p>
+<p>如果涉及到函数需要用某个class的对象时,可以只依附于声明而非定义,即使是pass
+by value也可以.</p>
 <h2 id="继承与面向对象设计">6.继承与面向对象设计</h2>
 <h3 id="确定public继承符合is-a的关系">32)确定public继承符合is-a的关系</h3>
 <p>public继承是一种“is-a”的关系.</p>
