@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    8k
+                    8.6k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    29 Min
+                    31 Min
                 </div>
                 
 
@@ -630,9 +630,9 @@ PriorityCustomer<span class="token operator">&amp;</span> PriorityCustomer<span 
 <p>有时候我们发现拷贝构造和拷贝赋值的一些逻辑高度重复时,会考虑调用另一个来实现,比如说调用拷贝赋值来实现拷贝构造,这种方法不可以,可以尝试写一个新的成员函数,来供拷贝构造和拷贝赋值调用.</p>
 <h2 id="资源管理">3.资源管理</h2>
 <p>对于在堆空间上创建的对象,我们需要在不使用时释放内存.防止内存泄露.容易导致人忘记释放内存的原因很多,比如说异常,函数那多重回传路径,程序改动的变化等.</p>
-<p>主要介绍RAII机制.</p>
+<p>主要介绍RAII机制,即利用class的构造,拷贝构造和析构函数对资源进行管理.</p>
 <h3 id="以对象管理资源">13)以对象管理资源</h3>
-<p>有时在函数中途的某个return,continue或者异常,都有可能让我们遗漏对应的内存释放,所以<strong>不要过分的高估自己对于内存释放的细心!</strong></p>
+<p>有时在函数中途的某个return,continue或者异常,都有可能让我们遗漏对应的内存释放,所以<strong>不要过分的高估自己对于内存释放的细心!</strong>,此外还需要考虑别人对代码进行维护的问题,手动管理资源更是给别人的维护工作增加了许多负担.</p>
 <p>RAII机制,借助当离开某个对象的作用域时,就一定会调用起析构函数,这个析构函数中涉及到对资源的管理与释放.</p>
 <p>基本想法有两个:</p>
 <ul>
@@ -644,8 +644,8 @@ std<span class="token double-colon punctuation">::</span>shared_ptr<span class="
 <p>注意的是,如果通过copy和copy
 assignment复制unique所维护的对象,那么就会报错.它必须维持,一个资源的所有权属于一个对象.</p>
 <p>而shared维持一个引用计数,能够支持多个对象对某个资源的引用,不过它容易导致循环引用问题.</p>
-<p>除此之外,它们都不能维护动态数组形式的资源,因为他们所触发的析构函数是delete,而不是delete[],容易导致内存泄漏,不过vector往往是替代动态数组的良好选择.</p>
-<h3 id="在资源管理类中小心coping行为">14)在资源管理类中小心coping行为</h3>
+<p>除此之外,<strong>它们都不能维护动态数组形式的资源</strong>,因为他们所触发的析构函数是delete,而不是delete[],容易导致内存泄漏,不过vector往往是替代动态数组的良好选择.</p>
+<h3 id="raii类中的coping行为">14) RAII类中的coping行为</h3>
 <p>首先我们考虑设计一个管理互斥锁的类,这个类遵循RAII守则,即在构造时获得,在析构期释放.比如</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Lock</span><span class="token punctuation">{</span>
 <span class="token keyword keyword-public">public</span><span class="token operator">:</span>
@@ -667,7 +667,8 @@ Lock <span class="token function">m1</span><span class="token punctuation">(</sp
 <span class="token punctuation">}</span><span class="token comment">//离开时,自动释放锁.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>这个时候,我们考虑一下,一个RAII对象被复制时发生的问题,处理方式通常有:</p>
 <ul>
-<li>禁止复制.将copy声明为private.</li>
+<li>禁止复制.将copy声明为private.在modern C++
+可以通过=delete禁止拷贝构造函数.</li>
 <li>使用引用计数法.这个可以借助shared_ptr的deleter定义.如下:</li>
 </ul>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Lock</span><span class="token punctuation">{</span>
@@ -683,7 +684,7 @@ Lock <span class="token function">m1</span><span class="token punctuation">(</sp
 <li>也可以考虑进行深拷贝或者转移所有权.</li>
 </ul>
 <h3 id="在资源管理类中提供对原始资源的访问">15)在资源管理类中提供对原始资源的访问</h3>
-<p>其实有很多API的参数不支持我们使用RAII类,所以这个时候就需要使用RAII对资源的原始接口.</p>
+<p>其实<strong>有很多API的参数不支持我们使用RAII类</strong>,所以这个时候就需要使用RAII对资源的原始接口.</p>
 <p>或者对于一些自定义的RAII类,我们可以提供一个显示转换函数,类似于get(),或者像<code>shared_ptr,auto_ptr</code>等方法具有一些重载”*,-&gt;“等方法.</p>
 <p>或者可以提供隐式转换函数,这种方法可以避免显式调用带来的不便.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">Font</span><span class="token punctuation">{</span>
@@ -694,15 +695,27 @@ Lock <span class="token function">m1</span><span class="token punctuation">(</sp
 Font <span class="token function">f1</span><span class="token punctuation">(</span><span class="token function">getFont</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 FontHandle f2<span class="token operator">=</span>f1<span class="token punctuation">;</span><span class="token comment">//首先f1转换成一个FontHandle,然后复制.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>有人因此而怀疑这种暴漏原始资源的方式破坏了封装的设计理念,但是RAII的意义不在于将一些资源封装,而是确保资源的释放一定能发生.</p>
+<p><strong>资源管理类的意义在于确保资源释放行为一定会发生,不必刻意死板地追求封装</strong>.</p>
+<h3 id="成对使用new和delete形式要相同">16)
+成对使用new和delete形式要相同</h3>
+<p>首先我们应该明确的是new和delete的行为.这两个都是操作符,前者首先分配内存,然后调用构造函数,后者首先调用析构函数,然后释放内存.</p>
+<p>在这里有一个问题,就是一个指针指向的是一个对象还是一个数组.我们或许对于一个指针,容易搞不清它所指向的究竟是对象还是动态数组.如果只是一个对象的话,只要调用好该对象的析构函数就好了,如果是动态数组则需要调用多个.很多时候这两种的情况的内存布局如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2023%2023%2012%2003%201671808323%201671808323982%20mr7wV5%20image-20221223231203837%20.png" alt="image-20221223231203837" style="zoom:50%;"></p>
+<p>这里给出的建议就是<strong>对于new出来的就用delete,new
+[]出来的就调用delete[]处理</strong>.</p>
+<p>倘若对一个对象指针调用了delete[],则会将其中的一部分内存上的数据读取成了“n”,然后对后面的内存进行处理,进而引发错误.</p>
+<p>如果是对一个动态数组数组调用了delete,会导致内存泄漏.</p>
+<p>书中给出了一个很容易犯错的例子,就是将一个动态数组进行typedef,导致它看起来很像是一个对象,因此在通过new,delete进行处理时就会出错.</p>
 <h3 id="以独立语句将newed置入智能指针">17)以独立语句将newed置入智能指针</h3>
 <p>如果我们这样:</p>
-<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">processWidget</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token function">Widget</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token function">priority</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//这样做是错的</span>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">processWidget</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> <span class="token function">Widget</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token function">priority</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span class="token comment">//这样做是错的,因为智能指针构造函数是explit的</span>
 <span class="token function">processWidget</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">shared_ptr</span><span class="token generic class-name"><span class="token operator">&lt;</span>Widget<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> Widget<span class="token punctuation">)</span><span class="token punctuation">,</span><span class="token function">priority</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>这一部分与,传参时所执行的函数的非原子性有关,也就是说,就在传参时:会不确定顺序地发生3个动作:priority,new
+<p>这一部分与传参时所执行的函数的非原子性有关,也就是说,就在传参时:会不确定顺序地发生3个动作:priority,new
 Widget,shared_ptr构造函数.如果其中某一步有异常发生,比如priority异常,那么之后的动作就会中断,如果此时new已经发生,那么由于prioruty的异常导致这个对象的指针也就不会封到shared_ptr对象中,因此造成内存泄露的隐患.如果采用下面的写法则会避免该问题.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>shared_ptr<span class="token operator">&lt;</span>Widget<span class="token operator">&gt;</span> <span class="token function">pw</span><span class="token punctuation">(</span><span class="token keyword keyword-new">new</span> Widget<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token function">processWidget</span><span class="token punctuation">(</span>pw<span class="token punctuation">,</span><span class="token function">priority</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
 <p>所以说,我们一定要考虑好,如果某一步发生异常,会对接下来的动作会产生什么不良影响.</p>
+<p>这进一步提醒我们,如果调用一个函数时,参数有多个表达式组成时,一定要考虑到如果其中一个表达式在求出来时触发异常的结果,有可能导致后续的表达式及传参中断.</p>
 <h2 id="设计与声明">4.设计与声明</h2>
 <h3 id="设计class犹如设计type">19)设计class犹如设计type</h3>
 <p>设计types需要考虑的问题:</p>
@@ -720,7 +733,7 @@ delete,operator delete[]).</li>
 <p>如果是pass-by-value,对于对象来说,将会触发拷贝构造,尤其是多重继承的,会更加复杂,成本很大.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token function">validateStudent</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Student<span class="token operator">&amp;</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
 <p>除了节省成本,还可以避免被切割,毕竟多态是以引用或者指针为基础的进行的.</p>
-<p>对于一些内置类型,比如说STL的迭代器和函数对象,也许pass-by-value更适合.</p>
+<p><strong>对于一些内置类型,比如说STL的迭代器和函数对象,也许pass-by-value更适合.</strong></p>
 <h3 id="必须返回对象时别妄想返回其reference">21)必须返回对象时,别妄想返回其reference</h3>
 <p>关于返回和传参问题,引用并不是银弹,下面关于返回类型会有很多问题.</p>
 <p>比如说代码:</p>
@@ -738,13 +751,13 @@ delete,operator delete[]).</li>
     <span class="token keyword keyword-return">return</span> result<span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>除了有多线程处理的问题.但还有有这么问题,<code>if((a*b)==(c*d));</code>.这个结果永远相等,因为定义的运算符的结果永远指向现在的值,这样的函数,将不会起到有效保存某个值的状况.</p>
-<p>所以综上所述,这些情况下,不如不使用reference.</p>
+<p>所以综上所述,这些情况下,不如不使用reference.在这种情况下,所付出的拷贝构造的成本时必要的.</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-inline">inline</span> <span class="token keyword keyword-const">const</span> Rational <span class="token keyword keyword-operator">operator</span> <span class="token operator">*</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Rational <span class="token operator">&amp;</span>lhs<span class="token punctuation">,</span><span class="token keyword keyword-const">const</span> Rational <span class="token operator">&amp;</span>rhs<span class="token punctuation">)</span><span class="token punctuation">{</span>
     <span class="token keyword keyword-return">return</span> <span class="token function">Rational</span><span class="token punctuation">(</span>lhs<span class="token punctuation">.</span>n<span class="token operator">*</span>rhs<span class="token punctuation">.</span>n<span class="token punctuation">,</span>lhs<span class="token punctuation">.</span>d<span class="token operator">*</span>rhs<span class="token punctuation">.</span>d<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
 <h3 id="成员变量声明为private">22)成员变量声明为private</h3>
-<p>首先设想,如果将所有的成员变量都设置成public,那么也就意味着所有的成员变量对外是既可读也可写的,那么对于改变量的访问控制也就无从谈起了,但如果是private,我们也就可以借助getter,setter实现只可读,只可写等,因此我们也就有了更细微更灵活的读写控制.</p>
-<p>这一条主要结合private来讲了讲访问权限和封装性的关系.</p>
+<p>首先设想,如果将所有的成员变量都设置成public,那么也就意味着所有的成员变量对外是既可读也可写的,那么对于改变量的访问控制也就无从谈起了,但如果是private,我们也就可以借助getter,setter实现只可读,只可写等,因此我们也就有了更细微更灵活的读写控制.<strong>因此,可以为后续对变量的访问控制留下更多发挥的余地</strong>.</p>
+<p><strong>这一条主要结合private来讲了讲访问权限和封装性的关系.</strong></p>
 <p>在封装性上,可以为“所有可能的实现”提供弹性.封装对于用户隐藏成员变量,因此可以确保class的约束条件得到维护.</p>
 <p><strong>封装性的重要特点?</strong></p>
 <p>某些东西的封装性与“其内容改变时”可能造成的代码破坏量成反比.</p>
@@ -773,7 +786,7 @@ delete,operator delete[]).</li>
     Wb<span class="token punctuation">.</span><span class="token function">clearHistory</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     Wb<span class="token punctuation">.</span><span class="token function">removeCookies</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其实相对来说，后者的封装更好，可拓展的弹性余地也很大。</p>
+<p>其实相对来说，后者的封装更好，可拓展的弹性余地也很大。书中反驳了“数据及其操作数据的函数应当被捆绑在一起,因此提倡尽可能使用member”的观点.很多时候,member函数不如no-member函数封装性好.</p>
 <p>比较自然的做法就是利用namespace:</p>
 <pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-namespace">namespace</span> WebBrowerStuff<span class="token punctuation">{</span>
     <span class="token keyword keyword-class">class</span> <span class="token class-name">WebBrowser</span> <span class="token punctuation">{</span>  <span class="token punctuation">}</span><span class="token punctuation">;</span>
@@ -1090,33 +1103,28 @@ new,因为内存需求不能满足而抛出异常,这个时候先调用一个new
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
             <div class="card">
-                <a href="/2022/061731999.html">
+                <a href="/2022/070764376.html">
                     <div class="card-image">
                         
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2007%2023%2056%2022%201657209382%201657209382640%20WF7inv%20image-20220707235622564%20.png" class="responsive-img" alt="MapReduce">
                         
-                        <img src="/medias/banner/1.jpg" class="responsive-img" alt="linux 0.11源码分析:boot与系统调用">
-                        
-                        <span class="card-title">linux 0.11源码分析:boot与系统调用</span>
+                        <span class="card-title">MapReduce</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            阅读linux 0.11的源代码,尝试一些地方和已经学过的ucore做比较,顺便做了做哈工大的os实验.
+                            
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-06-17
+                            <i class="far fa-clock fa-fw icon-date"></i>2022-07-07
                         </span>
                         <span class="publish-author">
                             
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-category">
-                                    源码分析
-                                </a>
-                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
                             
                         </span>
                     </div>
@@ -1124,12 +1132,8 @@ new,因为内存需求不能满足而抛出异常,这个时候先调用一个new
                 
                 <div class="card-action article-tags">
                     
-                    <a href="/tags/linux/">
-                        <span class="chip bg-color">linux</span>
-                    </a>
-                    
-                    <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">操作系统</span>
+                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
+                        <span class="chip bg-color">分布式系统</span>
                     </a>
                     
                 </div>

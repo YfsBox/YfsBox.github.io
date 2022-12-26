@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    4.7k
+                    5.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    17 Min
+                    18 Min
                 </div>
                 
 
@@ -783,6 +783,19 @@ S_table <span class="token function">S_empty</span><span class="token punctuatio
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <h3 id="类型检查">4) 类型检查</h3>
 <p><strong>类型检查实际上是在遍历AST的过程中进行的.</strong>这个过程中需要更新和查看符号表.也就需要用到上面所介绍的接口.cs143的课程中还介绍到了类型检查有关的形式化表示,在此不再多说.在此主要叙述类型检查的实现.</p>
+<h2 id="四.-运行时环境与活动记录">四. 运行时环境与活动记录</h2>
+<h3 id="概述">1) 概述</h3>
+<p>​
+运行时环境以及活动记录的作用是什么呢?我们需要管理运行时资源(变量,对象等等),动态数据和静态数据,以及存储管理等等.当一个程序被载入到内存中时,其内存视图可以大致分为代码段和数据段,因此编译器有一个任务也就是<strong>生成代码段中的内容并且填充数据段</strong>.</p>
+<p>​
+此外关于代码段中代码的执行,一般来说都是从某个点中开始进入,然后顺序执行指令,但是程序中都有像函数这样的过程抽象,如果想要实现“过程”这一概念,就不能只借助代码段中的顺序执行,因为过程的特点就是进入到一个函数后,结束后在恢复现场,因此就引入了程序动态内存区中的栈这一概念.<strong>栈是为了实现程序运行中的过程抽象.</strong></p>
+<p>​
+此外,代码段在程序中通常在建立之后就处于固定并且只读的状态,静态数据段中的变量都有着固定的地址(在程序初始化时就建立了,并且size通常也固定),栈和堆都处于动态的内存区之中,两者相冲增长,碰撞是应该避免的事情.</p>
+<p>​
+关于栈这种数据结构,在之前的学习中已经非常熟悉了,在此只梳理一下栈帧.</p>
+<h3 id="栈帧">2) 栈帧</h3>
+<h3 id="tiger中与栈帧相关的实现">3) Tiger中与栈帧相关的实现</h3>
+<h2 id="五.-中间代码生成">五. 中间代码生成</h2>
 
                 
             </div>

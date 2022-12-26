@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="关于go语言的一些事儿, Yfs&#39;s Box">
+    <meta name="keywords" content="golang学习笔记, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>关于go语言的一些事儿 | Yfs&#39;s Box</title>
+    <title>golang学习笔记 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -328,7 +328,7 @@
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">关于go语言的一些事儿</h1>
+                    <h1 class="description center-align post-title">golang学习笔记</h1>
                 </div>
             </div>
         </div>
@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    438
+                    4.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    1 Min
+                    14 Min
                 </div>
                 
 
@@ -494,58 +494,117 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="将一个string分割成单词">1.将一个string分割成单词</h2>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go">ff <span class="token operator">:=</span> <span class="token keyword keyword-func">func</span><span class="token punctuation">(</span>r <span class="token builtin">rune</span><span class="token punctuation">)</span> <span class="token builtin">bool</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> <span class="token operator">!</span>unicode<span class="token punctuation">.</span><span class="token function">IsLetter</span><span class="token punctuation">(</span>r<span class="token punctuation">)</span> <span class="token punctuation">}</span>
-words <span class="token operator">:=</span> strings<span class="token punctuation">.</span><span class="token function">FieldsFunc</span><span class="token punctuation">(</span>contents<span class="token punctuation">,</span> ff<span class="token punctuation">)</span> <span class="token comment">//FieldsFunc用于分割字符串</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>在上述代码中,主要用到了<code>strings.FieldsFunc()</code>.</p>
-<h2 id="list">2.List</h2>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-import">import</span> <span class="token string">"container/list"</span> <span class="token comment">//头文件</span>
-
-<span class="token comment">//两种常见的初始化方式</span>
-tmpList1 <span class="token operator">:=</span> list<span class="token punctuation">.</span><span class="token function">New</span><span class="token punctuation">(</span><span class="token punctuation">)</span>  <span class="token comment">//New返回的是list指针</span>
-<span class="token keyword keyword-var">var</span> tmpList2 list<span class="token punctuation">.</span>List  <span class="token comment">//这个则是一种结构体</span>
-
-<span class="token comment">//一些常规的操作.</span>
-tmpList1<span class="token punctuation">.</span><span class="token function">PushBack</span><span class="token punctuation">(</span><span class="token string">"Yfs"</span><span class="token punctuation">)</span>
-tmpList1<span class="token punctuation">.</span><span class="token function">PushFront</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span>
-<span class="token builtin">len</span> <span class="token operator">:=</span> tmpList1<span class="token punctuation">.</span><span class="token function">Len</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-Element <span class="token operator">:=</span> tmp1List<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">//注意返回的是指针</span>
-tmpList1<span class="token punctuation">.</span><span class="token function">InsertAfter</span><span class="token punctuation">(</span><span class="token string">"high"</span><span class="token punctuation">,</span>Element<span class="token punctuation">)</span>
-tmpList1<span class="token punctuation">.</span><span class="token function">Remove</span><span class="token punctuation">(</span>Element<span class="token punctuation">)</span>
-
-<span class="token comment">//有关于遍历的操作,按照下面的模式就好</span>
-<span class="token keyword keyword-for">for</span> node <span class="token operator">:=</span> c<span class="token punctuation">.</span>maplist<span class="token punctuation">.</span><span class="token function">Front</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> node <span class="token operator">!=</span> <span class="token boolean">nil</span><span class="token punctuation">;</span> node <span class="token operator">=</span> node<span class="token punctuation">.</span><span class="token function">Next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-			<span class="token keyword keyword-if">if</span> node<span class="token punctuation">.</span>Value <span class="token operator">==</span> tid <span class="token punctuation">{</span>
-						flag <span class="token operator">=</span> <span class="token boolean">true</span> 
-			<span class="token punctuation">}</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>还有很多其他的API,不少API的参数都是指针类型的,这个有点像C++的STL中有关于迭代器的操作.</p>
-<h2 id="判断map的某个key对应是否有效">3.判断Map的某个key对应是否有效</h2>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token boolean">_</span><span class="token punctuation">,</span> ishave <span class="token operator">:=</span> c<span class="token punctuation">.</span>mapfinishM<span class="token punctuation">[</span>tid<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>如果ishave是<code>true</code>,说明存在,否则说明不存在.</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token function">delete</span><span class="token punctuation">(</span>c<span class="token punctuation">.</span>mapWorker<span class="token punctuation">,</span> key<span class="token punctuation">)</span><span class="token comment">//用于将某个key值对应的移除</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>有关于Map的初始化一般是这样操作的.</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go">c<span class="token punctuation">.</span>mapWorker <span class="token operator">=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword keyword-map">map</span><span class="token punctuation">[</span><span class="token builtin">int</span><span class="token punctuation">]</span>workerState<span class="token punctuation">,</span> c<span class="token punctuation">.</span>nReduce<span class="token operator">+</span>c<span class="token punctuation">.</span>nMap<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="time.sleep">4.time.Sleep</h2>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go">timeout <span class="token operator">:=</span> <span class="token number">10</span>
-time<span class="token punctuation">.</span><span class="token function">Sleep</span><span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Duration</span><span class="token punctuation">(</span>timeout<span class="token punctuation">)</span> <span class="token operator">*</span> time<span class="token punctuation">.</span>Second<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
-<p>上述代码中,是以秒为单位进入休眠的.</p>
-<p>除此之外,说一下几个有关于系统时间判断的API.</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go">current <span class="token operator">:=</span> <span class="token punctuation">(</span>time<span class="token punctuation">.</span><span class="token function">Now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">Unix</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token comment">//获取当前时间.注意其类型为int64</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<h2 id="利用regexp解析字符串">5.利用regexp解析字符串</h2>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go">re <span class="token operator">:=</span> regexp<span class="token punctuation">.</span><span class="token function">MustCompile</span><span class="token punctuation">(</span><span class="token string">"[0-9]+"</span><span class="token punctuation">)</span> <span class="token comment">//定义正则表达式,在这里用来匹配数字</span>
-findstrs <span class="token operator">:=</span> re<span class="token punctuation">.</span><span class="token function">FindAllString</span><span class="token punctuation">(</span>filename<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token comment">//返回所找结果的集合</span>
-<span class="token comment">//findstrs是[]string类型的</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
-<h2 id="常见的enum替代写法">6.常见的enum替代写法</h2>
-<p>golang中是没有<code>enum</code>的,常见的替代方式就是使用常量.如下:</p>
-<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-const">const</span> <span class="token punctuation">(</span> <span class="token comment">//表示状态机的状态</span>
-	IdleState     <span class="token operator">=</span> <span class="token number">0</span>
-	MapState      <span class="token operator">=</span> <span class="token number">1</span>
-	ReduceState   <span class="token operator">=</span> <span class="token number">2</span>
-	FinishedState <span class="token operator">=</span> <span class="token number">3</span>
-	EndState      <span class="token operator">=</span> <span class="token number">4</span>
-<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>注意大小写问题.</p>
+                <h2 id="chapter-2">1.Chapter 2</h2>
+<p>在golang中,如果返回的是一个指针是指向函数体中的一个局部对象的,那么该函数在结束时,并不会将该局部对象销毁.所以在golang中,返回局部对象是安全的.除了直接的指针之外,还有其他方式会涉及到引用类型,比如说复制<code>slice,map,channel,struct,数组</code>等.</p>
+<p>而关于new关键字则是返回某个类型的变量的指针.和c++中的new非常类似.</p>
+<p>关于一个变量的生命周期和作用域,这个和c++等语言没有太大的差别,主要还是说一下关于垃圾回收机制吧.</p>
+<p>首先对于包级别的变量来说,其生命周期在于一整个程序的运行期间,而对于局部变量来说,自从其创建到<strong>不可访问</strong>为止,才被回收,其机制和c++中的引用计数不一样.还有堆栈变量的分配问题,都是需要考虑的.</p>
+<p>关于包管理方面,其中包管理在于能够控制独立的命名空间,每一个包都代表一个独立的命名空间,对于内部的声明,通过区别变量名或者函数名的大小写来区别是否对别的包具有可见性.</p>
+<p>其中关于包初始化的部分,并没有看太明白.</p>
+<p>关于作用域中,有个很重要的代码块的概念,其中需要注意的是一些隐含的code
+block.比如说一个for循环其实有两个作用域,除了循环体还有表示条件的部分,也就是相当于c++中for(int
+i = 0;i &lt; n;
+i++)中<code>(int i = 0;i &lt; n; i++)</code>的部分.除此之外,switch,if等都是这样的.</p>
+<h2 id="chapter-3">2.Chapter 3</h2>
+<p>先说说字符串吧,首先需要明确<strong>字符串具有不可变性</strong>,因此如果直接对某个字符进行赋值是不可以的,对于一个已经初始化过的字符串进行赋值也是不可以的.但是还是可以通过+=来进行字符串的追加,这种方式也就是增量方式,会带来额外的内存分配,字符串的不可变性保证了,多个字符串变量可以安全地共用底层内存,shared内存相比深拷贝的方式复制开销要低很多.其中字符串变量共用内存的方式如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2026%2023%2001%2023%201664204483%201664204483717%20nGmm1Q%20image-20220926230123551%20.png" alt="image-20220926230123551" style="zoom: 67%;"></p>
+<p>有关于字符串的操作,有几个非常重要的包<code>strings,bytes,strconv,unicode</code>.其中<code>strings</code>的作用主要包含搜索,替换,比较等基本的字符串操作,bytes也提供了一些类似的操作函数.strconv用于字符串的类型转换,根据字符串的内容翻译成某种类型的变量.</p>
+<p>对于string和byte[]的相互转换会涉及到内容的深拷贝,因为byte[]是可以改变的,我们需要保证byte[]中的内容改变不会影响到相关的string.其中的一些函数strings中有的bytes中也是有的,对于string和byte之间的关系,还是有一点点像string和char的关系.</p>
+<p>关于bytes包中Buffer的应用??</p>
+<p>关于常量,保证的是当编译期间就确定其类型和值.关于常量生成器itoa,这种类型也被称为enum,这使得在写const变量定义的时候无需一个个地写出来,可以在其中开头定义一个itoa,这样可以达到开头是0,然后往后逐项+1的情况.</p>
+<h2 id="chapter-4">3.Chapter 4</h2>
+<p>在这里主要介绍数组,结构体,map和slice,前两者是静态类型的,其长度固定,后两者可以动态增长.</p>
+<p>由于数组是固定长度大小的,其实在golang程序中还是很少使用的,关于函数参数列表中的数组,<strong>其传入的是一个副本</strong>,进行的是深拷贝,对于数据量比较大的数组来说,将会很低效.不过也可以传递指针,这样既可以实现在函数体中对原数组进行修改,又降低了因为深拷贝而带来的额外开销.</p>
+<p>相比数组,slice才是使用更多的,slice可以<strong>用来访问数组的部分或者全部数据,相当于切片</strong>.一个slice主要由指针,长度和容量组成.对于一个定义好的数组,其中生成的slice的与数组的关系如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2009%2026%2023%2047%2013%201664207233%201664207233161%20mA5Iki%20image-20220926234713056%20.png" alt="image-20220926234713056" style="zoom:50%;"></p>
+<p>一个slice可以视为对一段数组的引用,此外对于字符串的操作:s[i:j]和[]byte操作都会返回一段子序列,但是底层引用是相同的,不过对于string来说返回的不是slice,而是一段string.关于slice长度的变化,如果超过了被引用对象的长度,将会panic,否则slice将会拓展长度.由于slice包含了指向原数组的指针,因此可以对原数组进行修改,所以说<strong>一个slice可以视为对某个数组子序列的引用</strong>.关于slice类型的零值为nil,和其他应用类型是一样的.</p>
+<p>不过还是要注意的是,如果想要检查一个slice是否是空的,应该采用len,而不是!=nil,因为即使!=nil,也有可能是空的.关于make创建的slice,你可能会疑惑,这个slice会引用哪个底层数组呢,其实创建了一个无名数组,这个无名数组我们无法直接访问,只能通过这个slice来进行访问.如果一个函数传入的参数是[]string,那么也就是传递的slice,这是一个引用类型的传递.</p>
+<p>关于slice的appendInt机制,每次append必须检查是否有足够的空间储存新的元素.如果足够则会生成新的slice,并且进行元素的追加,这个过程中底层数组是不变的.而对于没有足够空间的来说,需要创建一个新的底层数组,还会涉及到原有元素的复制,并追加新的元素,这时前后两个slice引用的底层数组已经不是同一个了.(这和c++中vector的扩容机制很像).</p>
+<p>对于slice上的修改,将会作用于被引用的底层数组上.</p>
+<p>至于map,首先需要明确的是map是一个引用类型的变量.通常会使用make来创建一个新的map(<strong>在使用一个map之前一定要记得初始化!!!!</strong>).如果我们访问了一个没有被初始化过的map键值,那么其返回值是该类型对应的零值,这再次体现了golang对于一些未初始化值,会有零值来保证访问的安全性.此外,对于map的每个元素是<strong>不能取地址</strong>的.对于map的迭代顺序(for
+range......),这种情况下,其中的顺序在不同的map实现中会有不同的顺序,我们在实际进行操作时,通常将其视为随机的顺序,也就说<strong>如果我们想要以某种特殊的顺序进行遍历,需要提前做好排序的处理</strong>.</p>
+<p>如果想要判断一个map是否存在某个key,可以这样操作<code>value,ok := ages["bob"]</code>.如果仅仅是取值判断,由于map对于没有的key一定会返回零值,而只通过零值没法确定该key是否存在,所以这种方式不可行.</p>
+<p>除此之外,对于map的key值类型,<strong>只能是可比较的数据类型.</strong></p>
+<p>对于结构体来说,对于函数返回或者参数传入,通常是复制而不是指针,因此为了节省因为拷贝而带来的开销,一般情况下在函数中采用传递指针的方式比较好.关于结构内部的数据成员的大小写区分,则类似于public或者private,也就是是否可以导出包外.有关于结构的比较的话,如果结构内部的数据成员都是可以比较的类型,那么该结构体本身也是可以比较的.</p>
+<h2 id="chapter-5">4. Chapter 5</h2>
+<p>首先说一说函数中error处理的策略:</p>
+<ul>
+<li>将错误return,向上传递.在返回时,也可以借助fmt.Errorf对错误信息进行包装.一直上传到某层函数时,可以选择将错误打印或者输出到日志中.一般是传递到主程序调用者时,借助log.Fatalf输出错误信息.然后直接退出程序</li>
+<li>或者可以考虑等待片刻后,在进行重试.超过一定的尝试次数就退出.</li>
+<li>或者将错误信息记录或者输出,但是仍然运行程序.</li>
+</ul>
+<p>此外,值得一提的时,当读取文件,读取到文件末尾时也会返回一种错误,也就是io.EOF,对于这种错误不能和一般的错误处理方式一样.所以,对于err
+!= nil,我们有时也需要判断这个err究竟是什么类型的.</p>
+<p>函数可以作为一种变量进行定义,以及其他操作.这个地方和c++的functional还是有点像的.因此也可以作为其他函数的参数和返回值,一般视为一种引用类型的变量.可以与nil进行比较.<strong>在golang中时常将此称之为闭包</strong>.</p>
+<p>关于defer的使用,无论是正常返回还是异常退出,defer后面的函数都会等到该函数结束后再调用,<strong>其中defer的执行顺序是倒序的!</strong>该函数对于资源管理方面是非常好用的,比如说open或close,lock和unlock等等.defer会在return之后执行,可以更新return之后的结果,在这里的使用匿名函数的话:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token function">trible</span><span class="token punctuation">(</span>x <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>result <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-defer">defer</span> <span class="token keyword keyword-func">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    result <span class="token operator">+=</span> x<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword keyword-return">return</span> <span class="token function">double</span><span class="token punctuation">(</span>x<span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>此外书上提到了一种for循环中defer的使用,一个文件描述符defer
+close的情况,程序员期望的是在每次循环体结束后,就会触发defer,但其实defer会在函数结束后出发,所以书中将for循环内的动作单独封装成了一个函数,每个for循环都会调用该函数,函数内有defer
+close,因此也就能保证每一轮for循环结束就能close.</p>
+<p>关于匿名函数,匿名函数类似于一个临时定义的临时变量,其中最显著的特点在于<strong>能够获取到整个词法环境,里层的函数可以使用外层函数中的变量</strong>.因此相比定义的普通的函数,避免了传入参数的麻烦,并且匿名函数内部有对于这些外部变量的引用,所以当匿名函数结束的时候,这些外部局部变量是可以被修改的.因此可以再次发现,一个变量的生命周期不一定是由作用域所决定的.</p>
+<p>最后简单地说明一下,宕机和恢复.前者当面临一些运行时的错误时就会触发,这个时候程序会终止,goroutinue中延迟函数会执行,异常退出后留下异常消息.<strong>不建议对于任何错误都采用panic来处理</strong>.此外,如果想要判断错误类型,借助<code>printStack</code>是一个比较好的方式,其中示例代码如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-func">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-defer">defer</span> <span class="token function">printStack</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token function">f</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-func">func</span> <span class="token function">printStack</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-var">var</span> buf <span class="token punctuation">[</span><span class="token number">4096</span><span class="token punctuation">]</span><span class="token builtin">byte</span>
+  n <span class="token operator">:=</span> runtime<span class="token punctuation">.</span><span class="token function">Stack</span><span class="token punctuation">(</span>buf<span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token punctuation">]</span><span class="token punctuation">,</span><span class="token boolean">false</span><span class="token punctuation">)</span>
+  os<span class="token punctuation">.</span>Stdout<span class="token punctuation">.</span><span class="token function">Write</span><span class="token punctuation">(</span>buf<span class="token punctuation">[</span><span class="token punctuation">:</span>n<span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>除了宕机,有时候也可以考虑以恢复的方式处理.</p>
+<h2 id="chapter-6">5.Chapter 6</h2>
+<p>golang的面向对象相关的语法设计要比C++要简单得多,golang中没有严格的继承和多态,在其语法中,主要是将面向对象理解为“数据对象和相关的方法进行绑定”的方式,所以,与其说是面向对象,还是基于对象更加准确一些.其中,还有一些原则比较重要.也就是封装与组合.</p>
+<p>首先我们需要明确,究竟有什么数据类型可以定义方法呢?<strong>数字,字符串,slice,map,函数,结构体</strong>都可以.</p>
+<p>对于方法的接受者,有指针和非指针之分,一般情况下,还是指针的方法用得比较多,一是因为可以修改改对象,二是减少了因为复制对象而带来的额外开销.但是这种方法,只有可以使用指针的数据类型才可以,像map,slice,函数就不行了.其中需要注意的是相关的隐式转换,如下所示:</p>
+<ul>
+<li>对于一个普通类型的变量,调用一个指针类型的方法,会讲该变量隐式转换成一个指针(&amp;p)</li>
+<li>一个指针类型变量,如果隐式调用普通类型变量,会转换成*p.</li>
+</ul>
+<p><strong>本身就是指针类型的变量是不可以定义方法的</strong>.</p>
+<p>最后简单说一下,封装的实现,由于golang中根据字母大小写控制访问权限的原则,所以在这里封装主要是以包为单位的.</p>
+<h3 id="chapter-7">6.Chapter 7</h3>
+<p>首先简要地介绍一下,接口类型.<strong>接口是一种抽象数据类型,一个接口所对应的数据类型都有一套特定的方法,而对于这种抽象数据类型,对外而言隐蔽了除了这些特定方法之外的其他细节,比如说内部的数据成员,以及其他方法,所以对于这种抽象数据类型只要知道提供了那些方法即可</strong>.这有点类似于c++中虚函数的使用.</p>
+<p>其中<code>Printf和Sprintf</code>中的args就是用了interface{}.</p>
+<p>书中说,借口就是约定,这种约定是什么呢?是一种双向约定,一方面要求某种类型实现接口相关的方法,另一方面只要是函数参数为接口类型的,就可以使所有实现这种借口的数据类型可用.(每个interface都有一个名字,非常像c++中的抽象类).</p>
+<p>此外,接口是可以通过组合的方式实现新的接口,也就是说,一个接口内部也可以含有其他的接口.</p>
+<p>对于一个具体类型与一个接口的关系,一般来说是<code>is-a</code>的关系更加准确.</p>
+<p>关于接口的实现相关的细节,比如说:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-var">var</span> w io<span class="token punctuation">.</span>Writer
+w <span class="token operator">=</span> os<span class="token punctuation">.</span>Stdin <span class="token comment">//ok,因为*os.File实现了Write的方法.</span>
+w <span class="token operator">=</span> time<span class="token punctuation">.</span>Second <span class="token comment">//error,该数据类型没有实现接口中的方法.</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>因此一个数据类型是否符合某个接口的决定性因素在于,是否实现了接口中的方法.</p>
+<p>还有一种空接口的使用,空接口看似没有什么用,其实这使得可以将所有数据类型都可以赋给该接口.正因如此,<code>Printf,Erroraf</code>等函数才可以结束所有类型的数据.对于非空类型的的接口来说,最常用的类型就是将指针作为接受者.</p>
+<p>在接口的设计上,很多时候是<strong>提取共性并进行分组的.</strong></p>
+<p>关于接口值的话,接口值其实是有两个部分的,一个部分是该接口的具体类型,另一部分是该类型下对应的值,两者的零值都是nil.</p>
+<p>关于<strong>类型断言</strong>,形如<code>x.(T)</code>的形式,用来检查某个数据的动态类型是否符合断言类型.比如说如下代码:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-var">var</span> w io<span class="token punctuation">.</span>writer
+w <span class="token operator">=</span> os<span class="token punctuation">.</span>Stdout
+rw <span class="token operator">:=</span> w<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token operator">*</span>os<span class="token punctuation">.</span>File<span class="token punctuation">)</span>
+c <span class="token operator">:=</span> w<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token operator">*</span>bytes<span class="token punctuation">.</span>Buffer<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果满足该类型,那么返回值就是这个类型的值,否则就会崩溃.这通常用于对于我们想要确定是否是某种动态类型的数据,检测其是否是某种类型.此外类型断言还可以是<code>f,ok := w.(*os.File)</code>的形式,这样ok可以表示是否是这种类型.</p>
+<blockquote>
+<p>golang的接口有两种不同的风格,一是类似于c++中的虚函数,可以表示一些数据类型中的共性方法,在使用接口时,只关注这些方法,而对于其他方法以及数据成员,这些细节是被屏蔽的.另外一种,则是类似于union的使用.</p>
+</blockquote>
+<p>结合类型断言和switch分支或者if
+else的话,实现类型分支.其具体使用如下:</p>
+<pre class="line-numbers language-go" data-language="go"><code class="language-go"><span class="token keyword keyword-if">if</span> x <span class="token operator">==</span> <span class="token boolean">nil</span> <span class="token punctuation">{</span><span class="token comment">//......</span>
+<span class="token punctuation">}</span><span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token boolean">_</span><span class="token punctuation">,</span>ok <span class="token operator">:=</span> x<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token builtin">int</span><span class="token punctuation">)</span><span class="token punctuation">;</span> ok <span class="token punctuation">{</span>
+<span class="token punctuation">}</span><span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token boolean">_</span><span class="token punctuation">,</span>ok <span class="token operator">:=</span> x<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token builtin">uint</span><span class="token punctuation">)</span><span class="token punctuation">;</span> ok <span class="token punctuation">{</span>
+<span class="token punctuation">}</span><span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token boolean">_</span><span class="token punctuation">,</span>ok <span class="token operator">:=</span> x<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token builtin">bool</span><span class="token punctuation">)</span><span class="token punctuation">;</span> ok <span class="token punctuation">{</span>
+<span class="token punctuation">}</span>
+<span class="token comment">//或者</span>
+<span class="token keyword keyword-switch">switch</span> x<span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token keyword keyword-type">type</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+<span class="token keyword keyword-case">case</span> <span class="token boolean">nil</span><span class="token punctuation">:</span>
+<span class="token keyword keyword-case">case</span> <span class="token builtin">int</span><span class="token punctuation">:</span>
+  <span class="token keyword keyword-case">case</span> <span class="token builtin">bool</span><span class="token punctuation">:</span>
+  <span class="token comment">///</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 
                 
             </div>
