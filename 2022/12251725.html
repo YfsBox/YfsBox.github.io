@@ -473,14 +473,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    0
+                    7.2k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    1 Min
+                    30 Min
                 </div>
                 
 
@@ -498,7 +498,588 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                
+                <p>我认为这一部分是cs143中最难的一部分,前面的几个实验,都可以通过参考手册上的形式化表示(语法、语义等)来写代码,然而PA5则没有类似的参考,因此我们需要具备能将高级语言(cool)翻译成SPIM汇编的能力,要了解一门之前不怎么熟悉的汇编语言.此外这里涉及到的有关于环境表的操作也更加复杂.</p>
+<p>这几部分的核心操作是将经过语义分析后,已经得到了一个信息完整、无误(语义分析检查了错误,如果出了错也就不会继续处理了)的AST,然后将这个AST转化成汇编代码的过程.除了翻译成汇编指令,此外还有一些比较重要的东西,就是关于生成汇编代码文件中关于段(类似于代码段、数据段等)的理解与生成.</p>
+<p>我的代码实现如下: <a target="_blank" rel="noopener" href="https://github.com/YfsBox/cs143">github</a></p>
+<h2 id="主干流程与核心数据结构">1. 主干流程与核心数据结构</h2>
+<p>其中和cgen有关的主函数为:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> program_class<span class="token double-colon punctuation">::</span><span class="token function">cgen</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>os<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// spim wants comments to start with '#'</span>
+  os <span class="token operator">&lt;&lt;</span> <span class="token string">"# start of generated code\n"</span><span class="token punctuation">;</span>
+  <span class="token function">initialize_constants</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  envTable <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token function">EnvTable</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  codegen_classtable <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token function">CgenClassTable</span><span class="token punctuation">(</span>classes<span class="token punctuation">,</span>os<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  os <span class="token operator">&lt;&lt;</span> <span class="token string">"\n# end of generated code\n"</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先需要初始化一些常量,然后初始化环境表,然后创建一个<code>CgenClassTable</code>.</p>
+<h3 id="cgenclasstable中需要的数据结构">1)
+CgenClassTable中需要的数据结构</h3>
+<p>至于我的CgenClassTable中的数据成员如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">CgenClassTable</span> <span class="token operator">:</span> <span class="token base-clause"><span class="token keyword keyword-public">public</span> <span class="token class-name">SymbolTable</span><span class="token operator">&lt;</span><span class="token class-name">Symbol</span><span class="token punctuation">,</span><span class="token class-name">CgenNode</span><span class="token operator">&gt;</span></span> <span class="token punctuation">{</span>
+<span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+    <span class="token keyword keyword-typedef">typedef</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>attr_class<span class="token operator">*</span><span class="token operator">&gt;</span> attrList<span class="token punctuation">;</span>
+    <span class="token keyword keyword-typedef">typedef</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>method_class<span class="token operator">*</span><span class="token operator">&gt;</span> methodList<span class="token punctuation">;</span>
+    <span class="token keyword keyword-typedef">typedef</span> std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span> attroffsetList<span class="token punctuation">;</span>
+    <span class="token keyword keyword-typedef">typedef</span> std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span> methoffsetList<span class="token punctuation">;</span>
+    <span class="token keyword keyword-typedef">typedef</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> Symbol<span class="token operator">&gt;&gt;</span> dispatchtab<span class="token punctuation">;</span>
+    <span class="token keyword keyword-typedef">typedef</span> std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>CgenNodeP<span class="token operator">&gt;</span> chain<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+   List<span class="token operator">&lt;</span>CgenNode<span class="token operator">&gt;</span> <span class="token operator">*</span>nds<span class="token punctuation">;</span>     <span class="token comment">// 维护的整个程序中的所有class</span>
+   std<span class="token operator">:</span><span class="token base-clause"><span class="token operator">:</span><span class="token class-name">map</span><span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span><span class="token punctuation">,</span> <span class="token class-name">Symbol</span><span class="token operator">&gt;</span> <span class="token class-name">class_tag_map_</span></span><span class="token punctuation">;</span>
+   std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> CgenNodeP<span class="token operator">&gt;</span> name_to_cgen_map_<span class="token punctuation">;</span>
+   std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> attrList<span class="token operator">&gt;</span> class_attr_map_<span class="token punctuation">;</span>  <span class="token comment">// 不包含parent中的attr</span>
+   std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> methodList<span class="token operator">&gt;</span> class_method_map_<span class="token punctuation">;</span> <span class="token comment">// 每个class本层method</span>
+   std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> attroffsetList<span class="token operator">&gt;</span> attr_offset_map_<span class="token punctuation">;</span>
+   std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> methoffsetList<span class="token operator">&gt;</span> meth_offset_map_<span class="token punctuation">;</span>
+   std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> dispatchtab<span class="token operator">&gt;</span> dispatch_tab_map_<span class="token punctuation">;</span>
+   std<span class="token double-colon punctuation">::</span>map<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> chain<span class="token operator">&gt;</span> parent_chain_map_<span class="token punctuation">;</span>
+
+   ostream<span class="token operator">&amp;</span> str<span class="token punctuation">;</span>
+   <span class="token keyword keyword-int">int</span> stringclasstag<span class="token punctuation">;</span>
+   <span class="token keyword keyword-int">int</span> intclasstag<span class="token punctuation">;</span>
+   <span class="token keyword keyword-int">int</span> boolclasstag<span class="token punctuation">;</span>
+   <span class="token keyword keyword-int">int</span> labelid_<span class="token punctuation">;</span>
+   CgenNodeP curr_cgenclass_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中nds表示的是整个AST中所涉及的所有class.<code>class_tag_map_</code>将会用于保存class
+tag到某个class的映射关系,以这个map的顺序遍历(即int从0,1,2....到n)可以很方便地打印出name
+table,obj
+table等等.<code>name_to_cgen_map_</code>用于外界可以通过class的name来获取其对应的CgennodeP.关于<code>class_attr_map_,class_method_map_</code>用于通过某个class的name来获取其对应的attributes和methods(只包含继承体系中的本层).<code>attr_offset_map_,meth_offset_map_</code>分别保存了每个class中,每个attribute/meth名在其protObj/dispTab中的偏移量,因为在后续的汇编代码中,我们需要再获取了某个class对应的protObj/dispTab的地址后,知道要访问的attr/meth在其中的偏移量,进而得到其精确的地址.<code>dispatch_tab_map_</code>对应了每个class的distratch表.chain则用于获取一个class的继承链,在后面的处理中,我们会多次需要获取某个class的继承链,一次保存好之后,直接获取即可.</p>
+<h3 id="cgenclasstable的构造函数">2) CgenClassTable的构造函数</h3>
+<p>在其构造的过程中,进行以下操作:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token class-name">CgenClassTable</span><span class="token double-colon punctuation">::</span><span class="token function">CgenClassTable</span><span class="token punctuation">(</span>Classes classes<span class="token punctuation">,</span> ostream<span class="token operator">&amp;</span> s<span class="token punctuation">)</span> <span class="token operator">:</span> <span class="token function">nds</span><span class="token punctuation">(</span><span class="token constant">NULL</span><span class="token punctuation">)</span> <span class="token punctuation">,</span> <span class="token function">str</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token function">labelid_</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token function">curr_cgenclass_</span><span class="token punctuation">(</span><span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+   stringclasstag <span class="token operator">=</span> <span class="token number">0</span> <span class="token comment">/* Change to your String class tag here */</span><span class="token punctuation">;</span>
+   intclasstag <span class="token operator">=</span>    <span class="token number">0</span> <span class="token comment">/* Change to your Int class tag here */</span><span class="token punctuation">;</span>
+   boolclasstag <span class="token operator">=</span>   <span class="token number">0</span> <span class="token comment">/* Change to your Bool class tag here */</span><span class="token punctuation">;</span>
+
+   codegen_classtable <span class="token operator">=</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+   <span class="token function">enterscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 进入一个全局的作用域</span>
+   <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"Building CgenClassTable"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+   <span class="token function">install_basic_classes</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token function">install_classes</span><span class="token punctuation">(</span>classes<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token function">install_name_to_cgen</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token function">build_inheritance_tree</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token function">install_classtags</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token function">install_attrs_and_methods</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+   <span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token function">exitscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中过程总结如下:</p>
+<ul>
+<li>首先先进入到一个全局的作用域.</li>
+<li>首先是对于一些basic class以及其他classes的安装.</li>
+<li>调用<code>install_name_to_cgen()</code>,将CgenClassTable中的<code>name_to_cgen_map_</code>设置好即可,只需将nds遍历一遍.</li>
+<li><code>build_inheritance_tree()</code>,构造继承树,这里主要涉及到对于CgenNode中的parent以及children的设置.</li>
+<li><code>install_classtags()</code>,设置每个class对应的tag.这一部分我最初只是按照遍历nds数组的顺序设置的对应的tag,但这样在后来实现typcase时会踩坑(后面再说),参考了别人的实现才知道,这里比较好的方式是通过dfs序去设置tag.</li>
+<li><code>install_attrs_and_methods()</code>,遍历每个class,设置<code>class_meth_map_</code>和<code>class_attr_map_</code>.</li>
+<li>调用code(),生成目标代码.</li>
+<li>退出全局作用域.</li>
+</ul>
+<h3 id="代码生成的大致流程">3) 代码生成的大致流程</h3>
+<p>这部分也就是code函数中的操作.其实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">CgenClassTable</span><span class="token double-colon punctuation">::</span><span class="token function">code</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding global data"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_global_data</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"choosing gc"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_select_gc</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding constants"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_constants</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding class name tab"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_class_nametabs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding class object table"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_class_objtabs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding object dispatabs"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_object_disptabs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding object prot"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_protobjs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding global text"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_global_text</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding object init method"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_object_inits</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>cgen_debug<span class="token punctuation">)</span> cout <span class="token operator">&lt;&lt;</span> <span class="token string">"coding methods"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+  <span class="token function">code_methods</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这一部分的流程通过阅读标准代码生成器的输出汇编代码即可了解个大概,在<code>code_method</code>之前的都是一些信息表代码的生成.</p>
+<h2 id="一些信息表的理解与生成">2. 一些信息表的理解与生成</h2>
+<h3 id="name-table-和-object-table">1) name table 和 object table</h3>
+<p>name table是一个字符串常量表,其中分别对应了每个class
+name的字符串常量.object
+table包含了每个class的<code>protObj和init_method</code>.具体如下:</p>
+<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">class_nameTab:
+        .word   str_const7
+        .word   str_const8
+        .word   str_const12
+        .word   str_const13
+        .word   str_const9
+        .word   str_const10
+        .word   str_const11
+        .word   str_const14
+class_objTab:
+        .word   Object_protObj
+        .word   Object_init
+        .word   IO_protObj
+        .word   IO_init
+        .word   Base_protObj
+        .word   Base_init
+        .word   Derived_protObj
+        .word   Derived_init
+        .word   Int_protObj
+        .word   Int_init
+        .word   Bool_protObj
+        .word   Bool_init
+        .word   String_protObj
+        .word   String_init
+        .word   Main_protObj
+        .word   Main_init<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在生成这一部分的代码时,有一个比较坑的地方在于,这两个表的排列顺序应该严格遵循class
+tag(比如说Object的tag是0,在objTab中的顺序就是第0项).在后面实现new__class的时候,对于SELF_TYPE的情况,如果想要获取其init函数以及<code>protObj</code>地址,需要通过从$s0加偏移量获取其tag,然后感觉tag去从class_objTab中检索出对应的<code>protObj和init</code>项,如果这两个表的顺序并不是严格遵循tag顺序的,那么就无法检索到正确的项.</p>
+<p>因此在写这一部分的代码生成时,需要根据tag的顺序去进行遍历:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">CgenClassTable</span><span class="token double-colon punctuation">::</span><span class="token function">code_class_objtabs</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    str <span class="token operator">&lt;&lt;</span> CLASSOBJTAB <span class="token operator">&lt;&lt;</span> LABEL<span class="token punctuation">;</span>
+    <span class="token keyword keyword-int">int</span> len <span class="token operator">=</span> class_tag_map_<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    StringEntry<span class="token operator">*</span> str_entry<span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> len<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        Symbol name <span class="token operator">=</span> class_tag_map_<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        str <span class="token operator">&lt;&lt;</span> WORD<span class="token punctuation">;</span>
+        <span class="token function">emit_protobj_ref</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        str <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+        str <span class="token operator">&lt;&lt;</span> WORD<span class="token punctuation">;</span>
+        <span class="token function">emit_init_ref</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        str <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="dispatch-table">2) dispatch table</h3>
+<p>关于<code>dispatch table</code>的实现,我最初对于每个class的dispatch的排列顺序并没有太多的讲究,还要考虑override的情况,但是如果不注意的话,dispach多态的特点不会有正确的实现.<strong>我认为这个地方是整个PA5中对容易让人绕晕的地方.</strong></p>
+<p>首先,分析一下在PA5中多态实现的方式,参考C++中的多态,其核心的机制在于动态绑定,也就是说最终所调用的method的地址无法在编译期间确定.在dispatch的处理中,<strong>这一部分的难点在于我们编写的编译器代码和运行时的状态存在不同</strong>,比如说下面的<code>me.identify</code>.</p>
+<pre class="line-numbers language-none"><code class="language-none">let me : Base &lt;- new Derived in me.identify();<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>我们首先执行me相关的生成代码,经过new
+Derived的初始化后,me作为let中声明的临时变量被压入栈,这个时候从编译器AST中的语义值的角度上看,me是Base类型的,但是从汇编的角度上来看,通过new
+Derived之后(详情见后面对于new__class生成代码的讲解),其返回值对应的是<code>Derived</code>类型,获取其dispacth
+table时也是Derived的dispacth
+table,然而我们在编译器代码中无法访问到该寄存器的具体情况,因此在我们编写编译器代码时,我们仍然是将其当做一个Base处理.之后我们需要获取该identify的地址,因此需要求出其偏移量,求出偏移量之后,进而得出最终该method的地址.其中相关的实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">emit_load</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> DISPTABLE_OFFSET<span class="token punctuation">,</span> ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 将dispacth表加载到T1中,这时的dispatch为Derived的</span>
+  <span class="token keyword keyword-int">int</span> offset<span class="token punctuation">;</span>
+  Symbol expr_type <span class="token operator">=</span> expr<span class="token operator">-&gt;</span><span class="token function">get_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 从AST树节点的保存的类型信息中,我们得到的是Base类型的</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>expr_type <span class="token operator">==</span> SELF_TYPE<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      expr_type <span class="token operator">=</span> codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_curr_class</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_meth_offset</span><span class="token punctuation">(</span>expr_type<span class="token punctuation">,</span> name<span class="token punctuation">,</span> <span class="token operator">&amp;</span>offset<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 由于expr_type是Base,查找offset时用的也是Base的dispacth表</span>
+  <span class="token function">emit_load</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> T1<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> 		<span class="token comment">// 求出offset后,根据dispacth table的地址获取该method的地址</span>
+  <span class="token function">emit_jalr</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>		<span class="token comment">// 调用该method</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>因此我们简单的一总结,在PA5实现多态时,编译器层面的代码只能将调用对象当做一个基类处理,而并不是具体类.然而在运行时汇编的层面上,该调用对象则是一个具体类.我们需要保证“基类中的offset”
++
+“具体类的dispacth”加起来正好是这个具体类的method的地址.结合这一部分生成的dispacth表:</p>
+<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">Derived_dispTab:
+	.word	Object.abort
+	.word	Object.type_name
+	.word	Object.copy
+	.word	IO.out_string
+	.word	IO.out_int
+	.word	IO.in_string
+	.word	IO.in_int
+	.word	Derived.identify
+Base_dispTab:
+	.word	Object.abort
+	.word	Object.type_name
+	.word	Object.copy
+	.word	IO.out_string
+	.word	IO.out_int
+	.word	IO.in_string
+	.word	IO.in_int
+	.word	Base.identify<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>我们在编译器代码中,通过查找offset从<code>Base_dispacth</code>找到的是offset是7,在汇编层面,T1中加载的是Derived_dispTab,其中的7,恰好就是Derived.identify.因此实现了override.</p>
+<p>因此在生成dispacth相关的代码中,由下面的这种方式的处理:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-auto">auto</span> chain <span class="token operator">=</span> curr_cgennode<span class="token operator">-&gt;</span><span class="token function">get_parents_list</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> parent <span class="token operator">:</span> chain<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 获取其中一层的method</span>
+    <span class="token keyword keyword-auto">auto</span> methods <span class="token operator">=</span> class_method_map_<span class="token punctuation">[</span>parent<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> method <span class="token operator">:</span> methods<span class="token punctuation">)</span> <span class="token punctuation">{</span>  <span class="token comment">// 获取其中的method</span>
+        Symbol meth_name <span class="token operator">=</span> method<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>meth_offset_map_<span class="token punctuation">[</span>curr_name<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>meth_name<span class="token punctuation">)</span> <span class="token operator">==</span> meth_offset_map_<span class="token punctuation">[</span>curr_name<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            dispatch_tab_map_<span class="token punctuation">[</span>curr_name<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span><span class="token punctuation">{</span>parent<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> meth_name<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            meth_offset_map_<span class="token punctuation">[</span>curr_name<span class="token punctuation">]</span><span class="token punctuation">[</span>meth_name<span class="token punctuation">]</span> <span class="token operator">=</span> dispatch_tab_map_<span class="token punctuation">[</span>curr_name<span class="token punctuation">]</span><span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-auto">auto</span> meth_offset <span class="token operator">=</span> meth_offset_map_<span class="token punctuation">[</span>curr_name<span class="token punctuation">]</span><span class="token punctuation">[</span>meth_name<span class="token punctuation">]</span><span class="token punctuation">;</span>
+            dispatch_tab_map_<span class="token punctuation">[</span>curr_name<span class="token punctuation">]</span><span class="token punctuation">[</span>meth_offset<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span>parent<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> meth_name<span class="token punctuation">}</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先我们需要获取该class(cgen
+node)的继承链,然后遍历继承链中的每个method,如果不是重名的,直接往<code>dispatch_tab_map_</code>后面追加就好了,并设置好相应的offset
+map.如果出现重名的method的情况,这种情况对应了派生类对某个父类的method进行override的情况,因此就需要将之前的method替换成这个派生类的版本.<strong>这最终呈现的效果是,在同一个继承链的dispacth中,同名的method处于同一个offset上</strong>.</p>
+<p>这一部分,不知我讲没讲明白......</p>
+<h3 id="protoobj">3) protoobj</h3>
+<p>这一部分手册中比较详细的说明,我们只要搞清楚有哪些字段,这些字段都有什么意义就好了.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2027%2011%2031%2009%201672111869%201672111869979%20PLrd8C%20image-20221227113109821%20.png" alt="image-20221227113109821" style="zoom:50%;"></p>
+<p>实际的代码如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">        <span class="token punctuation">.</span>word   <span class="token operator">-</span><span class="token number">1</span>
+String_protObj<span class="token operator">:</span>
+        <span class="token punctuation">.</span>word   <span class="token number">6</span>
+        <span class="token punctuation">.</span>word   <span class="token number">5</span>
+        <span class="token punctuation">.</span>word   String_dispTab
+        <span class="token punctuation">.</span>word   int_const0
+        <span class="token punctuation">.</span>word   <span class="token number">0</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>offset-4用于给垃圾回收做标识,Class
+tag通过查找之前构造的class_tag_class即可,Object size通过3 +
+参数数量可以得出,其中的3包括class tag, object size, dispacth
+pointer.然后是dispTab的地址,下面是各个attribute,需要设置为默认初始值.其中相关的设置代码如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>attr_type <span class="token operator">==</span> Str<span class="token punctuation">)</span> <span class="token punctuation">{</span>   <span class="token comment">// 这个地方的处理尚待修改</span>
+    StringEntry <span class="token operator">*</span>strentry <span class="token operator">=</span> stringtable<span class="token punctuation">.</span><span class="token function">lookup_string</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    strentry<span class="token operator">-&gt;</span><span class="token function">code_ref</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>attr_type <span class="token operator">==</span> Bool<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    falsebool<span class="token punctuation">.</span><span class="token function">code_ref</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>attr_type <span class="token operator">==</span> Int<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    IntEntry <span class="token operator">*</span>intentry <span class="token operator">=</span> inttable<span class="token punctuation">.</span><span class="token function">lookup_string</span><span class="token punctuation">(</span><span class="token string">"0"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    intentry<span class="token operator">-&gt;</span><span class="token function">code_ref</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+    str <span class="token operator">&lt;&lt;</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>对于Int,Bool,Str设置成各自的默认值,如果是其他类型的话,设置成0就好.</p>
+<h2 id="环境表的管理与实现">3. 环境表的管理与实现</h2>
+<p>这里的环境表相比语义分析的要复杂一些,之前语义分析的只是记录变量名及其类型,而这里记录的则是临时变量的对于FP寄存器的偏移量,从而使得在生成汇编代码时,能够确定其偏移量.之前语义分析的环境表中,可以对attribute,formal,local变量不加区分的加入到环境表中,但是这一点对于代码生成的环境表来说并不适用,因为不同类型的变量需要有不同的访问方式:</p>
+<ul>
+<li>像attribute通过SELF($s0)寄存器加偏移量即可访问,我们没有将其加入到环境表中,而是通过访问之前的attribute_offset_map完成.</li>
+<li>formal的对于FP的偏移量应该是正数,并且最小是3,因为在调用函数时,其入栈的顺序为formal(参数),old
+FP,self,return address.</li>
+<li>local变量的对于FP的偏移量应该是负数.这里local包含typcase,let等表达式对于变量的声明,这些都是位于当前函数的栈帧之后要压入的.</li>
+</ul>
+<p>在我的实现中,我不在环境表中保存attributes,只保存formal和local两种类型的变量,虽然不使用环境表来保存attributes,但是我会在通过环境表lookup变量时,也对<code>attr_offset_map_</code>进行查找,并且由于attributes往往位于更外层的作用域中,因此将其检查优先级处于环境表之后,如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>envTable<span class="token operator">-&gt;</span><span class="token function">lookup</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> <span class="token operator">&amp;</span>offset<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> FP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_gc_update</span><span class="token punctuation">(</span>FP<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_attr_offset</span><span class="token punctuation">(</span>curr_cgen<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> name<span class="token punctuation">,</span> <span class="token operator">&amp;</span>offset<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 属于attr类型的</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> SELF<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_gc_update</span><span class="token punctuation">(</span>SELF<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>关于其具体实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-class">class</span> <span class="token class-name">EnvTable</span> <span class="token punctuation">{</span>
+<span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+    <span class="token keyword keyword-typedef">typedef</span> std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>pair<span class="token operator">&lt;</span>Symbol<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span><span class="token operator">&gt;&gt;</span> symbol2offsetList<span class="token punctuation">;</span>
+<span class="token keyword keyword-private">private</span><span class="token operator">:</span>
+    std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>symbol2offsetList<span class="token operator">&gt;</span> envlist_<span class="token punctuation">;</span>
+    <span class="token keyword keyword-int">int</span> formal_fp_offset_<span class="token punctuation">;</span>  <span class="token comment">// 用来记录当前formal对于fp的偏移</span>
+    <span class="token keyword keyword-int">int</span> local_fp_offset_<span class="token punctuation">;</span> <span class="token comment">// 用来记录当前local变量对于fp的偏移</span>
+    <span class="token keyword keyword-int">int</span> last_local_fp_offset_<span class="token punctuation">;</span>
+
+    <span class="token keyword keyword-void">void</span> <span class="token function">init_formal_fpoffset</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        formal_fp_offset_ <span class="token operator">=</span> DEFAULT_OBJFIELDS<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-void">void</span> <span class="token function">init_local_fpoffset</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        local_fp_offset_ <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+        last_local_fp_offset_ <span class="token operator">=</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token keyword keyword-public">public</span><span class="token operator">:</span>
+    <span class="token function">EnvTable</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword keyword-default">default</span><span class="token punctuation">;</span>
+    <span class="token operator">~</span><span class="token function">EnvTable</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword keyword-default">default</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-void">void</span> <span class="token function">enterframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-void">void</span> <span class="token function">exitframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-void">void</span> <span class="token function">enterscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-void">void</span> <span class="token function">exitscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword keyword-void">void</span> <span class="token function">add_formal_id</span><span class="token punctuation">(</span>Symbol name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-void">void</span> <span class="token function">add_local_id</span><span class="token punctuation">(</span>Symbol name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-bool">bool</span> <span class="token function">lookup</span><span class="token punctuation">(</span>Symbol name<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> <span class="token operator">*</span>offset<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 通过参数返回</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>环境表需要设置一些变量用来追踪当前栈帧的状况,尤其是当需要push一个变量时,其应当处于的偏移量.这个偏移量需要随着push以及exitscope而更新.在这里当开辟一层新的函数frame时,毫无疑问其<code>formal_fp_offset_</code>是从+3开始的,每次push参数就使其+1,不过在对参数遍历时要注意add的顺序.关于local变量的初始偏移,我是从-1开始的,这个取决于你所生成的method汇编代码中,关于栈帧的初始化操作之后SP所处位置相对于FP的偏移量.我的情况是这样的:</p>
+<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">addiu   $sp $sp -12
+sw      $fp 12($sp)
+sw      $s0 8($sp)
+sw      $ra 4($sp)
+addiu   $fp $sp 4<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>当函数执行完这一系列初始化操作时,此时SP正好处于FP -
+4的位置上,我们所要加入的下一个local变量就会处于此时的SP上,也就是所谓的-1的位置.之后再有push的新的local变量则是-2,-3地递减.我在参考别人的代码时,发现有人是从-3开始的,我感觉我的也没错.</p>
+<p>关于一层新的函数frame的创建与一层作用域的创建,我最初有些混淆.其实两个的行为略有差别,当进入一层新的函数frame之后,有关于local和formal的偏移量都需要进行初始化,当需要进入一层新的作用域时,其实并不需要.当离开一层函数frame时也需要对两者的偏移量进行初始化,但是如果仅仅退出的是一个普通的作用域的话,只需要将其上面local弹出就可以了,也就是只需要调整<code>local_fp_offset</code>.其相关的实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">EnvTable</span><span class="token double-colon punctuation">::</span><span class="token function">enterframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">init_formal_fpoffset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">init_local_fpoffset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">enterscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token class-name">EnvTable</span><span class="token double-colon punctuation">::</span><span class="token function">exitframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">exitscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">init_formal_fpoffset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">init_local_fpoffset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token class-name">EnvTable</span><span class="token double-colon punctuation">::</span><span class="token function">enterscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    last_local_fp_offset_ <span class="token operator">=</span> local_fp_offset_<span class="token punctuation">;</span> <span class="token comment">// 保存进入新作用域之前的local fp偏移量</span>
+    envlist_<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token class-name">EnvTable</span><span class="token double-colon punctuation">::</span><span class="token function">exitscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    envlist_<span class="token punctuation">.</span><span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    local_fp_offset_ <span class="token operator">=</span> last_local_fp_offset_<span class="token punctuation">;</span>  <span class="token comment">// 借助一个last变量恢复到当前作用域之前的local fp偏移量</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>我觉得我这个地方的处理还是蛮巧妙的,我敢保证你从网上查到的有关于cs143的代码还真没有人这样写的(不过大体思路都差不多哈哈).具体在进行调用时,如果是涉及到对某个method的操作,就是用<code>enterframe,exitframe</code>,否则就是<code>enterscope,exitscope</code>.</p>
+<h2 id="翻译成汇编代码">4. 翻译成汇编代码</h2>
+<h3 id="init-method的生成">1) init method的生成</h3>
+<p>init method的作用相当于C++ class中的无参数构造函数.</p>
+<p>其相关的实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">CgenClassTable</span><span class="token double-colon punctuation">::</span><span class="token function">code_object_inits</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    CgenNodeP curr_cgen<span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>List<span class="token operator">&lt;</span>CgenNode<span class="token operator">&gt;</span> <span class="token operator">*</span>l <span class="token operator">=</span> nds<span class="token punctuation">;</span> l<span class="token punctuation">;</span> l <span class="token operator">=</span> l<span class="token operator">-&gt;</span><span class="token function">tl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        curr_cgen <span class="token operator">=</span> l<span class="token operator">-&gt;</span><span class="token function">hd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        curr_cgenclass_ <span class="token operator">=</span> curr_cgen<span class="token punctuation">;</span>
+        <span class="token function">emit_init_ref</span><span class="token punctuation">(</span>curr_cgen<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        str <span class="token operator">&lt;&lt;</span> LABEL<span class="token punctuation">;</span>
+        <span class="token function">emit_start_frame</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        envTable<span class="token operator">-&gt;</span><span class="token function">enterframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        CgenNodeP parent <span class="token operator">=</span> curr_cgen<span class="token operator">-&gt;</span><span class="token function">get_parentnd</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>parent <span class="token operator">&amp;&amp;</span> parent<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> No_class<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            str <span class="token operator">&lt;&lt;</span> JAL<span class="token punctuation">;</span>
+            <span class="token function">emit_init_ref</span><span class="token punctuation">(</span>parent<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            str <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment">// 处理中间的attr,这一部分比较复杂, 只是处理本层的attr</span>
+        <span class="token keyword keyword-const">const</span> attrList<span class="token operator">&amp;</span> curr_attrs <span class="token operator">=</span> class_attr_map_<span class="token punctuation">[</span>curr_cgen<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> attr <span class="token operator">:</span> curr_attrs<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            Expression init_expr <span class="token operator">=</span> attr<span class="token operator">-&gt;</span><span class="token function">get_init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            Symbol attr_type <span class="token operator">=</span> attr<span class="token operator">-&gt;</span><span class="token function">get_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>init_expr<span class="token operator">-&gt;</span><span class="token function">is_empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                init_expr<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword keyword-int">int</span> attr_off <span class="token operator">=</span> attr_offset_map_<span class="token punctuation">[</span>curr_cgen<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">[</span>attr<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+                <span class="token function">emit_store</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> attr_off<span class="token punctuation">,</span> SELF<span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token function">emit_gc_update</span><span class="token punctuation">(</span>SELF<span class="token punctuation">,</span> attr_off<span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+        <span class="token function">emit_move</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> SELF<span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_end_frame</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        envTable<span class="token operator">-&gt;</span><span class="token function">exitframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_return</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其生成方式需要对每个class进行遍历,
+然后通过<code>emit_init_ref</code>打印出标签.由于则是一个函数,因此需要在环境表中开辟新的函数栈帧即:<code>envTable-&gt;enterframe</code>,并且生成函数的初始化代码(<code>emit_start_frame</code>).然后根据是否存在parent判断是否需要调用父类的init
+method函数.之后再对本层的attribute进行处理,由于调用父类的init(父类如果还有父类就会继续调用init)递归地初始化了父类之前的参数,所以只要处理本层的attribute就可以了.在本层的处理中,需要判断init是否为空的,否则就不做处理(使用当时生成protoobj时的默认值就可以),如果init不为空,就调用其code生成代码.由于code生成的代码运行完后,ACC中保存的是init_expr表达式所产生对象的地址,将其地址(ACC)保存到该attribute的地址即可.(<strong>这里的赋值操作都是类似于浅拷贝的地址赋值</strong>).处理完参数后,再将SELF($s0)保存到ACC中,作为init函数的返回值.之后调用<code>emit_end_frame</code>即一个函数要结束时的弹栈,同时环境表也退出该函数栈帧.最终返回.</p>
+<p>其中<code>emit_end_frame</code>和<code>emit_start_frame</code>如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span> <span class="token function">emit_start_frame</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">emit_addiu</span><span class="token punctuation">(</span>SP<span class="token punctuation">,</span> SP<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">12</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_store</span><span class="token punctuation">(</span>FP<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> SP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_store</span><span class="token punctuation">(</span>SELF<span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> SP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_store</span><span class="token punctuation">(</span>RA<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> SP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_addiu</span><span class="token punctuation">(</span>FP<span class="token punctuation">,</span> SP<span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_move</span><span class="token punctuation">(</span>SELF<span class="token punctuation">,</span> ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span> <span class="token function">emit_end_frame</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// emit_move(ACC, SELF, s);</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>FP<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> SP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>SELF<span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> SP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>RA<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> SP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_addiu</span><span class="token punctuation">(</span>SP<span class="token punctuation">,</span> SP<span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="method与dispacth">2) method与dispacth</h3>
+<p>我认为将这两部分结合起来理解才能全面地理解method调用的全部过程.</p>
+<p>关于method的代码生成,相关代码实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> method <span class="token operator">:</span> methods<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    formal_list<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    envTable<span class="token operator">-&gt;</span><span class="token function">enterframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    curr_formals <span class="token operator">=</span> method<span class="token operator">-&gt;</span>formals<span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> curr_formals<span class="token operator">-&gt;</span><span class="token function">first</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> curr_formals<span class="token operator">-&gt;</span><span class="token function">more</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span> i <span class="token operator">=</span> curr_formals<span class="token operator">-&gt;</span><span class="token function">next</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        formal_list<span class="token punctuation">.</span><span class="token function">push_front</span><span class="token punctuation">(</span>curr_formals<span class="token operator">-&gt;</span><span class="token function">nth</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> formal <span class="token operator">:</span> formal_list<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        envTable<span class="token operator">-&gt;</span><span class="token function">add_formal_id</span><span class="token punctuation">(</span>formal<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token function">emit_method_ref</span><span class="token punctuation">(</span>curr_cgenclass_<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> method<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    str <span class="token operator">&lt;&lt;</span> LABEL<span class="token punctuation">;</span>
+    <span class="token function">emit_start_frame</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    method<span class="token operator">-&gt;</span>expr<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_end_frame</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_addiu</span><span class="token punctuation">(</span>SP<span class="token punctuation">,</span> SP<span class="token punctuation">,</span> formal_list<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span> WORD_SIZE<span class="token punctuation">,</span> str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_return</span><span class="token punctuation">(</span>str<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    envTable<span class="token operator">-&gt;</span><span class="token function">exitframe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>对于某个class的method,首先调用环境表的<code>enterframe</code>,然后遍历formal并且以逆序的方式加入到list中,之后再将list中的formal加入到环境表中,比如说如果有formals为{a,b,c,d},那么list就是{d,c,b,a},在进行add的时候记录在环境表中的偏移量就是{d:+3,
+c:+4, b:+5, a:+6}.恰好符合手册中给出的模式.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2027%2012%2045%2057%201672116357%201672116357973%20xANWTK%20image-20221227124557824%20.png" alt="image-20221227124557824" style="zoom:50%;"></p>
+<p>打印出该method的标签代码.然后通过<code>emit_start_frame</code>生成初始化该函数栈帧的汇编代码,再对函数体生成代码<code>method-&gt;expr-&gt;code(str)</code>.结束后,生成函数栈帧弹出的相关的代码,并且之前弹出push过的参数即<code>emit_addiu(SP, SP, formal_list.size() * WORD_SIZE, str);</code>.随后返回,此时环境表也需要退出当前的frame.</p>
+<p><strong>需要注意的是,method的生成代码只是包含该函数本身的汇编代码,并没有涉及到对formal的push代码</strong>,只是将formal加入到环境表中,因为在函数体的生成代码中,往往需要访问到formal,并确定formal对FP的偏移量.</p>
+<p>关于<code>dispacth</code>.相关代码如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> dispatch_class<span class="token double-colon punctuation">::</span><span class="token function">code</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 首先将参数对应的表达式一个个压栈</span>
+    Expression curr_expr<span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> i <span class="token operator">=</span> actual<span class="token operator">-&gt;</span><span class="token function">first</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> actual<span class="token operator">-&gt;</span><span class="token function">more</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span> i <span class="token operator">=</span> actual<span class="token operator">-&gt;</span><span class="token function">next</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        curr_expr <span class="token operator">=</span> actual<span class="token operator">-&gt;</span><span class="token function">nth</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        curr_expr<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_push</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    expr<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 求出来self所对应的指针</span>
+    <span class="token keyword keyword-int">int</span> lebalid <span class="token operator">=</span> codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_labelid_and_add</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_abort</span><span class="token punctuation">(</span>lebalid<span class="token punctuation">,</span> <span class="token function">get_line_number</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_label_def</span><span class="token punctuation">(</span>lebalid<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> DISPTABLE_OFFSET<span class="token punctuation">,</span> ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 将dispacth表加载到T1中</span>
+    <span class="token keyword keyword-int">int</span> offset<span class="token punctuation">;</span>
+    Symbol expr_type <span class="token operator">=</span> expr<span class="token operator">-&gt;</span><span class="token function">get_type</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>expr_type <span class="token operator">==</span> SELF_TYPE<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        expr_type <span class="token operator">=</span> codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_curr_class</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_meth_offset</span><span class="token punctuation">(</span>expr_type<span class="token punctuation">,</span> name<span class="token punctuation">,</span> <span class="token operator">&amp;</span>offset<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> T1<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取该dispatch在表中的地址</span>
+
+    <span class="token function">emit_jalr</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先需要对每个formal生成其表达式,并且将其push到栈中(与method中相呼应).之后对expr生成代码,此时ACC中就保存了expr所对应的对象的地址,中间还涉及到对于no_object的判断,也就是ACC为0的情况,这种情况下需要调用<code>emit_abort</code>处理.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-void">void</span> <span class="token function">emit_abort</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> lebal<span class="token punctuation">,</span> <span class="token keyword keyword-int">int</span> lineno<span class="token punctuation">,</span> ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">emit_bne</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> ZERO<span class="token punctuation">,</span> lebal<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    s <span class="token operator">&lt;&lt;</span> LA <span class="token operator">&lt;&lt;</span> ACC <span class="token operator">&lt;&lt;</span> <span class="token string">" str_const0"</span> <span class="token operator">&lt;&lt;</span> endl<span class="token punctuation">;</span>
+    <span class="token function">emit_load_imm</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> lineno<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_jal</span><span class="token punctuation">(</span><span class="token string">"_dispatch_abort"</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果不进行abort的处理,就先载入dispacth到T1中,然后查找offset,最后得出要执行的函数的地址.这个过程中有可能涉及到动态绑定,在前面讲过.至于<code>static_dispacth</code>则与之类似.</p>
+<h3 id="letobject">3) let,object</h3>
+<p>这一部分都涉及到了有关于环境表中local变量的操作.</p>
+<p>let会引入新的临时变量声明(可能也有init)和新的作用域.其相关代码实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> let_class<span class="token double-colon punctuation">::</span><span class="token function">code</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 首先处理的时init，要区分是否为empty的情况</span>
+    init<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>init<span class="token operator">-&gt;</span><span class="token function">is_empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>type_decl <span class="token operator">==</span> Int<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">emit_load_int</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> inttable<span class="token punctuation">.</span><span class="token function">lookup_string</span><span class="token punctuation">(</span><span class="token string">"0"</span><span class="token punctuation">)</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>type_decl <span class="token operator">==</span> Str<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">emit_load_string</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> stringtable<span class="token punctuation">.</span><span class="token function">lookup_string</span><span class="token punctuation">(</span><span class="token string">""</span><span class="token punctuation">)</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>type_decl <span class="token operator">==</span> Bool<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token function">emit_load_bool</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> falsebool<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// 然后进入新的frame,并加入变量，但是这个偏移量是需要调整的</span>
+    <span class="token function">emit_push</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 将init对应的变量,也就是let定义的变量加入到其中</span>
+    envTable<span class="token operator">-&gt;</span><span class="token function">enterscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    envTable<span class="token operator">-&gt;</span><span class="token function">add_local_id</span><span class="token punctuation">(</span>identifier<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 加入到其中</span>
+
+    body<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    envTable<span class="token operator">-&gt;</span><span class="token function">exitscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_addiu</span><span class="token punctuation">(</span>SP<span class="token punctuation">,</span> SP<span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先对init进行代码生成,对于如果init是空的情况,则需要设置成默认的初始值.由于是一个新的local变量的引入,因此需要将其push到栈上,然后环境表中创建新的作用域,并且加入该变量(add_local_id).再对body进行代码生成,之后在环境表中弹出该作用域,并且将之前压入的local变量弹出(emit_addiu(SP,
+SP, 4,
+s)).<strong>这里需要注意的是,不要将init处于新的作用域之中</strong>,也就说先处理完init,然后再创建作用域并加入local变量.</p>
+<p>有关于object的处理:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> object_class<span class="token double-colon punctuation">::</span><span class="token function">code</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>name <span class="token operator">==</span> self<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token function">emit_move</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> SELF<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// 如果是当前class中的attr</span>
+    CgenNodeP curr_cgen <span class="token operator">=</span> codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_curr_class</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-int">int</span> offset<span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>envTable<span class="token operator">-&gt;</span><span class="token function">lookup</span><span class="token punctuation">(</span>name<span class="token punctuation">,</span> <span class="token operator">&amp;</span>offset<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token function">emit_load</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> FP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_gc_update</span><span class="token punctuation">(</span>FP<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_attr_offset</span><span class="token punctuation">(</span>curr_cgen<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> name<span class="token punctuation">,</span> <span class="token operator">&amp;</span>offset<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 属于attr类型的</span>
+        <span class="token function">emit_load</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> SELF<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_gc_update</span><span class="token punctuation">(</span>SELF<span class="token punctuation">,</span> offset<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果是self,最终的返回结果则是SELF.否则就先通过环境表查找符合该name的local或者formal变量,如果没有从当前class中的attribute中进行查找,这也体现了attribute往往位于更外层的作用域的特点.</p>
+<h3 id="new">4) new</h3>
+<p>关于new的处理,简而言之就是确定好类型之后调用Object.copy,之后再调用其init函数.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> new__class<span class="token double-colon punctuation">::</span><span class="token function">code</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    std<span class="token double-colon punctuation">::</span>string object_name <span class="token operator">=</span> type_name<span class="token operator">-&gt;</span><span class="token function">get_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>type_name <span class="token operator">==</span> SELF_TYPE<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// 首先获取此时的class</span>
+        <span class="token comment">// CgenNodeP curr_cgen = codegen_classtable-&gt;get_curr_class();</span>
+        <span class="token comment">// object_name = curr_cgen-&gt;get_name()-&gt;get_string(),不可以使用curr_class类似的方式</span>
+        <span class="token function">emit_load</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 首先获取class tag</span>
+        <span class="token function">emit_load_address</span><span class="token punctuation">(</span>T2<span class="token punctuation">,</span> CLASSOBJTAB<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取objtab</span>
+
+        <span class="token function">emit_sll</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> T1<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//获取了offset</span>
+
+        <span class="token function">emit_add</span><span class="token punctuation">(</span>T2<span class="token punctuation">,</span> T1<span class="token punctuation">,</span> T2<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取的对应的proobj地址</span>
+        <span class="token function">emit_load</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> T2<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 地址中的内容</span>
+        <span class="token function">emit_jal</span><span class="token punctuation">(</span><span class="token string">"Object.copy"</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_load</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 首先获取class tag</span>
+        <span class="token function">emit_load_address</span><span class="token punctuation">(</span>T2<span class="token punctuation">,</span> CLASSOBJTAB<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">emit_sll</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> T1<span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token function">emit_add</span><span class="token punctuation">(</span>T2<span class="token punctuation">,</span> T1<span class="token punctuation">,</span> T2<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取的对应的init地址</span>
+        <span class="token function">emit_load</span><span class="token punctuation">(</span>A1<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> T2<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_jalr</span><span class="token punctuation">(</span>A1<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+        std<span class="token double-colon punctuation">::</span>string protobj_object <span class="token operator">=</span> object_name <span class="token operator">+</span> PROTOBJ_SUFFIX<span class="token punctuation">;</span>
+        <span class="token function">emit_load_address</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> <span class="token generic-function"><span class="token function">const_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>protobj_object<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">emit_jal</span><span class="token punctuation">(</span><span class="token string">"Object.copy"</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        std<span class="token double-colon punctuation">::</span>string init_object <span class="token operator">=</span> object_name <span class="token operator">+</span> CLASSINIT_SUFFIX<span class="token punctuation">;</span>
+        <span class="token function">emit_jal</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">const_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-char">char</span> <span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>init_object<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中对于非SELF_TYPE的处理还是比较简单的.而对于SELF_TYPE需要先获取class
+tag,然后通过class tag从object table中检索出对应的项.回忆之前的object
+table,需要将tag *
+8才能得到偏移,也就是<code>emit_sll(T1, T1, 3, s)</code>,因为每一项占4个字节,每个class有2项.因此可以获取proobj的地址,进而可以调用Object.copy返回新分配的对象的地址到ACC中.之后再以类似的方法获取init地址,并且调用即可.</p>
+<p>总之,需要牢记的是,在这个实验中,所涉及的对象的赋值,创建和返回等操作都是对象的地址完成的.</p>
+<h3 id="typcase">5) typcase</h3>
+<p>这一部分的实现逻辑相对来说是比较复杂的.关于其语法规则,比如说下面的代码:</p>
+<pre class="line-numbers language-none"><code class="language-none">case self of
+	n : Bazz =&gt; (new Foo);
+	n : Razz =&gt; (new Bar);
+	n : Foo  =&gt; (new Razz);
+	n : Bar =&gt; n;
+esac;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先计算出self,然后self尝试对逐个case的类型进行匹配,其中n将会被self赋值,并且作为case中的临时变量.如果符合某个case的类型,则会返回其对应的表达式.通过语义分析,我们可以确定这几个case中涉及到的类型都是处于同一个继承链之下的.self所要匹配的是在继承链中和他关系最近的类型.</p>
+<p>因此在翻译汇编代码时,首先需要生成self对应的代码,然后收集case中的class
+type,对其进行排序,处于继承链尾端(辈分小的)排在前面.然后对排好序的case进行遍历,在遍历每个case时,通过比对tag来确定是否匹配(在运行时,一旦匹配到tag,就执行对应的表达式代码,而不是继续运行next_lebal).其相关的代码如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> case_class <span class="token operator">:</span> sorted_cases<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// emit_branch(out_lebal, s);</span>
+    Symbol cgen_type <span class="token operator">=</span> case_class<span class="token operator">-&gt;</span><span class="token function">get_type_decl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    CgenNodeP cgen <span class="token operator">=</span> codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_cgennode</span><span class="token punctuation">(</span>cgen_type<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-int">int</span> next_case_lebal <span class="token operator">=</span> codegen_classtable<span class="token operator">-&gt;</span><span class="token function">get_labelid_and_add</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取新lebal</span>
+    <span class="token comment">// 通过比较tag确定是否是后代</span>
+    <span class="token keyword keyword-int">int</span> start_tag <span class="token operator">=</span> cgen<span class="token operator">-&gt;</span><span class="token function">get_classtag</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-int">int</span> end_tag <span class="token operator">=</span> start_tag <span class="token operator">+</span> cgen<span class="token operator">-&gt;</span><span class="token function">get_descendants_cnt</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_blti</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> start_tag<span class="token punctuation">,</span> next_case_lebal<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_bgti</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> end_tag<span class="token punctuation">,</span> next_case_lebal<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 将expr对应的对象入栈</span>
+    <span class="token function">emit_push</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    envTable<span class="token operator">-&gt;</span><span class="token function">enterscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    envTable<span class="token operator">-&gt;</span><span class="token function">add_local_id</span><span class="token punctuation">(</span>case_class<span class="token operator">-&gt;</span><span class="token function">get_name</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    case_class<span class="token operator">-&gt;</span><span class="token function">get_expr</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 生成代码</span>
+
+    envTable<span class="token operator">-&gt;</span><span class="token function">exitscope</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_addiu</span><span class="token punctuation">(</span>SP<span class="token punctuation">,</span> SP<span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token function">emit_branch</span><span class="token punctuation">(</span>out_lebal<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 结束跳转出去</span>
+    <span class="token function">emit_label_def</span><span class="token punctuation">(</span>next_case_lebal<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 不做中间的处理*/</span>
+
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>之所以要排序,是因为这样可以保证辈分小的class
+type可以先匹配到.结合上面代码,首先获取新的lebal,随后获取当前case的tag,并根据之前求的子孙数来确定匹配范围.之后则生成匹配成功相关的代码,需要将case中声明的临时变量入栈(也就是ACC,因为该临时变量是与最初的变量相绑定的).之后的生成代码方式类似于let.之后生成<code>emit_branch(out_lebal, s)</code>,这是只有匹配成功才会运行指令.然后是next_lebal,这是匹配失败直接跳转到的地方.</p>
+<blockquote>
+<p><strong>dfs序、子孙数、匹配范围</strong></p>
+<p>之前我们提到过,我们在设置class tag时采用的dfs序.如果想通过class
+tag来判断某个class A是否是另一个class
+B的子孙(更准确地说是否符合&lt;=的关系),需要求出B的子孙数,如果B本身的tag是3,其子孙数为3,那么如果A是B的子孙的话,tag需要处于[3,
+6]中.</p>
+<p>因此如果class A的tag为a,class B的tag是b,A &lt;= B 的充要条件是 b
+&lt;= a &lt;= b+ descendant_cnt(B).</p>
+</blockquote>
+<h3 id="其他表达式">6) 其他表达式</h3>
+<p>其他表达式相对而言比较简单,比如说plus,sub等这种二元运算,需要先通过Object.copy拷贝一个对象作为最终要返回的结果.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> plus_class<span class="token double-colon punctuation">::</span><span class="token function">code</span><span class="token punctuation">(</span>ostream <span class="token operator">&amp;</span>s<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// s &lt;&lt; "# coding plus class\n";</span>
+    e1<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// 返回到a0的结果是一个表示Intconst的label，也就是lebal</span>
+    <span class="token function">emit_push</span><span class="token punctuation">(</span>ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>      <span class="token comment">// 其结果是Int对象的地址</span>
+    e2<span class="token operator">-&gt;</span><span class="token function">code</span><span class="token punctuation">(</span>s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">emit_jal</span><span class="token punctuation">(</span><span class="token string">"Object.copy"</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">//由于Int是基于对象进行计算的，所以不能单纯地计算，还需要创建出一个对象</span>
+    <span class="token comment">// 最后的返回值也应该是一个对象</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>T1<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">,</span> SP<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 此时T1保存的是expr1产生的Int的地址</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>T2<span class="token punctuation">,</span> ATTR_BASE_OFFSET<span class="token punctuation">,</span> T1<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取Int1中的具体的value</span>
+    <span class="token function">emit_load</span><span class="token punctuation">(</span>T3<span class="token punctuation">,</span> ATTR_BASE_OFFSET<span class="token punctuation">,</span> ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 获取Int2中的具体的value</span>
+    <span class="token function">emit_addiu</span><span class="token punctuation">(</span>SP<span class="token punctuation">,</span> SP<span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 将SP恢复</span>
+    <span class="token comment">// 此时的ACC仍然是复制出来的Int3</span>
+    <span class="token function">emit_add</span><span class="token punctuation">(</span>T3<span class="token punctuation">,</span> T2<span class="token punctuation">,</span> T3<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 将T3的结果加载到ACC地址对应的Int3中</span>
+    <span class="token function">emit_store</span><span class="token punctuation">(</span>T3<span class="token punctuation">,</span> ATTR_BASE_OFFSET<span class="token punctuation">,</span> ACC<span class="token punctuation">,</span> s<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先对生成e1的代码,并将其地址push到栈中,随后再对e2生成代码,并且对其进行Object.copy.此时在heap上创建了一个新的对象,它将会作为最终的返回值,但是此时和e2的对象是相等的.之后获取e1和e2的值,分别载入到T2和T3中,将其相加的结果赋值给copy出来的对象(其中的value).由于之前通过语义分析,所以plus的e1和e2一定是Int类型的.</p>
+
                 
             </div>
             <hr/>
