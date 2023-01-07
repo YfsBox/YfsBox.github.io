@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Tiger编译器源码分析:活动记录与中间代码生成, Yfs&#39;s Box">
+    <meta name="keywords" content="LLVM学习记录, Yfs&#39;s Box">
     <meta name="description" content="">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Tiger编译器源码分析:活动记录与中间代码生成 | Yfs&#39;s Box</title>
+    <title>LLVM学习记录 | Yfs&#39;s Box</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -323,12 +323,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/banner/1.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2029%2016%2016%2036%201672301796%201672301796936%20FPzNRH%20image-20221229161636763%20.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Tiger编译器源码分析:活动记录与中间代码生成</h1>
+                    <h1 class="description center-align post-title">LLVM学习记录</h1>
                 </div>
             </div>
         </div>
@@ -444,8 +444,8 @@
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
-                                <span class="chip bg-color">编译原理</span>
+                            <a href="/tags/LLVM/">
+                                <span class="chip bg-color">LLVM</span>
                             </a>
                         
                     </div>
@@ -460,7 +460,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
-                    2022-12-19
+                    2023-01-06
                 </div>
                 
 
@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    1.7k
+                    2.9k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    6 Min
+                    11 Min
                 </div>
                 
 
@@ -494,149 +494,226 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>该项目源码来自: https://github.com/lgxZJ/Tiger-Compiler</p>
-<h2 id="tiger编译器的栈帧">1. Tiger编译器的栈帧</h2>
-<h3 id="temp">Temp</h3>
-<p>Temp是在Tiger中关于寄存器的抽象.其中的数据成员只有一个,即为num.表示的是寄存器的编号.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">myTemp_</span>  <span class="token punctuation">{</span> <span class="token keyword keyword-int">int</span> num<span class="token punctuation">;</span> <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>此外还有一个用于分配寄存器时的全局变量,定义如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-static">static</span> <span class="token keyword keyword-int">int</span> g_tempCount <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
-<p>当调用newTemp时:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">myTemp 	<span class="token function">Temp_newTemp</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    myTemp temp <span class="token operator">=</span> <span class="token function">makeMemoryBlock</span><span class="token punctuation">(</span><span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>temp<span class="token punctuation">)</span><span class="token punctuation">,</span> MEMORY_TYPE_NONE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">assert</span> <span class="token punctuation">(</span>temp<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    temp<span class="token operator">-&gt;</span>num <span class="token operator">=</span> <span class="token operator">++</span>g_tempCount<span class="token punctuation">;</span>
-    <span class="token keyword keyword-return">return</span> temp<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>每次都对该全局变量+1,并且设置该Temp中的num值.</p>
-<h3 id="frame和access">Frame和Access</h3>
-<p>这一部分最核心的两种数据结构是Frame和Access.前者是对一个过程(函数)的抽象,其中包含了一个函数中所需要的参数,局部变量及其label等信息.其中核心的定义与方法如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-typedef">typedef</span> <span class="token keyword keyword-struct">struct</span> <span class="token class-name">myFrame_</span>	    	<span class="token operator">*</span>myFrame<span class="token punctuation">;</span>
-<span class="token keyword keyword-struct">struct</span> <span class="token class-name">myFrame_</span> <span class="token comment">// 是一种对于过程的抽象</span>
-<span class="token punctuation">{</span>
-    myAccessList    formals<span class="token punctuation">;</span>            <span class="token comment">// 当前过程中的参数</span>
-    myString        viewShift<span class="token punctuation">;</span>          
-    <span class="token keyword keyword-int">int</span>             localCount<span class="token punctuation">;</span>         <span class="token comment">//  not include `formalLocalCount`      // 局部变量的计数值</span>
-    <span class="token keyword keyword-int">int</span>             formalLocalCount<span class="token punctuation">;</span>   <span class="token comment">//  in frame formal local count         // 形参数的计数值</span>
-    myLabel         label<span class="token punctuation">;</span>          <span class="token comment">// 这个过程(函数)的label</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其中<code>viewShift</code>用于处理后面提到的视角移位问题,当需要new出一个新的Frame对象时,所调用的方法为:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">myFrame <span class="token function">Frame_newFrame</span><span class="token punctuation">(</span>myLabel frameLabel<span class="token punctuation">,</span> myBoolList formalFlags<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    myFrame frame <span class="token operator">=</span> <span class="token function">makeMemoryBlock</span><span class="token punctuation">(</span><span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>frame<span class="token punctuation">)</span><span class="token punctuation">,</span> MEMORY_TYPE_NONE<span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 底层封装了melloc</span>
-    <span class="token function">assert</span> <span class="token punctuation">(</span>frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    frame<span class="token operator">-&gt;</span>label <span class="token operator">=</span> frameLabel<span class="token punctuation">;</span> <span class="token comment">// 设置lable</span>
-    <span class="token function">fillFormalsFromFlags</span><span class="token punctuation">(</span>frame<span class="token punctuation">,</span> formalFlags<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">fillViewShiftFromFlags</span><span class="token punctuation">(</span>frame<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    frame<span class="token operator">-&gt;</span>localCount <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>  <span class="token comment">//  no include formal locals	// 目前还没有包含局部变量</span>
-    <span class="token keyword keyword-return">return</span> frame<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>我们可以发现,再new出一个Frame的时候没有对内部关于local的部分,进行设置,或者说,默认其中localCount为0,没有一个局部变量.那么局部变量是什么时候被加入到Frame中的呢?</p>
-<p>此外,除了Frame,还有一个重要的数据结构为Access,该类型用来描述可以放入到栈中或者寄存器中的形参或者局部变量.其中详细的定义如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-struct">struct</span> <span class="token class-name">myAccess_</span>  <span class="token punctuation">{</span>
-    <span class="token keyword keyword-enum">enum</span> <span class="token class-name">AccessKind</span> <span class="token punctuation">{</span> InFrame<span class="token punctuation">,</span> InReg <span class="token punctuation">}</span> kind<span class="token punctuation">;</span>
-    <span class="token keyword keyword-union">union</span>
-    <span class="token punctuation">{</span>
-        <span class="token keyword keyword-int">int</span>     offset<span class="token punctuation">;</span> <span class="token comment">//  offset comapred to frame pointer</span>
-        myTemp  reg<span class="token punctuation">;</span>    <span class="token comment">//  register representation</span>
-    <span class="token punctuation">}</span>u<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>由此我们可以发现,要么处于再寄存器中,其中myTemp是这个项目中对于寄存器的抽象,要么处于内存中(栈帧)中,其中offset表示的是在当前栈帧中的偏移量.其中关于Access的构造函数定义如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-static">static</span> myAccess <span class="token function">makeInFrameAccess</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> offset<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    myAccess access <span class="token operator">=</span> <span class="token function">makeMemoryBlock</span><span class="token punctuation">(</span><span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>access<span class="token punctuation">)</span><span class="token punctuation">,</span> MEMORY_TYPE_NONE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">assert</span> <span class="token punctuation">(</span>access<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    access<span class="token operator">-&gt;</span>kind <span class="token operator">=</span> InFrame<span class="token punctuation">;</span>
-    access<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>offset<span class="token operator">=</span>  offset<span class="token punctuation">;</span>
-    <span class="token keyword keyword-return">return</span> access<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
+                <p>这篇博客,整理了一些我在学习LLVM或者写相关的代码时所学习过的基础知识,
+很多部分参考了LLVM的官方文档等.</p>
+<h2 id="llvm相关工具链">1. LLVM相关工具链</h2>
+<h3 id="工具链简要介绍">1) 工具链简要介绍</h3>
+<figure>
+<img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2006%2016%2004%2040%201672992280%201672992280777%20DXfUPt%20image-20230106160440645%20.png" alt="image-20230106160440645">
+<figcaption aria-hidden="true">image-20230106160440645</figcaption>
+</figure>
+<p><strong>总体来说, 在编译阶段, LLVM中会涉及到以下这些数据结构的形式:
+(1)将源代码转换为IR之前会处理成AST,
+即<code>TranslationUnitDecl</code>.(2) IR转化为目标语言之前,
+先生成DAG用于指令选择(SelectionDAG).然后转换为三地址形式(MachineFunction)用于指令选择.(3)
+为了实现汇编器和链接器, 使用第四种数据结构(MCModule).</strong></p>
+<p>源代码在编译期间会涉及到一些中间数据结构的生成, 比如说AST, IR,
+DAG等等, 这些也正是编译的不同阶段的生成物,
+<strong>这些数据结构既可以指在运行时保存在内存中,
+也可以存储于磁盘(文件)之中</strong>. 对于前者的处理方式,
+是通过clang以一个总管程序,
+其下管理着编译各阶段的工作模块,编译中间所生成的数据结构可以在内存中在不同的模块之间传递.
+如果想要通过文件的方式进行处理,
+可以直接使用独立出来模块工具输出于磁盘.</p>
+<p>关于上面提到的独立工具, 最重要的是opt和llc,
+前者通过llvm中的libLLVMipa, 后者通过libLLVMCodeGen实现.
+<strong>我们应当将LLVM理解为一个实现了各种编译器框架的库</strong>,
+其他工具都是基于库中的某些子集实现的.</p>
+<p>接下来对这些独立的工具进行简要的介绍:</p>
+<ul>
+<li>opt, 输入是IR,用于对IR进行优化,输出也是IR.</li>
+<li>llvm-as, 将可读的IR文件(.ll)转化为llvm bitcode形式(.bc).</li>
+<li>llvm-dis, 是前者的逆向工具, 将llvm bitcode(.bc)转化成IR(.ll).</li>
+<li>llc, 通过特定后端将LLVM位码转换成目标汇编语言或者目标语言.</li>
+<li>llvm-link, bitcode文件的链接器.</li>
+</ul>
+<p>总体来说, 一个完整的编译过程如下所示:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2006%2016%2023%2002%201672993382%201672993382192%20nnQbsl%20image-20230106162302084%20.png" alt="image-20230106162302084" style="zoom: 50%;"></p>
+<h2 id="llvm-ir">2. LLVM IR</h2>
+<p>为什么要设计IR?
+正所谓“软件工程中任何问题都可以通过增加一层来解决”.增加了一层IR,
+可以使得后续的程序优化都基于IR来完成, 并且设计了IR之后,
+当需要涉及新的编程语言时, 不再需要专门为其设计后端部分,
+只要遵循一定的IR规范,
+只设计好前端部分就可以.这大大增强了模块的可复用性.</p>
+<p>IR从形式上来看,
+就像是汇编语言的伪代码.其中在llvm中其编译模式如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2009%2056%2004%201672538164%201672538164889%208nle18%20image-20230101095604804%20.png" alt="image-20230101095604804" style="zoom: 33%;"></p>
+<p>llvm规范的IR模式下, 其所构建的数据结构如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2009%2057%2037%201672538257%201672538257282%20HdrFbJ%20image-20230101095737188%20.png" alt="image-20230101095737188" style="zoom:33%;"></p>
+<p>其中关于Target information主要由两部分组成:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2010%2001%2031%201672538491%201672538491005%20Kb2ZA1%20image-20230101100130916%20.png" alt="image-20230101100130916" style="zoom:33%;"></p>
+<p>下面是一个简单的程序片段及其翻译成IR代码的形式:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2010%2005%2015%201672538715%201672538715808%202XUcw2%20image-20230101100515723%20.png" alt="image-20230101100515723" style="zoom:33%;"></p>
+<p>其中关于寄存器, 有unamed和named之分,
+其中即使是像result这样已经命名的“寄存器”
+到后面转化成目标代码时也需要进行转化.<strong>在LLVM
+IR中假定寄存器在使用上是无限的</strong>.</p>
+<p>在IR代码中, Type也是一个重要的概念,
+比如说上面的i32.这通常作为指令语句中的操作数.对于生成指令所需要格式,
+应当参考<a target="_blank" rel="noopener" href="https://llvm.org/docs/LangRef.html">LLVM Language
+Reference</a>完成.</p>
+<p>接下来给定一个更加复杂的例子:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2010%2018%2022%201672539502%201672539502327%20Usm7Ry%20image-20230101101822231%20.png" alt="image-20230101101822231" style="zoom:33%;"></p>
+<p>其中关于基本块的概念,
+上面代码中可以划分出3个基本块.根据基本块可以得出CFG如下:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2010%2019%2050%201672539590%201672539590257%20uPFZrp%20image-20230101101950170%20.png" alt="image-20230101101950170" style="zoom:50%;"></p>
+<p>接下来是一个迭代累乘的例子:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2010%2038%2033%201672540713%201672540713020%20u6CoQp%20image-20230101103832921%20.png" alt="image-20230101103832921" style="zoom: 33%;"></p>
+<p>在上面的这份代码中, 会出现“multiple definition of local value named
+‘temp’”的错误,
+因而引出SSA的问题.因此对temp重新命名为<code>new_temp</code>,
+其后面的i修改为<code>i_plus_one</code>.在SSA中对于出现分支的情况,
+需要用Phi来表示这种不确定的变量.<strong>SSA在LLVM的IR中是贯彻始终的</strong>.</p>
+<p>下面是一种采用了SSA的形式:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2010%2049%2045%201672541385%201672541385665%20nDGylX%20image-20230101104945570%20.png" alt="image-20230101104945570" style="zoom:33%;"></p>
+<p>关于全局变量, 其前缀为@.</p>
+<h3 id="type-system-and-geps">Type System And Geps</h3>
+<p>首先看数组类型:</p>
+<pre class="line-numbers language-assembly" data-language="assembly"><code class="language-assembly">@array = global [17 x   ]
+@array = global [17 x i8]
+@array = global [17 x i8] zeroinitialzer<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>GEP指令指的是Get Element Pointer指令.其中语法表示如下:</p>
+<pre class="line-numbers language-none"><code class="language-none">&lt;result&gt; = getelementptr &lt;ty&gt;, &lt;ty&gt;* &lt;ptrval&gt;, [i32 &lt;idx&gt;]+<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>可以通过某一个base的指针, 根据一定的偏移量获取新的指针.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2001%2011%2009%2032%201672542572%201672542572984%20FMvRdt%20image-20230101110932887%20.png" alt="image-20230101110932887" style="zoom: 33%;"></p>
+<p>关于struct相关的语法, 其形式是一个"type + {}"的形式.比如说:</p>
+<pre class="line-numbers language-none"><code class="language-none">%MyStruct = type { i8, i32, [3 x i32]}<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<h3 id="补充">补充</h3>
+<p>一个.ll文件所对应的内容对应了内存中抽象成的Module.<strong>该数据结构可以视为一个程序的顶层数据结构</strong>.除了包含了一些函数(内部由基本块和指令构成),还包含了一系列外围对象,
+比如全局变量、目标数据布局等等.总之在理解Module的结构和作用时,
+应当结合.ll文件的内容去理解.</p>
+<p>总体上, 总结LLVM IR语法的核心特点:</p>
+<ul>
+<li><strong>使用SSA.</strong>这使得我们编写代码访问一个被引用的变量时可以直接获取其唯一的定义(Instruction).进而生成use-def链变得简单,
+use-def将会用于常量传播和冗余表达式消除等优化.<strong>SSA的使用避免了再需要通过数据流分析构造use-def链</strong>.</li>
+<li><strong>形式上,采用了三地址形式</strong>.就像是汇编语言的伪代码一样.</li>
+<li><strong>变量体现为无限数量的虚拟寄存器</strong>.</li>
+</ul>
+<p>关于目标数据布局(target layout):</p>
+<pre class="line-numbers language-none"><code class="language-none">target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.7.0"<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>这一部分的信息所对应的数据结构是<code>IR/DataLayout</code>等数据结构.</p>
+<h2 id="llvm-programmers-manual">3. LLVM Programmer’s Manual</h2>
+<p>简要的记录一下阅读Manual时比较重要和基础的东西,
+如果这个不好好读一读的话, 些LLVM Pass完全就无从下手.</p>
+<p><strong>关于RTTI</strong>.首先是关于<code>isa&lt;&gt;, cast&lt;&gt;, dyn_cast&lt;&gt;</code>等.
+isa就像Java中的<code>instanceof</code>返回值时bool类型,用来判断某个对象(指针或者引用)是否是某个特定class类型的.
+cast&lt;&gt;用来将基类指针(或者引用)转化成派生类.<code>dyn_cast&lt;&gt;</code>则类似于dynamic_case&lt;&gt;.</p>
+<p><strong>关于strings.</strong>主要是StringRef,可以通过.str获取其std::string对象.formatv与格式化字符串有关,
+其使用方式类似于printf, 但是关于类型没有严格限制,
+也不需要必须标明类型.其中相关的例子如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// Left, right, and center alignment</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0,7}"</span><span class="token punctuation">,</span>  <span class="token char">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// S == "      a";</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0,-7}"</span><span class="token punctuation">,</span> <span class="token char">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// S == "a      ";</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0,=7}"</span><span class="token punctuation">,</span> <span class="token char">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// S == "   a   ";</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0,+7}"</span><span class="token punctuation">,</span> <span class="token char">'a'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// S == "      a";</span>
+<span class="token comment">// Custom styles</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0:N} - {0:x} - {1:E}"</span><span class="token punctuation">,</span> <span class="token number">12345</span><span class="token punctuation">,</span> <span class="token number">123908342</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// S == "12,345 - 0x3039 - 1.24E8"</span>
+<span class="token comment">// Adapters</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0}"</span><span class="token punctuation">,</span> <span class="token function">fmt_align</span><span class="token punctuation">(</span><span class="token number">42</span><span class="token punctuation">,</span> AlignStyle<span class="token double-colon punctuation">::</span>Center<span class="token punctuation">,</span> <span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// S == "  42   "</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0}"</span><span class="token punctuation">,</span> <span class="token function">fmt_repeat</span><span class="token punctuation">(</span><span class="token string">"hi"</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// S == "hihihi"</span>
+S <span class="token operator">=</span> <span class="token function">formatv</span><span class="token punctuation">(</span><span class="token string">"{0}"</span><span class="token punctuation">,</span> <span class="token function">fmt_pad</span><span class="token punctuation">(</span><span class="token string">"hi"</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">6</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// S == "  hi      "</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><strong>关于lambda</strong>.<code>function_ref</code>相当于C++标准中的std::function.使用起来几乎也是一模一样.</p>
+<p><strong>关于数据结构</strong>.
+先写几个感觉容易用到的.ArrayRef是定长数组, 使用起来和数组几乎一样,
+<strong>当API参数类型为ArrayRef时, 可以通过std::vector, 普通定长数组,
+llvm::SmallVector来传递</strong>.返回值应该也是同样的道理.<code>SmallSet</code>使用起来类似于std::set.关于Map的有StringMap,IndexedMap等等.</p>
+<h3 id="helpful-hints-for-common-operations">1) Helpful Hints for Common
+Operations</h3>
+<p>下面是一些遍历操作:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 遍历function中的BasicBlock</span>
+Function <span class="token operator">&amp;</span>Func <span class="token operator">=</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>BasicBlock <span class="token operator">&amp;</span>BB <span class="token operator">:</span> Func<span class="token punctuation">)</span>
+  <span class="token function">errs</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"Basic block (name="</span> <span class="token operator">&lt;&lt;</span> BB<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">") has "</span>
+             <span class="token operator">&lt;&lt;</span> BB<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">" instructions.\n"</span><span class="token punctuation">;</span>
+<span class="token comment">// 遍历BasicBlock中的Instructions</span>
+BasicBlock<span class="token operator">&amp;</span> BB <span class="token operator">=</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>Instruction <span class="token operator">&amp;</span>I <span class="token operator">:</span> BB<span class="token punctuation">)</span>
+   <span class="token function">errs</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> I <span class="token operator">&lt;&lt;</span> <span class="token string">"\n"</span><span class="token punctuation">;</span>
+<span class="token comment">// 直接通过Function遍历Instructions</span>
+std<span class="token double-colon punctuation">::</span>set<span class="token operator">&lt;</span>Instruction<span class="token operator">*</span><span class="token operator">&gt;</span> worklist<span class="token punctuation">;</span>
+<span class="token comment">// or better yet, SmallPtrSet&lt;Instruction*, 64&gt; worklist;</span>
+<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>inst_iterator I <span class="token operator">=</span> <span class="token function">inst_begin</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">,</span> E <span class="token operator">=</span> <span class="token function">inst_end</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">;</span> I <span class="token operator">!=</span> E<span class="token punctuation">;</span> <span class="token operator">++</span>I<span class="token punctuation">)</span>
+  worklist<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token operator">*</span>I<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// 遍历Blocks中的predecessors或者successors</span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">include</span> <span class="token string">"llvm/IR/CFG.h"</span></span>
+BasicBlock <span class="token operator">*</span>BB <span class="token operator">=</span> <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>BasicBlock <span class="token operator">*</span>Pred <span class="token operator">:</span> <span class="token function">predecessors</span><span class="token punctuation">(</span>BB<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// ...</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>下面是一些修改相关的操作:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token comment">// 创建Instruction</span>
+<span class="token keyword keyword-auto">auto</span> <span class="token operator">*</span>ai <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token function">AllocaInst</span><span class="token punctuation">(</span>Type<span class="token double-colon punctuation">::</span>Int32Ty<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-auto">auto</span> <span class="token operator">*</span>pa <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token function">AllocaInst</span><span class="token punctuation">(</span>Type<span class="token double-colon punctuation">::</span>Int32Ty<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">"indexLoc"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// Insert Instruction</span>
 
-<span class="token keyword keyword-static">static</span> myAccess <span class="token function">makeInRegAccess</span><span class="token punctuation">(</span>myTemp reg<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    myAccess access <span class="token operator">=</span> <span class="token function">makeMemoryBlock</span><span class="token punctuation">(</span><span class="token keyword keyword-sizeof">sizeof</span><span class="token punctuation">(</span><span class="token operator">*</span>access<span class="token punctuation">)</span><span class="token punctuation">,</span> MEMORY_TYPE_NONE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">assert</span> <span class="token punctuation">(</span>access<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    access<span class="token operator">-&gt;</span>kind <span class="token operator">=</span> InReg<span class="token punctuation">;</span>
-    access<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>reg <span class="token operator">=</span> reg<span class="token punctuation">;</span>
-    <span class="token keyword keyword-return">return</span> access<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>基本上就是比较普通set操作的函数,但是我们可以发现这两个函数都是static类型的,因此不是对外开放的接口(private).但是该函数被用于public的接口<code>Frame_allocateLocal</code>和<code>fillFormalsFromFlags</code>.这两个函数涉及到了形参或者局部变量的设置.后者在Frame的构造函数中被调用,因此我们可以说当一个Frame被构造的时候,就需要<strong>处理好关于Formal的问题,其中主要问题在于:(1)应当存储在寄存器里还是栈帧存储单元中.(2)如何处理视角移位问题.</strong></p>
-<p>至于局部变量的处理,则需要继续在递归AST时,进入到函数内部,每当扫描到一个局部变量就需要调用<code>allocLocal</code>来分配.其中该函数定义如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c">myAccess <span class="token function">Frame_allocateLocal</span><span class="token punctuation">(</span>myFrame frame<span class="token punctuation">,</span> bool escapeFlag<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>escapeFlag<span class="token punctuation">)</span>
-        <span class="token keyword keyword-return">return</span> <span class="token function">makeInFrameAccess</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token punctuation">(</span><span class="token operator">++</span>frame<span class="token operator">-&gt;</span>localCount<span class="token punctuation">)</span> <span class="token operator">*</span> BASE_SIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword keyword-else">else</span>    
-        <span class="token keyword keyword-return">return</span> <span class="token function">makeInRegAccess</span><span class="token punctuation">(</span><span class="token function">Temp_newTemp</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其中需要区分的是该局部变量是否是逃逸的.每当扫描到一个变量的声明时,都需要调用该函数分配一个Access单元,除此之外还要该Access与变量的名字绑定.离开当前作用域时,该关联将会取消(因为离开作用域时,该变量的name就失效了,结合前面语义分析的实现),但是被分配过的空间仍然保留.因为离开一个作用域并不等于当前Frame实效.</p>
-<h3 id="escape">Escape</h3>
-<p>对于局部变量和形参是否应当是逃逸的,我们需要专门的处理过程去处理.在Tiger中所采取的方法是递归地扫描AST.在扫描的过程中对于扫描到的变量判断其是否时逃逸的.<strong>由于Tiger将语义分析和代码生成放在了一起,因此需要在该阶段之前就完成excape的处理.</strong></p>
-<p>其中关于递归检查的模式仍然类似于语义分析的部分,仍然是递归地实现,但是相对来说所要做的处理没有那么复杂.<strong>这个过程中也涉及到环境表的操作.</strong>其中相关的实现如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">Escape_findEscape</span><span class="token punctuation">(</span>myExp exp<span class="token punctuation">)</span><span class="token punctuation">;</span>
-bool <span class="token function">Escape_isVarEscaped</span><span class="token punctuation">(</span>mySymbol varName<span class="token punctuation">)</span><span class="token punctuation">;</span>
-myTable <span class="token function">Escape_getEscapeEnvironment</span><span class="token punctuation">(</span><span class="token keyword keyword-void">void</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-void">void</span> <span class="token function">Escape_setEscapeEnvironment</span><span class="token punctuation">(</span>myTable escapeEnv<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
-<p><code>Escape_findEscape</code>用于从该exp开始向下递归地处理escape问题,而<code>Escape_isVarEscaped</code>用来从表中查询该name对应的变量是否时逃逸的.<code>Escape_getEscapeEnvironment</code>返回检查逃逸所用的环境表,<code>Escape_setEscapeEnvironment</code>用来设置环境表.</p>
-<p>其中核心的函数如下,就类似于语义分析的实现,对于Dec,Var,Expr等类型的结点都有一个用于判断escape的,递归的实现.如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">Escape_findEscape_Exp</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> depth<span class="token punctuation">,</span> myExp exp<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword keyword-void">void</span> <span class="token function">Escape_findEscape_Dec</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> depth<span class="token punctuation">,</span> myDec dec<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    <span class="token keyword keyword-switch">switch</span> <span class="token punctuation">(</span>dec<span class="token operator">-&gt;</span>kind<span class="token punctuation">)</span>
-    <span class="token punctuation">{</span>
-        <span class="token keyword keyword-case">case</span> VarDec<span class="token operator">:</span>
-            <span class="token keyword keyword-return">return</span> <span class="token function">Escape_findEscape_VarDec</span><span class="token punctuation">(</span>depth<span class="token punctuation">,</span> dec<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>varDec<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword keyword-case">case</span> TypeDec<span class="token operator">:</span>
-            <span class="token keyword keyword-return">return</span> <span class="token function">Escape_findEscape_TypeDec</span><span class="token punctuation">(</span>depth<span class="token punctuation">,</span> dec<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>tyDec<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword keyword-case">case</span> FuncDec<span class="token operator">:</span>
-            <span class="token function">MySymbol_BeginScope</span><span class="token punctuation">(</span><span class="token function">Escape_getEscapeEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token function">Escape_findEscape_FuncDec</span><span class="token punctuation">(</span>depth <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span> dec<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>funcDec<span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token function">MySymbol_EndScope</span><span class="token punctuation">(</span><span class="token function">Escape_getEscapeEnvironment</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-            <span class="token keyword keyword-return">return</span><span class="token punctuation">;</span>
-        <span class="token keyword keyword-default">default</span><span class="token operator">:</span>        <span class="token function">assert</span> <span class="token punctuation">(</span>false<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>其中有两类实现,第一类类似于一种分派器,其中接受的是像myExp,myDec抽象的类型而不是具体的类型,在内部的逻辑中会检查其类型并且调用其特定的处理函数.比如上面的关于Dec的处理,分为了<code>VarDec,TypeDec,FuncDec</code>三种类型其中关于FuncDec的处理有一点特殊,涉及到了环境表的操作,并且调用具体的判断时还需要将depth+1.</p>
-<p>第二类也就是对某种具体类型的escape处理函数.其实现如下:</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-void">void</span> <span class="token function">Escape_findEscape_FuncDec</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> depth<span class="token punctuation">,</span> myFuncDec funcDec<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    myTyFieldList formalFields<span class="token punctuation">;</span>
-    myExp body<span class="token punctuation">;</span>
-    <span class="token keyword keyword-switch">switch</span> <span class="token punctuation">(</span>funcDec<span class="token operator">-&gt;</span>kind<span class="token punctuation">)</span>
-    <span class="token punctuation">{</span>
-        <span class="token keyword keyword-case">case</span> FunctionDec<span class="token operator">:</span>
-        <span class="token punctuation">{</span>
-            <span class="token comment">//  assume all formals escapes</span>
-            formalFields <span class="token operator">=</span> funcDec<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>functionDec<span class="token operator">-&gt;</span>tyFieldList<span class="token punctuation">;</span>
-            body <span class="token operator">=</span> funcDec<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>functionDec<span class="token operator">-&gt;</span>exp<span class="token punctuation">;</span>
-            <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword keyword-case">case</span> ProcedureDec<span class="token operator">:</span>
-        <span class="token punctuation">{</span>
-            <span class="token comment">//  assume all formals escapes</span>
-            formalFields <span class="token operator">=</span> funcDec<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>procedureDec<span class="token operator">-&gt;</span>tyFieldList<span class="token punctuation">;</span>
-            body <span class="token operator">=</span> funcDec<span class="token operator">-&gt;</span>u<span class="token punctuation">.</span>procedureDec<span class="token operator">-&gt;</span>exp<span class="token punctuation">;</span>
-            <span class="token keyword keyword-break">break</span><span class="token punctuation">;</span>
-        <span class="token punctuation">}</span>
-        <span class="token keyword keyword-default">default</span><span class="token operator">:</span>        <span class="token function">assert</span> <span class="token punctuation">(</span>false<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token function">treatFormalsAsNotEscapedVars</span><span class="token punctuation">(</span>depth<span class="token punctuation">,</span> formalFields<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">Escape_findEscape_Exp</span><span class="token punctuation">(</span>depth<span class="token punctuation">,</span> body<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>每当在静态嵌套深度为depth的函数中发现了变量或者形参的声明时,就创建一个环境表所对应的项(其中escape域设置为false),并且将其加入到环境表中.之后在新的环境中处理该作用域中的表达式时,如果发现了使用了之前声明过的变量,由于当前的depth比当时声明时创建的更大,因此会将其设置为true.</p>
-<pre class="line-numbers language-c" data-language="c"><code class="language-c"><span class="token keyword keyword-static">static</span> bool <span class="token function">isVarNestedUsed</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> depth<span class="token punctuation">,</span> mySymbol varSymbol<span class="token punctuation">)</span>
-<span class="token punctuation">{</span>
-    EscapeEntry entry <span class="token operator">=</span> <span class="token function">Escape_getVarEntry</span><span class="token punctuation">(</span>varSymbol<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token function">assert</span> <span class="token punctuation">(</span>depth <span class="token operator">&gt;=</span> entry<span class="token operator">-&gt;</span>depth<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>entry<span class="token operator">-&gt;</span>depth <span class="token operator">==</span> depth<span class="token punctuation">)</span>
-        <span class="token keyword keyword-return">return</span> false<span class="token punctuation">;</span>
-    <span class="token keyword keyword-else">else</span>
-        <span class="token keyword keyword-return">return</span> true<span class="token punctuation">;</span>
-<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h3 id="translate">Translate</h3>
-<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2019%2017%2019%2004%201671441544%201671441544962%20Q5YrzC%20image-20221219171904821%20.png" alt="image-20221219171904821" style="zoom:50%;"></p>
-<h2 id="tiger中的中间代码生成">2. Tiger中的中间代码生成</h2>
-<p>其中所涉及到的核心代码在translate.c中,并且是在语义分析阶段被调用的.</p>
+<span class="token comment">// Deleting Instructions</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="the-core-llvm-class-hierarchy-reference">2) The Core LLVM Class
+Hierarchy Reference</h3>
+<p>这一部分主要接收IR在内存中所采用的数据结构表示.</p>
+<p>总体的继承体系如(不考虑list node):</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2031%2023%2038%2027%201672501107%201672501107596%20A6FNOX%20image-20221231233827507%20.png" alt="" style="zoom: 33%;"></p>
+<p>这一部分涉及到的东西还挺多的.</p>
+<p><strong>Type</strong>.在llvm IR中, 其中涉及的变量是有类型之分的.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2031%2023%2010%2034%201672499434%201672499434054%20Lyaqq1%20image-20221231231033949%20.png" alt="" style="zoom: 33%;"></p>
+<p><strong>Value</strong>.正如同linux系统中的一切皆文件,
+llvm中也有一个重要的概念, 也就是一切皆Value,
+后面会提到的Module、User、Instruction等class都是从class中派生出来的.狭义的Value表示指令中有类型的值.每一个Value都有一个type,并且可以通过getType从中获取.其中开放的接口有:Users相关的迭代器、number,
+还有getType, hasName,
+getName等等.尤其是replaceAllUsesWith可以用来设置其中的Users.</p>
+<p><strong>Module,可以看作是对于一个程序的抽象.</strong>其中的数据成员有一系列Function、GlobalVariable、SymbolTable,
+并且对于这些对象都提供对外访问的接口.</p>
+<p><strong>Instruction,用来描述一条具体的指令.</strong>
+其中包含了指令类型、操作数.其中提供的方法有getOpcode用来返回指令类型,
+通过User::getOperand或者User::setOperand()用来获取/修改下标的指令的操作数.关于这些Operand,
+其类型都是Value的.由于Instruction除了继承User之外还继承了一个表示list
+node class的类用于适配与list, 还有getParent用来返回其所处的基本块等.</p>
+<p><strong>Constant</strong>,表示的是所有常量的基类.</p>
+<p><strong>Function</strong>, 继承自GlobalObject,
+表示的是一个全局的独立对象.其中使用Argument
+class来表示函数的形参.其中的数据成员有几个BasicBlock,Argument,还有一个SymbolTable.其中的符号表用来对某个变量进行lookup.尤其是在处理函数内部的变量时,
+有时需要区分时形参还是局部变量等等.</p>
+<p><strong>BasicBlock</strong>, 维护了a list of
+Instructions.一定归属于某个Function之中.在访问时,
+除了可以获取其中的指令, 还可以结合CFG来进行访问,
+比如说通过getSinglePredecessor访问前一个基本块.</p>
+<blockquote>
+<p><strong>体会Value和User设计的巧妙之处</strong></p>
+</blockquote>
+<h2 id="the-llvm-target-independent-code-generator">4. The LLVM
+Target-Independent Code Generator</h2>
+<h3 id="target-description-classes">1) Target description classes</h3>
+<p>这一部分主要由一系列的Info构成.</p>
+<h3 id="machine-code-description-classes">2) Machine code description
+classes</h3>
+<h2 id="llvm后端">5. LLVM后端</h2>
+<p>其中一些关于指令选择和指令调度的部分, 我没怎么学过,
+所以这方面只从宏观的层面写一下.</p>
+<h3 id="总体架构">1) 总体架构</h3>
+<p>和IR Pass一样, 这一部分也是由一些分析Pass和变换Pass所组成.</p>
+<p>这其中涉及到主要阶段如下:</p>
+<ul>
+<li><strong>指令选择</strong>,
+将IR转化成指定目标的<code>SelectionDAG</code>结点,
+根据IR生成一个有向无环图(DAG)的形式.当此阶段结束为止, DAG中的所有LLVM
+IR结点<strong>都会转化为目标机器结点, 也就是机器指令而非LLVM
+IR指令.</strong></li>
+<li><strong>指令调度</strong>.DAG更多时候只能表达一种依赖图关系,
+无法通过DAG直接得到指令序列, 因此需要结合原本的IR,
+在生成对应的目标指令序列.</li>
+<li><strong>寄存器分配</strong>, 之前的的寄存器形式都是虚拟寄存器,
+这里分配成实际的物理寄存器, 由于目标机器的寄存器集合是有限的,
+所以对于某些虚拟变量是需要溢出的.</li>
+</ul>
+<p>经过以上阶段后, 最终输出目标代码.</p>
+<h3 id="寄存器分配">2) 寄存器分配</h3>
+<h2 id="参考">参考</h2>
+<p><a target="_blank" rel="noopener" href="https://getting-started-with-llvm-core-libraries-zh-cn.readthedocs.io/zh_CN/latest/ch03.html">Getting
+Started with LLVM Core Libraries</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.llvm.org/docs/WritingAnLLVMBackend.html#writing-an-llvm-backend">Writing
+an LLVM Backend</a></p>
 
                 
             </div>
@@ -663,7 +740,7 @@ myTable <span class="token function">Escape_getEscapeEnvironment</span><span cla
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="http://example.com/2022/12191492.html">http://example.com/2022/12191492.html</a>
+                    <a href="http://example.com/2023/010612922.html">http://example.com/2023/010612922.html</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -701,8 +778,8 @@ myTable <span class="token function">Escape_getEscapeEnvironment</span><span cla
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
-                                    <span class="chip bg-color">编译原理</span>
+                                <a href="/tags/LLVM/">
+                                    <span class="chip bg-color">LLVM</span>
                                 </a>
                             
                         </div>
@@ -746,28 +823,74 @@ myTable <span class="token function">Escape_getEscapeEnvironment</span><span cla
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+                <i class="far fa-dot-circle"></i>&nbsp;Current
+            </div>
             <div class="card">
-                <a href="/2022/122543495.html">
+                <a href="/2023/010612922.html">
                     <div class="card-image">
                         
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2025%2017%2002%2012%201671958932%201671958932492%20m8zYoc%20image-20221225170212325%20.png" class="responsive-img" alt="cs143:PA2 &amp;&amp; PA3,词法分析与语法分析">
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2029%2016%2016%2036%201672301796%201672301796936%20FPzNRH%20image-20221229161636763%20.png" class="responsive-img" alt="LLVM学习记录">
                         
-                        <span class="card-title">cs143:PA2 &amp;&amp; PA3,词法分析与语法分析</span>
+                        <span class="card-title">LLVM学习记录</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            相比记录实验中的实现,我还是更想从宏观的角度记录相关子系统的实现,好为后面自己写编译器打下基础.
+                            学习关于LLVM一些比较基础的概念所做的笔记.
                         
                     </div>
                     <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2022-12-25
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-01-06
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
                         </span>
+                    </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/LLVM/">
+                        <span class="chip bg-color">LLVM</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Next&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/12294483.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2029%2016%2016%2036%201672301796%201672301796936%20FPzNRH%20image-20221229161636763%20.png" class="responsive-img" alt="LLVM IR Pass Labs">
+                        
+                        <span class="card-title">LLVM IR Pass Labs</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            是做CSCD70编译器优化所做的记录.
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-12-29
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-user fa-fw"></i>
@@ -783,56 +906,8 @@ myTable <span class="token function">Escape_getEscapeEnvironment</span><span cla
                         <span class="chip bg-color">编译原理</span>
                     </a>
                     
-                    <a href="/tags/cs143/">
-                        <span class="chip bg-color">cs143</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                Next&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/2022/112534552.html">
-                    <div class="card-image">
-                        
-                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2007%2015%2012%2020%2005%201657858805%201657858805629%20yV8RJ2%20image-20220715122005539%20.png" class="responsive-img" alt="The Google File System 论文阅读笔记">
-                        
-                        <span class="card-title">The Google File System 论文阅读笔记</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            google分布式三驾马车之一.
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2022-11-25
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-user fa-fw"></i>
-                            yfs
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">分布式系统</span>
-                    </a>
-                    
-                    <a href="/tags/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
-                        <span class="chip bg-color">存储系统</span>
+                    <a href="/tags/llvm/">
+                        <span class="chip bg-color">llvm</span>
                     </a>
                     
                 </div>
@@ -1026,7 +1101,7 @@ myTable <span class="token function">Escape_getEscapeEnvironment</span><span cla
         <div class="col s12 m8 l8 copy-right">
             Copyright&nbsp;&copy;
             
-                <span id="year">2022</span>
+                <span id="year">2022-2023</span>
             
             <span id="year">2022</span>
             <a href="/about" target="_blank">yfs</a>

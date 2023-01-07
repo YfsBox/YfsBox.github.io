@@ -469,14 +469,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    8.6k
+                    8.8k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
-                    31 Min
+                    32 Min
                 </div>
                 
 
@@ -855,21 +855,32 @@ Rational result<span class="token operator">=</span><span class="token number">2
     <span class="token keyword keyword-const">const</span> Point<span class="token operator">&amp;</span> <span class="token function">upperLeft</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> pData<span class="token operator">-&gt;</span>ulhc<span class="token punctuation">;</span> <span class="token punctuation">}</span>
     <span class="token keyword keyword-const">const</span> Point<span class="token operator">&amp;</span> <span class="token function">lowerRight</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> <span class="token keyword keyword-return">return</span> pData<span class="token operator">-&gt;</span>lrhc<span class="token punctuation">;</span> <span class="token punctuation">}</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>这样,即使用户拿到了handles也没有修改对象的权利了.但即使这样,用户拿到的handle还是有悬空引用的危险的.</p>
-<h3 id="为异常安全努力">29)为“异常安全”努力</h3>
+<p>这样,即使用户拿到了handles也没有修改对象的权利了.<strong>但即使这样,用户拿到的handle还是有悬空引用的危险的.</strong></p>
+<p>从体来说, 这一部分主要考虑的是保证封装性, 使得const函数真的是const,
+并且防止悬垂引用.</p>
 <h3 id="inlining的里里外外">30)inlining的里里外外</h3>
-<p>inlining调用起来像是函数,但是却没有一般函数所有的开销.</p>
+<p>inlining调用起来像是函数,但是却没有一般函数所有的开销.<strong>内联函数的核心观念和宏定义函数很像,
+相当于替换代码.但是有可能造成替换后, 代码体积膨胀.</strong></p>
 <p>首先我们需要明确的是inline的定义方式,分为隐式地或者显式地,前者是在class作用域内部的,后者是在通过关键字inline的.关于不会被转化到inline的函数,要么是太复杂的函数(带有循环和递归或者virtual函数).</p>
 <p>这一条款的核心在于<strong>inline只是一个对编译器的申请,而不是强制性的</strong>,也就是说带有inline的函数并不一定真的是内联的,对于inline的处理(将函数调用动作转化为该函数的主体)是在编译期间进行的,如果没有被inline的话就会给出警告信息.</p>
 <p>内联函数也不是完美的,因为其总体思想在于“将对某个函数的调用”,都用函数本体替换,导致代码量增加,所消耗内存加大,但如果本身就是很简短的函数,那么产出的代码就会比较小.</p>
 <p><strong>构造函数和析构函数往往不是理想的inline函数候选者</strong>.</p>
-<p>此外如果一个程序关于内联函数中的具体内容发生变化时,整个程序都需要进行重新编译,如果不是内联函数,就会只需要重新链接即可.</p>
+<p>此外如果一个程序关于内联函数中的具体内容发生变化时,整个程序都需要进行重新编译,如果不是内联函数,就会只需要重新链接即可.(.h中的文件往往是编译器直接完成,
+.c源文件中的内容往往需要编译完,再进行链接)</p>
 <blockquote>
 <p>书中还给出了一个建议,不要忙目地将函数定义为内联函数,最好一开始都不使用内联函数(或者有绝对把握的).往往是在优化的过程中,根据2/8原则,确定程序中的热点后,对这些热点代码进行优化时,考虑将其中一部分代码改成inline的.</p>
 </blockquote>
 <h3 id="将文件间的编译依存关系降到最低">31)将文件间的编译依存关系降到最低</h3>
 <p>这一条主要讨论了class定义(#include)和向前声明对于编译依存关系的不同影响.</p>
-<p>对于前者来说,如果我们通过#include的方式引用了某个class的定义,一旦这个class对应的.h文件被修改,就会导致所有引用该.h文件的代码都被重新编译,这带来了较大的编译负担.这时可以考虑只使用向前声明而非定义,但是这会导致一个class因为其中的某些object这是声明而不是定义导致的占用空间未知的情况,因此这种方法对于一个class中含有object的情况并不适用,但是我们可以将object的使用改成指针或者引用类型,这样这个class总体所占空间的大小就是已知的了.</p>
+<p>对于前者来说,如果我们通过#include的方式引用了某个class的定义,一旦这个class对应的.h文件被修改,就会导致所有引用该.h文件的代码都被重新编译,这带来了较大的编译负担.这时可以考虑只使用向前声明而非定义,但是这会导致一个class因为其中的某些object是声明而不是定义导致的占用空间未知的情况,因此这种方法对于一个class中含有object的情况并不适用,但是我们可以将object的使用改成指针或者引用类型,这样这个class总体所占空间的大小就是已知的了.</p>
+<p>因此书中给出了建议:</p>
+<ul>
+<li><strong>如果使用object reference或者pointer就可以完成任务,
+就不要使用objects.</strong>如果想要定义出某种对象的reference或者pointer只凭借class的声明(向前声明)就可以,
+但如果定义对象, 就必须要对象的定义式(#include).</li>
+<li><strong>多使用class声明式能够有效降低编译依存关系</strong>.如果只是函数中涉及到某个class,
+就是是pass/return by value, 也可以只靠对象声明式.</li>
+</ul>
 <p>如果涉及到函数需要用某个class的对象时,可以只依附于声明而非定义,即使是pass
 by value也可以.</p>
 <h2 id="继承与面向对象设计">6.继承与面向对象设计</h2>
@@ -1383,7 +1394,7 @@ new,因为内存需求不能满足而抛出异常,这个时候先调用一个new
         <div class="col s12 m8 l8 copy-right">
             Copyright&nbsp;&copy;
             
-                <span id="year">2022</span>
+                <span id="year">2022-2023</span>
             
             <span id="year">2022</span>
             <a href="/about" target="_blank">yfs</a>

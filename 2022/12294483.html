@@ -1,0 +1,1676 @@
+<!DOCTYPE HTML>
+<html lang="en">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="LLVM IR Pass Labs, Yfs&#39;s Box">
+    <meta name="description" content="">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>LLVM IR Pass Labs | Yfs&#39;s Box</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+    <link rel="stylesheet" href="/js/prism/prism.css">
+
+    <script src="/libs/jquery/jquery.min.js"></script>
+
+<meta name="generator" content="Hexo 6.0.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+</head>
+
+
+
+   <style>
+    body{
+       background-image: url(https://cdn.jsdelivr.net/gh/Tokisaki-Galaxy/res/site/medias/background.jpg);
+       background-repeat:no-repeat;
+       background-size:cover;
+       background-attachment:fixed;
+    }
+</style>
+
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Yfs&#39;s Box</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>Index</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>Tags</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>Categories</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>Archives</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>About</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>Contact</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>Friends</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="Search" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Yfs&#39;s Box</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			Index
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			Tags
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			Categories
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			Archives
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			About
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			Contact
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			Friends
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2029%2016%2016%2036%201672301796%201672301796936%20FPzNRH%20image-20221229161636763%20.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">LLVM IR Pass Labs</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
+                                <span class="chip bg-color">编译原理</span>
+                            </a>
+                        
+                            <a href="/tags/llvm/">
+                                <span class="chip bg-color">llvm</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>Publish Date:&nbsp;&nbsp;
+                    2022-12-29
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
+                    7.1k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>Read Times:&nbsp;&nbsp;
+                    28 Min
+                </div>
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <p>​ 关于这个小项目, 我发现不少搞安全的大佬在学习编译原理都做过,
+虽然我和他们想要走的学习路线并不一样,
+学编译原理也没有想着去搞fuzz挖漏洞(毕竟我不太想做安全),但我认为他们确实提供了一个扎实又系统的编译原理学习路线,
+我只是想满足自己写编译器的小小梦想, 并且编译这条技能树打通后,
+也可以考虑和数据库内核相结合,
+比如说查询引擎优化等等,或者读研乃至工作,编译都是一个值得考虑的路子.
+总之, 我认为编译这一块还是很值得深入一学的.</p>
+<h3 id="环境准备">0 .环境准备</h3>
+<p>这个项目的运行环境是基于docker构建的, 其中给出的文档中的命令如下:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$ <span class="token builtin class-name">cd</span> Assignment1-Introduction_to_LLVM/FunctionInfo
+$ <span class="token function">docker</span> run -it -v <span class="token variable"><span class="token variable">$(</span><span class="token builtin class-name">pwd</span><span class="token variable">)</span></span>:/mnt --rm --name cscd70_a1 cscd70:2021S<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>但是我认为这样用起来不是太顺手, 因此我并不想关掉容器后,就将容器删除,
+因此我没有加“--rm”,此外,我希望在后来写代码的时候通过vscode对容器ssh,
+因此必须要设置容器的端口映射,并且配置容器内的ssh服务.在这里也简单地记录一下配置的过程吧.</p>
+<p>相比前面的那个run命令,我做了点调整.</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$ <span class="token function">docker</span> run -dit -p <span class="token number">14010</span>:22 -v <span class="token variable"><span class="token variable">$(</span><span class="token builtin class-name">pwd</span><span class="token variable">)</span></span>:/mnt  --name cscd70_a1 cscd70:2021S<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>在容器中设置密码、更新源、安装openssh-server、修改ssh配置文件、重启ssh服务,
+一套下来轻车熟路就可以了.</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">$ <span class="token function">passwd</span>
+$ <span class="token function">apt-get</span> -y <span class="token function">install</span> openssh-server
+$ <span class="token function">vi</span> /etc/ssh/sshd_config
+RSAAuthentication <span class="token function">yes</span>
+PubkeyAuthentication <span class="token function">yes</span>
+AuthorizedKeysFile .ssh/authorized_keys
+PermitRootLogin <span class="token function">yes</span>
+$ /etc/init.d/ssh restart<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>之后就可以使用vscode ssh容器来进行写代码了.</p>
+<h2 id="introduction-to-llvm">1. Introduction to LLVM</h2>
+<h3 id="输出函数信息">1) 输出函数信息</h3>
+<p>这一部分的实现相当简单.如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">  <span class="token keyword keyword-virtual">virtual</span> <span class="token keyword keyword-bool">bool</span> <span class="token function">runOnModule</span><span class="token punctuation">(</span>Module <span class="token operator">&amp;</span>M<span class="token punctuation">)</span> <span class="token keyword keyword-override">override</span> <span class="token punctuation">{</span>
+    <span class="token function">outs</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"CSCD70 Function Information Pass"</span>
+           <span class="token operator">&lt;&lt;</span> <span class="token string">"\n"</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>func <span class="token operator">:</span> M<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token function">showFuncInfo</span><span class="token punctuation">(</span>func<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span> <span class="token comment">// class FunctionInfo</span>
+<span class="token keyword keyword-void">void</span> <span class="token class-name">FunctionInfo</span><span class="token double-colon punctuation">::</span><span class="token function">showFuncInfo</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Function <span class="token operator">&amp;</span>func<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token function">outs</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"#Name:"</span> <span class="token operator">&lt;&lt;</span> func<span class="token punctuation">.</span><span class="token function">getName</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"\nArgs:"</span> <span class="token operator">&lt;&lt;</span> func<span class="token punctuation">.</span><span class="token function">arg_size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"\nCalls:"</span>
+            <span class="token operator">&lt;&lt;</span> func<span class="token punctuation">.</span><span class="token function">getNumUses</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"\nBlocks:"</span> <span class="token operator">&lt;&lt;</span> func<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"\nInsts:"</span>
+            <span class="token operator">&lt;&lt;</span> func<span class="token punctuation">.</span><span class="token function">getInstructionCount</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"\n"</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>直接在Module中遍历函数就可以了, 对于所访问的函数,
+Function都提供了一些接口访问内部信息.</p>
+<h3 id="局部优化实现">2) 局部优化实现</h3>
+<p>这一部分区分了三个不同的子任务, 但实现起来都是差不多的.
+这里以<code>MultiInstOpt</code>为例简要分析一下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-virtual">virtual</span> <span class="token keyword keyword-bool">bool</span> <span class="token function">runOnFunction</span><span class="token punctuation">(</span>Function <span class="token operator">&amp;</span>F<span class="token punctuation">)</span> <span class="token keyword keyword-override">override</span> <span class="token punctuation">{</span>
+      std<span class="token double-colon punctuation">::</span>list<span class="token operator">&lt;</span>Instruction<span class="token operator">*</span><span class="token operator">&gt;</span> delete_list<span class="token punctuation">;</span>
+      <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>bb <span class="token operator">:</span> F<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>curr_ins <span class="token operator">:</span> bb<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+              <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>curr_ins<span class="token punctuation">.</span><span class="token function">isBinaryOp</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> curr_ins<span class="token punctuation">.</span><span class="token function">getOpcode</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> Instruction<span class="token double-colon punctuation">::</span>Sub<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                  <span class="token keyword keyword-int">int</span> curr_other_idx<span class="token punctuation">;</span>
+                  <span class="token keyword keyword-auto">auto</span> curr_const_int <span class="token operator">=</span> <span class="token function">getConstIntOperand</span><span class="token punctuation">(</span>curr_ins<span class="token punctuation">,</span> <span class="token operator">&amp;</span>curr_other_idx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>curr_const_int <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                      <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+                  <span class="token punctuation">}</span>
+                  <span class="token keyword keyword-auto">auto</span> other_ins <span class="token operator">=</span> <span class="token generic-function"><span class="token function">dyn_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Instruction<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>curr_ins<span class="token punctuation">.</span><span class="token function">getOperand</span><span class="token punctuation">(</span>curr_other_idx<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>other_ins <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                      <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+                  <span class="token punctuation">}</span>
+                  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>other_ins<span class="token operator">-&gt;</span><span class="token function">isBinaryOp</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">||</span> other_ins<span class="token operator">-&gt;</span><span class="token function">getOpcode</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">!=</span> Instruction<span class="token double-colon punctuation">::</span>Add<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                      <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+                  <span class="token punctuation">}</span>
+                  <span class="token keyword keyword-int">int</span> pre_other_idx<span class="token punctuation">;</span>
+                  <span class="token keyword keyword-auto">auto</span> pre_const_int <span class="token operator">=</span> <span class="token function">getConstIntOperand</span><span class="token punctuation">(</span><span class="token operator">*</span>other_ins<span class="token punctuation">,</span> <span class="token operator">&amp;</span>pre_other_idx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pre_const_int <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                      <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+                  <span class="token punctuation">}</span>
+                  <span class="token comment">// 然后判断常数部分的值是否相等</span>
+                  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>pre_const_int<span class="token operator">-&gt;</span><span class="token function">getSExtValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> curr_const_int<span class="token operator">-&gt;</span><span class="token function">getSExtValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 可以被优化</span>
+                      curr_ins<span class="token punctuation">.</span><span class="token function">replaceAllUsesWith</span><span class="token punctuation">(</span>curr_ins<span class="token punctuation">.</span><span class="token function">getOperand</span><span class="token punctuation">(</span>curr_other_idx<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                      delete_list<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>curr_ins<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                  <span class="token punctuation">}</span>
+              <span class="token punctuation">}</span>
+          <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+      <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> delete_ins <span class="token operator">:</span> delete_list<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          delete_ins<span class="token operator">-&gt;</span><span class="token function">eraseFromParent</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+      <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这一部分提供了以函数为单位的局部优化,
+在每个函数内部可以通过遍历BasicBlock的方式遍历每一个指令.
+根据Assignment的要求, 需要访问其中的操作数. 然而操作数是有区别的,
+有可能是别的指令所定义的变量, 有可能是函数形参, 也有可能是常量.
+如何知道究竟是哪一种类型呢?
+以上三者分别对应了Instruction、Argument、Constant等等,可以通过lllvm中所提供的isa来判断(也可以用dyn_cast).在这里区分开Instruction和Constant就好了.</p>
+<p>对于其中Constant,
+可以通过<code>getSExtValue</code>或者<code>getZExtValue</code>分别以signed和unsigned的方式返回int.</p>
+<p>其中需要涉及到指令删除, 这里对于指令删除采用了一种延迟的技巧,
+首先将其加入到一个list中, 最后再逐个删除,
+因为如果在遍历时删除,会对遍历迭代器产生影响.</p>
+<p>还有一个地方需要注意,
+这其中涉及到对于def-use链的调整.我们需要删除一个Instruction,
+也就意味着删除了该Instruction所对应的变量,
+因此对于其他引用过该变量的地方应该进行替换.</p>
+<pre class="line-numbers language-none"><code class="language-none">𝑎 = 𝑏 + 1, 𝑐 = 𝑎-1 ⇒ 𝑎 = 𝑏+1, 𝑐 = 𝑏<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p>这里给出来的样子像是替换指令, 我最初的想法是“先删除再创建”,
+但这实际上走了弯路,
+只要将“c=a-1”删除,而引用过c的地方都换成b就好了.这里需要使用到<code>replaceAllUsesWith</code>,
+其中的参数就对应了b.</p>
+<blockquote>
+<p>这里真的可以体会到SSA的优越性, 如果没有SSA,
+引用的变量就无法直接获取其对应的def指令.
+SSA可以使得每个use和def都能一一对应.</p>
+</blockquote>
+<h2 id="dataflow-analysis">2. Dataflow Analysis</h2>
+<p>这一部分的实现需要对常用的数据流分析算法的模版有所理解:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2030%2020%2051%2018%201672404678%201672404678809%20Qc2ql6%20image-20221230205118710%20.png" alt="image-20221230205118710" style="zoom:50%;"></p>
+<h3 id="framework的可变因素与模版参数">1)
+Framework的可变因素与模版参数</h3>
+<p>活跃变量分析和可用表达式分析都是一种迭代算法.
+其中差别也主要在于上面所设计的一些数据结构.下面就从这些数据结构的角度去理解实现这个framework的关键要素.</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2030%2020%2048%2025%201672404505%201672404505596%20RVd5PB%20image-20221230204825499%20.png" alt="image-20221230204825499" style="zoom:50%;"></p>
+<p>首先, 这其中需要将不同类型的数据结构或参数带入到该Framework中,
+因此Framework也就很自然地设计成了一个模版类.其中的参数也正合表格所提到的因素有关.下面所列举的这些因素都对应了Framework中的模版参数:</p>
+<ul>
+<li><p>“域”这一部分, 分别是变量也可以是表达式.
+我最初认为这两者都可以用Instruction来表示, 就不再需要额外的封装了,
+但其实不然, 关于变量还需要包括Argument,
+也就是函数参数.因此在实验中需要分别对两者进行封装,
+也就是Variable和Expression</p></li>
+<li><p>“方向“.遍历的方向所影响的是在这个FunctionPass中所需要遍历指令的顺序不同,
+因此可以考虑不同的”方向“ 返回不同方式的迭代器.
+之后遍历处理的部分就可以共用同一种代码实现了.<strong>所以在具体实现中,
+需要编写代码来返回不同种类的迭代器(逆向或者正向).</strong></p></li>
+<li><p>”交汇方向“,
+也就是方程组求解过程中所涉及的运算.对应MeetOp中关于Intersect和Union的实现.</p></li>
+</ul>
+<p>其他因素都可以使用相同的代码处理,
+无需作为“可变因素”,在后面详细分析.</p>
+<p>在Framework类中其模版参数如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span> <span class="token operator">&lt;</span><span class="token keyword keyword-typename">typename</span> <span class="token class-name">TDomainElem</span><span class="token punctuation">,</span> <span class="token keyword keyword-typename">typename</span> <span class="token class-name">TDomainElemRepr</span><span class="token punctuation">,</span> Direction TDirection<span class="token punctuation">,</span>
+          <span class="token keyword keyword-typename">typename</span> <span class="token class-name">TMeetOp</span><span class="token operator">&gt;</span>  <span class="token comment">//</span>
+<span class="token keyword keyword-class">class</span> <span class="token class-name">Framework</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p><code>TDomainElem</code>对应的正是域, 要么是Expression,
+要么是Variable.第二个参数在这两者分析中都是bool类型,
+表示的是一个Expression/Variable是否可用/活跃.第三个参数是一个枚举类(分为向前和向后),
+表示的是传递方向.第四个参数代表了交汇运算符.</p>
+<h3 id="framework中的核心数据结构">2) Framework中的核心数据结构</h3>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-protected">protected</span><span class="token operator">:</span>
+  <span class="token comment">// Domahein</span>
+  std<span class="token double-colon punctuation">::</span>vector<span class="token operator">&lt;</span>TDomainElem<span class="token operator">&gt;</span> Domain<span class="token punctuation">;</span>  <span class="token comment">// Domain是一个表达式的集合</span>
+  <span class="token comment">// Instruction-Domain Value Mapping</span>
+  std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span><span class="token keyword keyword-const">const</span> Instruction <span class="token operator">*</span><span class="token punctuation">,</span> DomainVal_t<span class="token operator">&gt;</span> InstDomainValMap<span class="token punctuation">;</span>  <span class="token comment">// 这个map表示的是某个指令bitmap</span>
+  std<span class="token double-colon punctuation">::</span>unordered_map<span class="token operator">&lt;</span><span class="token keyword keyword-const">const</span> Value <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token keyword keyword-unsigned">unsigned</span><span class="token operator">&gt;</span> InstIndexMap<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>前者是收集的该Function中所有域的集合.<code>InstDomainValMap</code>是每个Instruction对应的bitmap,
+在正向迭代中, 该bitmap是每个表达式的OUT集合, 如果是反向的,
+则是IN集合.<code>InstIndexMap</code>是我加上了,
+用来记录每个Domain在Bitmap中的索引,
+无论是Variable还是Exprssion(我在Expression中增加了该表达式所对应的Value指针为数据成员)都对应了一个Value,
+利用多态的特性可以统一用Value指针来表示.</p>
+<h3 id="迭代算法实现">3) 迭代算法实现</h3>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token function">runOnFunction</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Function <span class="token operator">&amp;</span>F<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// initialize the domain</span>
+  <span class="token function">initializeDomain</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">;</span>        <span class="token comment">// 首先对Domain进行初始化</span>
+  <span class="token comment">// apply the initial conditions</span>
+  TMeetOp MeetOp<span class="token punctuation">;</span>
+  <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>Inst <span class="token operator">:</span> <span class="token function">instructions</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    InstDomainValMap<span class="token punctuation">.</span><span class="token function">emplace</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>Inst<span class="token punctuation">,</span> MeetOp<span class="token punctuation">.</span><span class="token function">top</span><span class="token punctuation">(</span>Domain<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// 此时该map每个key对应一个Instruction， 其中的集合为全false</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span><span class="token function">traverseCFG</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>        <span class="token comment">// 遍历cfg， 也就对应了算法核心迭代部分</span>
+  <span class="token punctuation">}</span>
+  <span class="token function">printInstDomainValMap</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">;</span>       <span class="token comment">// 打印出来结果</span>
+  <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中迭代算法的总体代码流程如上所示.<code>initializeDomain</code>通过遍历每个Instruction来收集Domain.这一部分对于Liveness和AvailExpr有不同的实现方式.然后是定义MeetOp,
+初始化每一个表达式的Bitmap集合, 在后面的实现中,
+都是将其输出化为全0的集合.之后while(traverseCFG(F))迭代.最终输出结果.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">initializeDomain</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Function <span class="token operator">&amp;</span>F<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>Inst <span class="token operator">:</span> <span class="token function">instructions</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>      <span class="token comment">// 根据函数中的每一个指令来对Domain进行初始化</span>
+        <span class="token function">initializeDomainFromInst</span><span class="token punctuation">(</span>Inst<span class="token punctuation">)</span><span class="token punctuation">;</span>       <span class="token comment">// 每个指令都有use和def集合</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面的<code>initializeDomaininFromInst</code>是一个纯虚函数,
+在AvailExpr和Liveness中有不同方式的实现:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"> <span class="token keyword keyword-virtual">virtual</span> <span class="token keyword keyword-void">void</span> <span class="token function">initializeDomainFromInst</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Instruction <span class="token operator">&amp;</span>Inst<span class="token punctuation">)</span> <span class="token keyword keyword-override">override</span> <span class="token punctuation">{</span>  <span class="token comment">// AvailExpr</span>
+   <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> BinaryOperator <span class="token operator">*</span><span class="token keyword keyword-const">const</span> BinaryOp <span class="token operator">=</span>
+           <span class="token generic-function"><span class="token function">dyn_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>BinaryOperator<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token operator">&amp;</span>Inst<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       InstIndexMap<span class="token punctuation">[</span><span class="token operator">&amp;</span>Inst<span class="token punctuation">]</span> <span class="token operator">=</span> Domain<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+       Domain<span class="token punctuation">.</span><span class="token function">emplace_back</span><span class="token punctuation">(</span><span class="token operator">*</span>BinaryOp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>
+ <span class="token punctuation">}</span>
+<span class="token keyword keyword-virtual">virtual</span> <span class="token keyword keyword-void">void</span> <span class="token function">initializeDomainFromInst</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Instruction <span class="token operator">&amp;</span>Inst<span class="token punctuation">)</span> <span class="token keyword keyword-override">override</span> <span class="token punctuation">{</span>  <span class="token comment">// Liveness</span>
+       <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> op_it <span class="token operator">=</span> Inst<span class="token punctuation">.</span><span class="token function">op_begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> op_it <span class="token operator">!=</span> Inst<span class="token punctuation">.</span><span class="token function">op_end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>op_it<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+           <span class="token keyword keyword-auto">auto</span> operand <span class="token operator">=</span> op_it<span class="token operator">-&gt;</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+           <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token generic-function"><span class="token function">dyn_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Argument<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>operand<span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token generic-function"><span class="token function">dyn_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Instruction<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>operand<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+               <span class="token keyword keyword-auto">auto</span> findit <span class="token operator">=</span> InstIndexMap<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>operand<span class="token punctuation">)</span><span class="token punctuation">;</span>
+               <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>findit <span class="token operator">==</span> InstIndexMap<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                   InstIndexMap<span class="token punctuation">[</span>operand<span class="token punctuation">]</span> <span class="token operator">=</span> Domain<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                   Domain<span class="token punctuation">.</span><span class="token function">emplace_back</span><span class="token punctuation">(</span><span class="token function">Variable</span><span class="token punctuation">(</span>operand<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+               <span class="token punctuation">}</span>
+           <span class="token punctuation">}</span>
+       <span class="token punctuation">}</span>
+   <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>Expression这个概念在LLVM中更加准确地说对应的是BinaryOperator这一概念,
+如果当前遍历的Instruction符合该类型就将其加入同时记录其Index.在Liveness中,通过检查操作数的方式进行收集,
+其中需要Argument和Instruction(前者容易遗漏). 我最初在实现时,
+考虑的不是遍历操作数, 而是直接遍历Instruction本身,也就是def.
+但这实际上会造成对Argument的遗漏.</p>
+<p>其中迭代算法的核心, 也就是迭代算法的核心部分,
+这一部分根据各种教科书中给出的伪代码就很容易实现:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token function">traverseCFG</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Function <span class="token operator">&amp;</span>F<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-bool">bool</span> has_changed <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>  <span class="token comment">// 用来表示是否有block发生了变化</span>
+    DomainVal_t ibv<span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>bb <span class="token operator">:</span> <span class="token function">getBBTraversalOrder</span><span class="token punctuation">(</span>F<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 这里用的基本块是forward的顺序</span>
+        ibv <span class="token operator">=</span> <span class="token function">getBoundaryVal</span><span class="token punctuation">(</span>bb<span class="token punctuation">)</span><span class="token punctuation">;</span>		<span class="token comment">// 首先获取所有前驱结点meet起来的结果</span>
+        <span class="token keyword keyword-bool">bool</span> is_changed <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span> <span class="token comment">// 用来表示该block是否发生了变化</span>
+        <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>ins <span class="token operator">:</span> <span class="token function">getInstTraversalOrder</span><span class="token punctuation">(</span>bb<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            is_changed <span class="token operator">=</span> <span class="token function">transferFunc</span><span class="token punctuation">(</span>ins<span class="token punctuation">,</span> ibv<span class="token punctuation">,</span> InstDomainValMap<span class="token punctuation">[</span><span class="token operator">&amp;</span>ins<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            ibv <span class="token operator">=</span> InstDomainValMap<span class="token punctuation">[</span><span class="token operator">&amp;</span>ins<span class="token punctuation">]</span><span class="token punctuation">;</span><span class="token comment">// 设置好下一个Instruction需要的入口集合(有可能是in也可能是out)</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment">// 此时的ibv在Liveness中是该block的in，在AvialExpr中是block中的out，change也就是表示的该</span>
+        <span class="token comment">// out或者in是否发生变化</span>
+        has_changed <span class="token operator">|=</span> is_changed<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> has_changed<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>  <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>参考:</p>
+<p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2006%2020%2058%2020%201673009900%201673009900517%20orCIay%20image-20230106205820432%20.png" alt="image-20230106205820432" style="zoom:50%;"></p>
+<p>简而言之, 每次迭代都以基本块为单位, 首先需要获取的是out[p]集合,
+通过<code>getBBTraversalOrder</code>即可获取,
+并设置为当前遍历块的in集合, 之后如果想要实现“oldout = out[i]”,
+则需要将此BasicBlock的指令从头到尾迭代一遍,
+对其调用transferFunc.当循环退出后,
+is_changed表示的就是该BasicBlock的out是否发生变化.最终要返回的has_changed表示的则是这整一轮迭代是否出现变化.</p>
+<p>关于transferFunc.有趣的是,在不同迭代方向下,IV和OV的意义有所不同,当为Forward时,IV对应的正是in集合,OV则是所要求的out;如果是backend方向,IV对应的则是out,OV是in集合.“OV”是需要通过“IV“进行更新的,其返回值表示OV有没有发生改变.也就对应了前面的is_changed的设置.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-virtual">virtual</span> <span class="token keyword keyword-bool">bool</span> <span class="token function">transferFunc</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Instruction <span class="token operator">&amp;</span>Inst<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> DomainVal_t <span class="token operator">&amp;</span>IV<span class="token punctuation">,</span>
+                          DomainVal_t <span class="token operator">&amp;</span>OV<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>关于其中的传递函数, 两者的实现有所区别:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">Liveness</span><span class="token double-colon punctuation">::</span><span class="token function">transferFunc</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Instruction <span class="token operator">&amp;</span>Inst<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> DomainVal_t <span class="token operator">&amp;</span>IBV<span class="token punctuation">,</span> DomainVal_t <span class="token operator">&amp;</span>OBV<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    DomainVal_t OLD_OBV <span class="token operator">=</span> OBV<span class="token punctuation">;</span>
+    OBV <span class="token operator">=</span> IBV<span class="token punctuation">;</span>
+    <span class="token comment">// 将该Inst def的部分去除掉</span>
+    <span class="token keyword keyword-auto">auto</span> find_def_it <span class="token operator">=</span> InstIndexMap<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>Inst<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>find_def_it <span class="token operator">!=</span> InstIndexMap<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>  <span class="token comment">// 表示该指令存在一个def</span>
+        OBV<span class="token punctuation">[</span>find_def_it<span class="token operator">-&gt;</span>second<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// 将use的部分合并上</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> op_it <span class="token operator">=</span> Inst<span class="token punctuation">.</span><span class="token function">op_begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> op_it <span class="token operator">!=</span> Inst<span class="token punctuation">.</span><span class="token function">op_end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>op_it<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-auto">auto</span> operand <span class="token operator">=</span> op_it<span class="token operator">-&gt;</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token generic-function"><span class="token function">dyn_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Argument<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>operand<span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token generic-function"><span class="token function">dyn_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Instruction<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>operand<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-auto">auto</span> findit <span class="token operator">=</span> InstIndexMap<span class="token punctuation">.</span><span class="token function">find</span><span class="token punctuation">(</span>operand<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>findit <span class="token operator">!=</span> InstIndexMap<span class="token punctuation">.</span><span class="token function">end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>     <span class="token comment">// 如果该def之前是存在的话</span>
+                OBV<span class="token punctuation">[</span>findit<span class="token operator">-&gt;</span>second<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token comment">// 比较是否发生了更新</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>size_t i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> IBV<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>OBV<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">!=</span> OLD_OBV<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>上面是活跃变量部分的实现,首先需要保存OLD_OBV, 然后设置新的OBV,
+新的OBV就是IN集合去掉def并上use.对于def的处理很简单,Inst本身就是def.至于use还是通过访问operand的方法,通过dyn_cast判断是否为Argument或者Instruction类型.最后比较是否有chenged.</p>
+<h2 id="loop-invariant-code-motion">3. Loop Invariant Code Motion</h2>
+<p>感觉到了Assignment3这一部分难度明显上来了呢.<strong>尤其是寄存器分配是新加的部分,我尝试着去实现,但是失败了😭.</strong></p>
+<h3 id="循环不变量计算">1) 循环不变量计算</h3>
+<p>关于循环不变量相关的代码消除,其核心算法有两个关键:</p>
+<ul>
+<li><strong>如何判断循环不变量?</strong>循环不变量涉及到的都是由BinaryOperator定义的,因此取决于其Operand.该Operand应满足一下条件:(1)是Constant;(2)已经确定为循环不变量;(3)改变量的定义不处于该Loop,并且处于外部.当所有Operand都符合三个条件之一时,此表达式就是一个循环不变量.</li>
+<li><strong>什么样的循环不变量可以外提?</strong>该循环不变量所对应的表达式(Instruction)同时为所有exit
+block的支配结点.</li>
+</ul>
+<p>此算法仍然是一个迭代算法,
+迭代算法会在每一次迭代更新一个循环不变量的集合,当循环不变量的集合和上一轮没有发生变化时,迭代结束.</p>
+<blockquote>
+<p><strong>关于迭代算法的简单思考</strong></p>
+<p>前面的活跃分析、可用表达式以及这里的循环不变量计算都用到了迭代算法.也很显然它们有共同之处,即更新时需要根据一些不变信息(比如活跃分析中的def和use集合,循环不变量计算中关于Constant和是否处于外部循环的判断),也需要根据一些变化的信息(也就是每一次迭代要更新的信息,比如说活跃分析中的OUT集合,循环不变量计算中的不变量集合),一旦这些变化的信息没有发生改变,接下来迭代中的所有信息也就都成了“不变信息”,因此接下来无论进行多少迭代,其结果都不会发生改变,因此可以判定为迭代结束.</p>
+</blockquote>
+<h4 id="依赖设置">依赖设置</h4>
+<p>关于Loop有关的优化,
+需要了解一些与循环相关的信息,以及控制流图中的循环信息(比如说循环中的支配结点等).而这些信息都不是LLVM库直接提供的,而是经过前面的数据流分析所获得的,所以需要增加依赖,表示这一部分Pass需要借用之前的一些分析结果来进行处理.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-virtual">virtual</span> <span class="token keyword keyword-void">void</span> <span class="token function">getAnalysisUsage</span><span class="token punctuation">(</span>AnalysisUsage <span class="token operator">&amp;</span>AU<span class="token punctuation">)</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-override">override</span> <span class="token punctuation">{</span>
+  <span class="token comment">/**
+   * @todo(cscd70) Request the dominator tree and the loop simplify pass.
+   */</span>
+  AU<span class="token punctuation">.</span><span class="token generic-function"><span class="token function">addRequired</span><span class="token generic class-name"><span class="token operator">&lt;</span>DominatorTreeWrapperPass<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// 用于检查某个Instruction是否是支配结点</span>
+  AU<span class="token punctuation">.</span><span class="token generic-function"><span class="token function">addRequired</span><span class="token generic class-name"><span class="token operator">&lt;</span>LoopInfoWrapperPass<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  AU<span class="token punctuation">.</span><span class="token function">setPreservesCFG</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>       <span class="token comment">// 保留之前所求出的数据流图的结果.</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p><code>getAnalysisUsage</code>也是很多Pass需要override的方法.因此设置好了分析依赖之后,
+就可以获取相关的数据结构,进而在后续阶段读取使用:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>loopInfo <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    loopInfo <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">getAnalysis</span><span class="token generic class-name"><span class="token operator">&lt;</span>LoopInfoWrapperPass<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getLoopInfo</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>dominatorTree <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    dominatorTree <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">getAnalysis</span><span class="token generic class-name"><span class="token operator">&lt;</span>DominatorTreeWrapperPass<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getDomTree</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中,loopInfo和dominatorTree都是该Pass中的数据成员.</p>
+<h4 id="核心数据结构">核心数据结构</h4>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-const">const</span> LoopInfo <span class="token operator">*</span>loopInfo<span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> DominatorTree <span class="token operator">*</span>dominatorTree<span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>unordered_set<span class="token operator">&lt;</span>Instruction<span class="token operator">*</span><span class="token operator">&gt;</span> InvariantSet<span class="token punctuation">;</span>		<span class="token comment">// 所收集的循环不变量的集合</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+<p>前两者之前有所介绍,<code>InvariantSet</code>则用来保存在迭代时所确定的循环不变量.用于在后续迭代中查询变量是否为循环不变量.</p>
+<h4 id="核心实现">核心实现</h4>
+<p>核心实现也就是迭代算法收集不变量的实现.在<code>runOnLoop</code>中只对应了一行:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span><span class="token function">traversalLoop</span><span class="token punctuation">(</span>L<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+<p><code>traversalLoop</code>的返回值表示的是这一轮迭代有没有发生改变.关于runOnLoop(优化的粒度是一个Loop).runOnLoop的全部实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-virtual">virtual</span> <span class="token keyword keyword-bool">bool</span> <span class="token function">runOnLoop</span><span class="token punctuation">(</span>Loop <span class="token operator">*</span>L<span class="token punctuation">,</span> LPPassManager <span class="token operator">&amp;</span>LPM<span class="token punctuation">)</span> <span class="token keyword keyword-override">override</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>L<span class="token operator">-&gt;</span><span class="token function">getLoopPreheader</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+      InvariantSet<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>loopInfo <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          loopInfo <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">getAnalysis</span><span class="token generic class-name"><span class="token operator">&lt;</span>LoopInfoWrapperPass<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getLoopInfo</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+      <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>dominatorTree <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+          dominatorTree <span class="token operator">=</span> <span class="token operator">&amp;</span><span class="token punctuation">(</span><span class="token generic-function"><span class="token function">getAnalysis</span><span class="token generic class-name"><span class="token operator">&lt;</span>DominatorTreeWrapperPass<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getDomTree</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+      <span class="token comment">// 首先需要从中找出循环不变量，通过遍历Instruction来确定， 收集到一个list中</span>
+      <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span><span class="token function">traversalLoop</span><span class="token punctuation">(</span>L<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token punctuation">}</span>
+      <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> Invariant <span class="token operator">:</span> InvariantSet<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 将对应的指令移动到Preheader中</span>
+          <span class="token comment">// 需要判断的是是否是exit的支配结点</span>
+          <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">checkIsExitsDom</span><span class="token punctuation">(</span>L<span class="token punctuation">,</span> Invariant<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+              <span class="token function">moveInvariant</span><span class="token punctuation">(</span>L<span class="token punctuation">,</span> Invariant<span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token punctuation">}</span>
+      <span class="token punctuation">}</span>
+      <span class="token comment">// 接下来根据所收集的指令判断是否可以并进行移动</span>
+      <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>首先需要判断当前Loop是否有Preheader,然而什么样的Loop是没有Preheader的呢?LLVM中注释解释道:</p>
+<blockquote>
+<p>If there is a preheader for this loop, return it. A loop has a
+preheader if there is only one edge to the header of the loop from
+outside of the loop. If this is the case, the block branching to the
+header of the loop is the preheader node. This method returns null if
+there is no preheader for the loop.</p>
+</blockquote>
+<p>也就是说循环外部结点到达header只有一个边的情况下,才是有Preheader的情况.</p>
+<p>之后对于InvariantSet的初始化,我最初也在纠结,这个集合应该作用于所有Loop,还是单个Loop呢?在这里是对单个Loop有效的,因此每个runOnLoop都clear,如果不clear,后面下面移动代码会导致重复移动的情况,我认为将该集合表示为所有Loop的倒也还可以,不过需要增加一个map来判断该Instruction是否已经移动,从而防止重复移动代码的情况.</p>
+<p>接下来分析<code>traversalLoop</code>的实现:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">LoopInvariantCodeMotion</span><span class="token double-colon punctuation">::</span><span class="token function">traversalLoop</span><span class="token punctuation">(</span>Loop <span class="token operator">*</span>L<span class="token punctuation">)</span> <span class="token punctuation">{</span>    <span class="token comment">// 每次只针对某一特定的L, 对应了runOnLoop中的L</span>
+    <span class="token keyword keyword-bool">bool</span> is_changed <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> BB <span class="token operator">:</span> L<span class="token operator">-&gt;</span><span class="token function">getBlocks</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>loopInfo<span class="token operator">-&gt;</span><span class="token function">getLoopFor</span><span class="token punctuation">(</span>BB<span class="token punctuation">)</span> <span class="token operator">!=</span> L<span class="token punctuation">)</span> <span class="token punctuation">{</span>     <span class="token comment">// 每次只针对特定的L</span>
+            <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>Inst <span class="token operator">:</span> <span class="token operator">*</span>BB<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">isInSet</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>Inst<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token function">isInvariant</span><span class="token punctuation">(</span>L<span class="token punctuation">,</span> <span class="token operator">&amp;</span>Inst<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                InvariantSet<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>Inst<span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// 加入到集合中</span>
+                is_changed <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> is_changed<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里需要对此Loop中的所有Instruction进行遍历,不过这里的关于BasicBlock只能表示此Loop头尾之间的所有BasicBlock,而不一定处于本Loop之中(比如说可能处于内部的某个嵌套循环之中),因此对于这种情况就continue.对该指令进行遍历时首先判断之前是否已经处于Inst中,
+并且通过<code>isInvariant</code>来做具体的判断.如果发现新的循环不变量,就加入到集合,并设置changed.</p>
+<p>关于<code>isInvariant</code>的实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">LoopInvariantCodeMotion</span><span class="token double-colon punctuation">::</span><span class="token function">isInvariant</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Loop <span class="token operator">*</span>loop<span class="token punctuation">,</span> Instruction <span class="token operator">*</span><span class="token keyword keyword-const">const</span> I<span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// loop 也正是当前所处理的I所处于loop</span>
+    <span class="token keyword keyword-bool">bool</span> IsVariable <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-auto">auto</span> isOutLoop
+    <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">&amp;</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Instruction<span class="token operator">*</span> inst<span class="token punctuation">)</span> <span class="token operator">-&gt;</span> <span class="token keyword keyword-bool">bool</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> loop<span class="token operator">-&gt;</span><span class="token function">contains</span><span class="token punctuation">(</span>inst<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> oper_it <span class="token operator">=</span> I<span class="token operator">-&gt;</span><span class="token function">op_begin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> oper_it <span class="token operator">!=</span> I<span class="token operator">-&gt;</span><span class="token function">op_end</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>oper_it<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-bool">bool</span> op_is_const<span class="token punctuation">,</span> op_is_inset<span class="token punctuation">,</span> op_notsame_loop<span class="token punctuation">;</span>
+        op_is_const <span class="token operator">=</span> <span class="token generic-function"><span class="token function">isa</span><span class="token generic class-name"><span class="token operator">&lt;</span>Constant<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>oper_it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-auto">auto</span> oper_inst <span class="token operator">=</span> <span class="token generic-function"><span class="token function">dyn_cast</span><span class="token generic class-name"><span class="token operator">&lt;</span>Instruction<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>oper_it<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>oper_inst <span class="token operator">!=</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            op_is_inset <span class="token operator">=</span> <span class="token function">isInSet</span><span class="token punctuation">(</span>oper_inst<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            op_notsame_loop <span class="token operator">=</span> <span class="token operator">!</span><span class="token function">isOutLoop</span><span class="token punctuation">(</span>oper_inst<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+            op_is_inset <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+            op_notsame_loop <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token comment">// 判断循环所处的位置，是否位于循环外部</span>
+        IsVariable <span class="token operator">&amp;=</span> <span class="token punctuation">(</span>op_is_inset <span class="token operator">||</span> op_is_const <span class="token operator">||</span> op_notsame_loop<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> IsVariable <span class="token operator">&amp;&amp;</span>
+    <span class="token function">isSafeToSpeculativelyExecute</span><span class="token punctuation">(</span>I<span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
+    <span class="token operator">!</span>I<span class="token operator">-&gt;</span><span class="token function">mayReadFromMemory</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
+    <span class="token operator">!</span><span class="token generic-function"><span class="token function">isa</span><span class="token generic class-name"><span class="token operator">&lt;</span>LandingPadInst<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>I<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其核心在于对操作数的判断,结合前面所提到的符合循环不变量的条件也就不难实现这一部分的代码.其中对于是否处于外部循环的实现,采用<code>contains</code>完成,<strong>该方法可以用来判断某个Inst是否处于某个loop之中.</strong></p>
+<p>收集完这一轮的循环不变量时,需要先判断是否可以移动之后才可以进行移动.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token class-name">LoopInvariantCodeMotion</span><span class="token double-colon punctuation">::</span><span class="token function">checkIsExitsDom</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Loop <span class="token operator">*</span>loop<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> Instruction <span class="token operator">*</span>Inst<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token comment">// 在一个控制流图中, 其Exit Block往往有好几个</span>
+    SmallVector<span class="token operator">&lt;</span>BasicBlock<span class="token operator">*</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token operator">&gt;</span> exit_blocks<span class="token punctuation">;</span>
+    loop<span class="token operator">-&gt;</span><span class="token function">getExitBlocks</span><span class="token punctuation">(</span>exit_blocks<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> exit_block <span class="token operator">:</span> exit_blocks<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token comment">// 检查Inst是否为该Block的支配结点</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>dominatorTree<span class="token operator">-&gt;</span><span class="token function">dominates</span><span class="token punctuation">(</span>Inst<span class="token punctuation">,</span> exit_block<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token comment">// 如果不是支配结点</span>
+            <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-void">void</span> <span class="token class-name">LoopInvariantCodeMotion</span><span class="token double-colon punctuation">::</span><span class="token function">moveInvariant</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> Loop <span class="token operator">*</span>loop<span class="token punctuation">,</span> Instruction <span class="token operator">*</span>Inst<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-auto">auto</span> perheader <span class="token operator">=</span> loop<span class="token operator">-&gt;</span><span class="token function">getLoopPreheader</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Inst<span class="token operator">-&gt;</span><span class="token function">moveBefore</span><span class="token punctuation">(</span>perheader<span class="token operator">-&gt;</span><span class="token function">getTerminator</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>通过<code>getExitBlocks</code>方法可以返回该Loop的所有退出块,对于Inst应该满足的条件是:<strong>为所有exit
+block的支配结点</strong>.通过dominatorTree中的<code>dominates</code>方法判断.在移动代码时,获取该Loop的Preheader,将该Inst移动到里面就可以.其实顺序不需要讲究,因为循环不变量对应的指令往往是没有什么依赖关系的.</p>
+<h3 id="寄存器分配">2) 寄存器分配</h3>
+<p>这一部分我没写出来,网上找的大佬的代码都是旧版的,这一部分也没有.之所以困扰我一方面是因为理解寄存器分配的算法有点难,另一方面是因为这其中涉及到很多LLVM的数据结构我没有整明白,而且接下来的学习任务有些紧张,所以尝试写了写之后就先搁浅了,<strong>我是真的废物</strong>.</p>
+<p>之前的Pass都是基于IR处理,而寄存器分配的Pass处于一个不同的阶段,这一部分位于指令选择与指令调度之后,此时该Pass所接受的形式不再是IR,而是MachineFunction,可以说已经接近目标汇编语言,但只是没有将其中的虚拟寄存器转化为物理寄存器.因此这里所需要使用的LLVM中的API和数据结构和前面的Pass都不太一样.</p>
+<p>不过LLVM中有提供的几种寄存器分配的实现,我想以后有时间再学一学吧.</p>
+<h4 id="example中的简单实现">example中的简单实现</h4>
+<p>CSCD70的example中给出了一个简单的寄存器实现.像之前的Pass一样,这里也是一个class,继承了<code>MachineFunctionPass和LiveRangeEdit::Delegate</code>.正如之前所写的Pass一样,首先需要说明的是该Pass所需要的依赖,其中涉及的代码如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>SlotIndexes<span class="token punctuation">)</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>VirtRegMap<span class="token punctuation">)</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>LiveIntervals<span class="token punctuation">)</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>LiveRegMatrix<span class="token punctuation">)</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>LiveStacks<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>AAResultsWrapperPass<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>MachineDominatorTree<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>MachineLoopInfo<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">INITIALIZE_PASS_DEPENDENCY</span><span class="token punctuation">(</span>MachineBlockFrequencyInfo<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">INITIALIZE_PASS_END</span><span class="token punctuation">(</span>RAMinimal<span class="token punctuation">,</span> <span class="token string">"regallominimal"</span><span class="token punctuation">,</span> <span class="token string">"Minimal Register Allocator"</span><span class="token punctuation">,</span>
+                    <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这里的<code>INITIALIZE_PASS_DEPENDENCY</code>声明的作用和<code>getAnalysisUsage</code>中设置依赖类似,其中逐个简要说明其中的意义:</p>
+<ul>
+<li>SlotIndexes.用于给指令编排序号,
+编排序号的重要作用之一在于为变量的LiveInterval确定区间.比如说指令A序号为01B指令B的序号为09B,因此活跃在这两个指令之间的变量的LiveInterval就对应了[01B,
+09B),不过这只是其中一段.</li>
+<li>VirtRegMap.维护了一些虚拟寄存器有关的Map,比如说到物理寄存器的Map(也正是寄存器分配时需要设置的).</li>
+<li>LiveIntervals.维护了变量的LiveInterval的集合,关于LiveInterval其中主要的数据结构有一个VNInfo,代表了一个def点(通过SlotIndex表示),还有一个Segment,表示一个左必右开区间(start、end,还有一个指向VNInfo的指针),表示一段活跃期,LiveRange表示一个虚拟寄存器的完整周期,是Segment的集合.而LiveInterval继承自LiveRange,主要是多了Reg寄存器和Weight权重.</li>
+<li>LiveRegMatrix.通过两个维度判断虚拟寄存器之间有无interference.分别是Slot
+indexes和register
+unit.数据成员主要是一个VirRegMap和LiveIntervals的指针.有checkInterference,assign等方法.</li>
+<li>LiveStacks.类似于活跃分析,但是分析的不是寄存器,而是Slot.(说实话不是太懂这个东西).</li>
+</ul>
+<p>因此这些分析结果也都有相应的数据成员,在runOnLoop函数中,一开始就是初始化与这些以来相关的数据结构:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-const">const</span> SlotIndexes <span class="token operator">*</span>SI<span class="token punctuation">;</span>        <span class="token comment">// 用于给每个指令编成序号</span>
+ <span class="token comment">// Virtual Register Mapping</span>
+ VirtRegMap <span class="token operator">*</span>VRM<span class="token punctuation">;</span>      <span class="token comment">// 是一个从虚拟寄存器到物理寄存器的Map, 也是我们实现寄存器分配所需要填充的内容</span>
+ <span class="token keyword keyword-const">const</span> TargetRegisterInfo <span class="token operator">*</span>TRI<span class="token punctuation">;</span>        <span class="token comment">// 目标寄存器Info</span>
+ MachineRegisterInfo <span class="token operator">*</span>MRI<span class="token punctuation">;</span>
+ <span class="token comment">// Live Intervals</span>
+ LiveIntervals <span class="token operator">*</span>LIS<span class="token punctuation">;</span>       <span class="token comment">// 寄存器的活跃间隔</span>
+ std<span class="token double-colon punctuation">::</span>queue<span class="token operator">&lt;</span>LiveInterval <span class="token operator">*</span><span class="token operator">&gt;</span> LIQ<span class="token punctuation">;</span> <span class="token comment">// FIFO Queue</span>
+LiveRegMatrix <span class="token operator">*</span>LRM<span class="token punctuation">;</span><span class="token comment">// Register Class Information</span>
+ RegisterClassInfo RCI<span class="token punctuation">;</span>
+std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>Spiller<span class="token operator">&gt;</span> SpillerInst<span class="token punctuation">;</span>			<span class="token comment">// 提供了spill方法</span>
+ SmallPtrSet<span class="token operator">&lt;</span>MachineInstr <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token number">32</span><span class="token operator">&gt;</span> DeadRemats<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>在runOnMachineFunction中,做完一些初始化之后,将LiveInterval结点一个个地加入LIQ,之后从LIQ中将结点逐个弹出,并对其调用selectOrSplit.其中弹出队列中的处理过程基本如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>LiveInterval <span class="token operator">*</span><span class="token keyword keyword-const">const</span> LI <span class="token operator">=</span> <span class="token function">dequeue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>    <span class="token comment">// 将FIFO逐个弹出并进行染色</span>
+   <span class="token comment">// again, skip all unused registers</span>
+   <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>MRI<span class="token operator">-&gt;</span><span class="token function">reg_nodbg_empty</span><span class="token punctuation">(</span>LI<span class="token operator">-&gt;</span><span class="token function">reg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+     LIS<span class="token operator">-&gt;</span><span class="token function">removeInterval</span><span class="token punctuation">(</span>LI<span class="token operator">-&gt;</span><span class="token function">reg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+     <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>     <span class="token comment">// 如果出现了nodbg_empty就需要移除</span>
+   LRM<span class="token operator">-&gt;</span><span class="token function">invalidateVirtRegs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token comment">// 2. Allocate to a physical register (if available) or split to a list of</span>
+   <span class="token comment">//    virtual registers.</span>
+   SmallVector<span class="token operator">&lt;</span>Register<span class="token punctuation">,</span> <span class="token number">4</span><span class="token operator">&gt;</span> SplitVirtRegs<span class="token punctuation">;</span>
+   MCRegister PhysReg <span class="token operator">=</span> <span class="token function">selectOrSplit</span><span class="token punctuation">(</span>LI<span class="token punctuation">,</span> <span class="token operator">&amp;</span>SplitVirtRegs<span class="token punctuation">)</span><span class="token punctuation">;</span>       <span class="token comment">// Split也就是需要溢出的,这种情况下,需要将其进行split</span>
+   <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>PhysReg<span class="token punctuation">)</span> <span class="token punctuation">{</span>  <span class="token comment">// 如果是可以分配的寄存器,就可以进行赋值了,寄存器分配的目标就在于设置一个Map</span>
+     LRM<span class="token operator">-&gt;</span><span class="token function">assign</span><span class="token punctuation">(</span><span class="token operator">*</span>LI<span class="token punctuation">,</span> PhysReg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span>
+   <span class="token comment">// enqueue the splitted live ranges</span>
+   <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>Register Reg <span class="token operator">:</span> SplitVirtRegs<span class="token punctuation">)</span> <span class="token punctuation">{</span>      <span class="token comment">// 所返回的</span>
+     LiveInterval <span class="token operator">*</span>LI <span class="token operator">=</span> <span class="token operator">&amp;</span>LIS<span class="token operator">-&gt;</span><span class="token function">getInterval</span><span class="token punctuation">(</span>Reg<span class="token punctuation">)</span><span class="token punctuation">;</span>
+     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>MRI<span class="token operator">-&gt;</span><span class="token function">reg_nodbg_empty</span><span class="token punctuation">(</span>LI<span class="token operator">-&gt;</span><span class="token function">reg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+       LIS<span class="token operator">-&gt;</span><span class="token function">removeInterval</span><span class="token punctuation">(</span>LI<span class="token operator">-&gt;</span><span class="token function">reg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>       <span class="token comment">// 对于分裂的如何进行处理??为什么需要进行分裂呢?</span>
+       <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+     <span class="token punctuation">}</span>
+     <span class="token function">enqueue</span><span class="token punctuation">(</span>LI<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">}</span> <span class="token comment">// 对于Split的应该进行怎样的处理呢?</span>
+ <span class="token punctuation">}</span> <span class="token comment">// while (dequeue())</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其中最重要的函数是<code>selectOrSplit</code>.该函数涉及的操作如下:</p>
+<ul>
+<li>首先获取一个可供分配的物理寄存器的序列.</li>
+<li>之后对于该指令,遍历可用物理寄存器序列,通过LiveRegMatrix中的checkInterference判断是否冲突,<strong>如果不冲突就直接返回就好了</strong>;如果冲突就加入一个溢出候选寄存器序列(因为溢出的变量虽然会溢出到内存中,但是从内存中取出此变量时仍然需要寄存器).</li>
+<li>遍历溢出候选寄存器序列,从中调用spillInterferences(可以尝试从候选寄存器中找出来一个可以分配给当前指令的,因此也就免去了对当前指令的spill),如果溢出寄存器序列中有可以spill(其实spill的是其对应的变量)的,<strong>就返回该寄存器</strong>.相关的源代码如下:</li>
+</ul>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>MCRegister PhysReg <span class="token operator">:</span> PhysRegSpillCandidates<span class="token punctuation">)</span> <span class="token punctuation">{</span>             <span class="token comment">// 这一部分考虑进行split的操作</span>
+  <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">spillInterferences</span><span class="token punctuation">(</span>LI<span class="token punctuation">,</span> PhysReg<span class="token punctuation">,</span> SplitVirtRegs<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>            <span class="token comment">// 会讲split的结果返回到SplitVirtual中</span>
+    <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-return">return</span> PhysReg<span class="token punctuation">;</span>			<span class="token comment">// 这种情况,就是该PhysReg可以腾出来分配给当前指令的情况</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<ul>
+<li>最终将当前指令spill,也就是前面都没有出现返回的情况,相关实现如下:</li>
+</ul>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">LiveRangeEdit <span class="token function">LRE</span><span class="token punctuation">(</span>LI<span class="token punctuation">,</span> <span class="token operator">*</span>SplitVirtRegs<span class="token punctuation">,</span> <span class="token operator">*</span>MF<span class="token punctuation">,</span> <span class="token operator">*</span>LIS<span class="token punctuation">,</span> VRM<span class="token punctuation">,</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">,</span> <span class="token operator">&amp;</span>DeadRemats<span class="token punctuation">)</span><span class="token punctuation">;</span>       <span class="token comment">// 用于修改Liveness范围的</span>
+SpillerInst<span class="token operator">-&gt;</span><span class="token function">spill</span><span class="token punctuation">(</span>LRE<span class="token punctuation">)</span><span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+<p>接下来细说<code>spillInterferences</code>.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-bool">bool</span> <span class="token function">spillInterferences</span><span class="token punctuation">(</span>LiveInterval <span class="token operator">*</span><span class="token keyword keyword-const">const</span> LI<span class="token punctuation">,</span> MCRegister PhysReg<span class="token punctuation">,</span>
+                        SmallVectorImpl<span class="token operator">&lt;</span>Register<span class="token operator">&gt;</span> <span class="token operator">*</span><span class="token keyword keyword-const">const</span> SplitVirtRegs<span class="token punctuation">)</span> <span class="token punctuation">{</span>    
+  SmallVector<span class="token operator">&lt;</span>LiveInterval <span class="token operator">*</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token operator">&gt;</span> IntfLIs<span class="token punctuation">;</span>
+  <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>MCRegUnitIterator <span class="token function">Units</span><span class="token punctuation">(</span>PhysReg<span class="token punctuation">,</span> TRI<span class="token punctuation">)</span><span class="token punctuation">;</span> Units<span class="token punctuation">.</span><span class="token function">isValid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>Units<span class="token punctuation">)</span> <span class="token punctuation">{</span>		<span class="token comment">// 物理寄存器可能是有别名的,所以采用这种方式遍历</span>
+    LiveIntervalUnion<span class="token double-colon punctuation">::</span>Query <span class="token operator">&amp;</span>Q <span class="token operator">=</span> LRM<span class="token operator">-&gt;</span><span class="token function">query</span><span class="token punctuation">(</span><span class="token operator">*</span>LI<span class="token punctuation">,</span> <span class="token operator">*</span>Units<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Q<span class="token punctuation">.</span><span class="token function">collectInterferingVRegs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span>LiveInterval <span class="token operator">*</span><span class="token keyword keyword-const">const</span> IntfLI <span class="token operator">:</span> Q<span class="token punctuation">.</span><span class="token function">interferingVRegs</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>			<span class="token comment">// 遍历其中冲突的虚拟寄存器</span>
+      <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>IntfLI<span class="token operator">-&gt;</span><span class="token function">isSpillable</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">||</span> IntfLI<span class="token operator">-&gt;</span><span class="token function">weight</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> LI<span class="token operator">-&gt;</span><span class="token function">weight</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+      IntfLIs<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>IntfLI<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+  <span class="token comment">// Spill each interfering vreg allocated to PhysRegs.</span>
+  <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-unsigned">unsigned</span> IntfIdx <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> IntfIdx <span class="token operator">&lt;</span> IntfLIs<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>IntfIdx<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    LiveInterval <span class="token operator">*</span><span class="token keyword keyword-const">const</span> LIToSpill <span class="token operator">=</span> IntfLIs<span class="token punctuation">[</span>IntfIdx<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token comment">// avoid duplicates</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>VRM<span class="token operator">-&gt;</span><span class="token function">hasPhys</span><span class="token punctuation">(</span>LIToSpill<span class="token operator">-&gt;</span><span class="token function">reg</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-continue">continue</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// Deallocate the interfering virtual registers.</span>
+    LRM<span class="token operator">-&gt;</span><span class="token function">unassign</span><span class="token punctuation">(</span><span class="token operator">*</span>LIToSpill<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    LiveRangeEdit <span class="token function">LRE</span><span class="token punctuation">(</span>LIToSpill<span class="token punctuation">,</span> <span class="token operator">*</span>SplitVirtRegs<span class="token punctuation">,</span> <span class="token operator">*</span>MF<span class="token punctuation">,</span> <span class="token operator">*</span>LIS<span class="token punctuation">,</span> VRM<span class="token punctuation">,</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">,</span>
+                      <span class="token operator">&amp;</span>DeadRemats<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    SpillerInst<span class="token operator">-&gt;</span><span class="token function">spill</span><span class="token punctuation">(</span>LRE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword keyword-return">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>简而言之,这个过程分为两步骤:</p>
+<ul>
+<li>第一阶段,收集该物理寄存器所涉及的虚拟寄存器,由于物理寄存器也许有别名,所以在通过<code>MCRegUnitIterator</code>遍历,之后通过LRM中的query返回<code>LiveIntervalUnion::Query</code>,之后可以获取该Unit所对应的与LI冲突的虚拟寄存器的集合,然后再对此遍历,只要出现了不可spill或者spill
+weight大于LI的,就返回false.因此可以说<strong>只有当一个候选物理寄存器中与LI冲突的所有虚拟寄存器都比LI的spill
+weight小,才可以将该候选物理寄存器spill</strong>.</li>
+<li>第二阶段,将该物理寄存器所涉及的虚拟寄存器溢出.</li>
+</ul>
+<blockquote>
+<p><strong>使用基于spill cost的优先级队列</strong></p>
+<p>在example中只是使用了普通队列, 在LLVM basic register
+allocator中,使用的是一个优先级队列,并且根据计算的LiveInterval的权重来排序,该权重用于衡量spill的代价,其中最常用的计算方式如下:</p>
+<p>Cost = [(is_defs + is_use)*10^loop-nest-depth]/degree</p>
+<p>因此在将结点加入到队列时,导致代价低在队列底部,代价高的在上部,这使得在后来pop队列时,代价高的优先具有被分配的机会,因此实际被spill的往往都是代价比较低的变量,显然相比使用普通的队列是一种优化.</p>
+</blockquote>
+<p>此外,在example中,没有实现split,split是一种通过将一个大的活跃区间分割成一个个小活跃区间的方法,用于降低spill的代价,在example中,<code>SplitVirtRegs</code>集合全程都是空的.</p>
+<h2 id="相关参考">相关参考</h2>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/290946850#:~:text=CallGrap,Pass.h%E4%B8%AD%EF%BC%9A">LLVM中的pass及其管理机制</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.llvm.org/docs/ProgrammersManual.html#iterating-over-the-instruction-in-a-basicblock">LLVM
+Programmer’s Manual</a></p>
+<p><a target="_blank" rel="noopener" href="https://kiprey.github.io/2020/06/LLVM-IR-pass/">代码优化与LLVM IR
+pass</a></p>
+<p><a target="_blank" rel="noopener" href="https://yogdzewa.github.io/2022-03/Now-CSCD70/">CSCD70
+&amp;&amp; LLVM</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Evian-Zhang/llvm-ir-tutorial">Evian-Zhang/llvm-ir-tutorial</a></p>
+<p><a href="https://link.zhihu.com/?target=http%3A//llvm.org/devmtg/2019-04/slides/Tutorial-Bridgers-LLVM_IR_tutorial.pdf">Tutorial-Bridgers-LLVM_IR_tutorial</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/28182330">How To Write An LLVM
+Register Allocator</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/178228779">编译器算法之寄存器分配</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.daimajiaoliu.com/series/llvm/485c0ce27900405">LLVM里的寄存器分配
+- basic分配器(三)</a></p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        Author:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">yfs</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        Link:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="http://example.com/2022/12294483.html">http://example.com/2022/12294483.html</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        Reprint policy:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    All articles in this blog are used except for special statements
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    reprint polocy. If reproduced, please indicate source
+                    <a href="/about" target="_blank">yfs</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>Copied successfully, please follow the reprint policy of this article</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">more</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
+                                    <span class="chip bg-color">编译原理</span>
+                                </a>
+                            
+                                <a href="/tags/llvm/">
+                                    <span class="chip bg-color">llvm</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;Previous</div>
+            <div class="card">
+                <a href="/2023/010612922.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2029%2016%2016%2036%201672301796%201672301796936%20FPzNRH%20image-20221229161636763%20.png" class="responsive-img" alt="LLVM学习记录">
+                        
+                        <span class="card-title">LLVM学习记录</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            学习关于LLVM一些比较基础的概念所做的笔记.
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-01-06
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/LLVM/">
+                        <span class="chip bg-color">LLVM</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                Next&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/122854432.html">
+                    <div class="card-image">
+                        
+                        <img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2028%2020%2037%2029%201672231049%201672231049331%20sag1aV%20image-20221228203729221%20.png" class="responsive-img" alt="编译器后端以及优化相关的基础理论">
+                        
+                        <span class="card-title">编译器后端以及优化相关的基础理论</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            学习编译器后端优化相关的理论知识所做笔记
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-12-28
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            yfs
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">
+                        <span class="chip bg-color">编译原理</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;TOC</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // modify the toc link href to support Chinese.
+        let i = 0;
+        let tocHeading = 'toc-heading-';
+        $('#toc-content a').each(function () {
+            $(this).attr('href', '#' + tocHeading + (++i));
+        });
+
+        // modify the heading title id to support Chinese.
+        i = 0;
+        $('#articleContent').children('h2, h3, h4').each(function () {
+            $(this).attr('id', tocHeading + (++i));
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+
+    
+    <div class="container row center-align" style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2022-2023</span>
+            
+            <span id="year">2022</span>
+            <a href="/about" target="_blank">yfs</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+            
+            
+            
+            <span id="busuanzi_container_site_pv">
+                |&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;<span id="busuanzi_value_site_pv"
+                    class="white-color"></span>&nbsp;次
+            </span>
+            
+            
+            <span id="busuanzi_container_site_uv">
+                |&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;<span id="busuanzi_value_site_uv"
+                    class="white-color"></span>&nbsp;人
+            </span>
+            
+            <br>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/YfsBox" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:1027342142@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1027342142" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1027342142" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<script src="/js/prism/prism.js" async></script>
+<link rel="stylesheet" href="/css/prism.css">
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;Search</span>
+            <input type="search" id="searchInput" name="s" placeholder="Please enter a search keyword"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+	
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+    <script type="text/javascript">
+        //只在桌面版网页启用特效
+        var windowWidth = $(window).width();
+        if (windowWidth > 768) {
+            document.write('<script type="text/javascript" src="/js/sakura.js"><\/script>');
+        }
+        </script>
+        
+
+</body>
+
+</html>
