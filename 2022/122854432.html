@@ -469,7 +469,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>Word Count:&nbsp;&nbsp;
-                    6.2k
+                    6.1k
                 </div>
                 
 
@@ -525,17 +525,7 @@ IR—&gt; SelectionDAG—&gt;MachineInst—&gt;MCInst/Assembly</strong></p>
 </ul>
 <p>下面的这个图总结的很直观:</p>
 <p><img src="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2022%2012%2030%2023%2002%2044%201672412564%201672412564803%20hVlKhd%20image-20221230230244724%20.png" alt="image-20221230230244724" style="zoom: 50%;"></p>
-<h3 id="llvm-pass-manager">3) LLVM Pass Manager</h3>
-<p>关于Pass这个概念说过多次了, 不再多说.其中Pass有六种类型:</p>
-<ul>
-<li>BasicBlockPass.用来遍历整个程序中的每个Basic Block.</li>
-<li>CallGraphSCCPass. 遍历每一个SCC(过程调用链), 以底向上的顺序.</li>
-<li>FunctionPass.用来遍历每一个function.</li>
-<li>LoopPass,用来遍历每一个loop.</li>
-<li>ModulePass, 对于一整个Program的总体的Pass.</li>
-<li>RegionPass.</li>
-</ul>
-<h3 id="more-on-the-llvm-compiler">4) More on the LLVM Compiler</h3>
+<h3 id="more-on-the-llvm-compiler">3) More on the LLVM Compiler</h3>
 <h4 id="data-structures">Data Structures</h4>
 <p>首先需要提到的是string,
 为什么不推荐常规C/C++程序一样直接使用char*或者std::string, 作为字符串呢?
