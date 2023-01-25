@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="之前阅读过一片有关于日志系统的论文,其中介绍了一种常见的日志系统的结构,可以分为frontend和backend两部分,前者被日志系统的User Thread调用,生成日志消息字符串到缓冲区中,后者往往作为一个专门的后台线程运行,接收来自frontend的内容,以某种方式将其flush到日志文件之中.在这里所介绍的日志系统中,尤其是在backend部分运用了不少可圈可点的trick来降低开销. 不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一个简易的stream风格的异步日志系统的实现">
+<meta property="og:url" content="http://example.com/2023/011947300.html">
+<meta property="og:site_name" content="Yfs&#39;s Box">
+<meta property="og:description" content="之前阅读过一片有关于日志系统的论文,其中介绍了一种常见的日志系统的结构,可以分为frontend和backend两部分,前者被日志系统的User Thread调用,生成日志消息字符串到缓冲区中,后者往往作为一个专门的后台线程运行,接收来自frontend的内容,以某种方式将其flush到日志文件之中.在这里所介绍的日志系统中,尤其是在backend部分运用了不少可圈可点的trick来降低开销. 不">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-01-19T12:09:33.000Z">
+<meta property="article:modified_time" content="2023-01-19T16:00:16.366Z">
+<meta property="article:author" content="yfs">
+<meta property="article:tag" content="系统编程">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="日志系统">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>一个简易的stream风格的异步日志系统的实现</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 6.0.0">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+</head>
+
+<link rel="stylesheet" href="/js/prism/prism.css">
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2023/012016887.html"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2023/010612922.html"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/011947300.html"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/011947300.html&text=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/011947300.html&is_video=false&description=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=一个简易的stream风格的异步日志系统的实现&body=Check out this article: http://example.com/2023/011947300.html"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/011947300.html&name=一个简易的stream风格的异步日志系统的实现&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/011947300.html&t=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#frontend"><span class="toc-number">1.</span> <span class="toc-text">1. frontend</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#logger"><span class="toc-number">1.1.</span> <span class="toc-text">1).Logger</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#loggerstream%E4%B8%8Efixedbuffer"><span class="toc-number">1.2.</span> <span class="toc-text">2).LoggerStream与FixedBuffer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#backend"><span class="toc-number">2.</span> <span class="toc-text">2. backend</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#asncylogging"><span class="toc-number">2.1.</span> <span class="toc-text">1).AsncyLogging</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#append"><span class="toc-number">2.2.</span> <span class="toc-text">2).append</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#logthreadfunc"><span class="toc-number">2.3.</span> <span class="toc-text">3).logThreadFunc</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">3. 总结</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        一个简易的stream风格的异步日志系统的实现
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">yfs</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2023-01-19T12:09:33.000Z" itemprop="datePublished">2023-01-19</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/C/" rel="tag">C++</a>, <a class="tag-link-link" href="/tags/%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/" rel="tag">日志系统</a>, <a class="tag-link-link" href="/tags/%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B/" rel="tag">系统编程</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>之前阅读过一片有关于日志系统的论文,其中介绍了一种常见的日志系统的结构,可以分为frontend和backend两部分,前者被日志系统的User
+Thread调用,生成日志消息字符串到缓冲区中,后者往往作为一个专门的后台线程运行,接收来自frontend的内容,以某种方式将其flush到日志文件之中.在这里所介绍的日志系统中,尤其是在backend部分运用了不少可圈可点的trick来降低开销.</p>
+<p>不过在我的实现中,我有些地方也没有做全,比如说日志级别的判断以及日志文件的滚动等等.</p>
+<h2 id="frontend">1. frontend</h2>
+<p>总的来说,如果想要用C++实现这里部分,所涉及的技术大概有这些:</p>
+<ul>
+<li><strong>运算符重载.</strong>将“&lt;&lt;”运算符转化为向缓冲区中添加字符串的操作,其中也包含生成字符串的部分,也就是将int、flout等非字符串类型的操作转化成字符串.</li>
+<li><strong>匿名对象与RAII</strong>.对应User
+Thread来说,调用日志输出API,比如LOG_DEBUG &lt;&lt; "hello,
+world",其本质上是创建了一个Logger匿名对象,其生命周期只限于这个调用语句中,在构造函数中则是一些关于日志前缀的构造并append
+buffer,析构函数中则是一些后缀字符串的append,比如"".并且将buffer中的内容传达给backend.</li>
+</ul>
+<p>下面介绍实现的细节.</p>
+<h3 id="logger">1).Logger</h3>
+<p>Logger的核心在于一个LoggerStream对象,该对象中维护了一个专门用来保存日志消息字符串的buffer,并且定义了一些和append
+buffer相关的"&lt;&lt;"重载.除了LoggerStream对象之外,还包含了像log
+level,timestamp等信息.其中数据成员如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-int">int</span> line_number_<span class="token punctuation">;</span>
+LogLevel level_<span class="token punctuation">;</span>
+LoggerStream stream_<span class="token punctuation">;</span>				
+TimeStamp time_stamp_<span class="token punctuation">;</span>      <span class="token comment">// 日志消息的生成时间</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+<p>Logger可以说是User
+Thread直接打交道的东西,但外面还包含了一层宏定义,使得User可以以“LOG_DEBUG
+&lt;&lt;”这样的方式调用.如下所示:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">LOG_INFO</span>    <span class="token punctuation">\</span>
+<span class="token expression"><span class="token class-name">TinyMuduo</span><span class="token double-colon punctuation">::</span><span class="token function">Logger</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">,</span> <span class="token constant">__LINE__</span><span class="token punctuation">,</span> TinyMuduo<span class="token double-colon punctuation">::</span>Logger<span class="token double-colon punctuation">::</span>LogLevel<span class="token double-colon punctuation">::</span>INFO<span class="token punctuation">,</span> __FUNCTION__<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span></span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">LOG_ERROR</span>   <span class="token punctuation">\</span>
+<span class="token expression"><span class="token class-name">TinyMuduo</span><span class="token double-colon punctuation">::</span><span class="token function">Logger</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">,</span> <span class="token constant">__LINE__</span><span class="token punctuation">,</span> TinyMuduo<span class="token double-colon punctuation">::</span>Logger<span class="token double-colon punctuation">::</span>LogLevel<span class="token double-colon punctuation">::</span>ERROR<span class="token punctuation">,</span> __FUNCTION__<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span></span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">LOG_DEBUG</span>   <span class="token punctuation">\</span>
+<span class="token expression"><span class="token class-name">TinyMuduo</span><span class="token double-colon punctuation">::</span><span class="token function">Logger</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">,</span> <span class="token constant">__LINE__</span><span class="token punctuation">,</span> TinyMuduo<span class="token double-colon punctuation">::</span>Logger<span class="token double-colon punctuation">::</span>LogLevel<span class="token double-colon punctuation">::</span>DEBUG<span class="token punctuation">,</span> __FUNCTION__<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span></span>
+
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">LOG_FATAL</span>   <span class="token punctuation">\</span>
+<span class="token expression"><span class="token class-name">TinyMuduo</span><span class="token double-colon punctuation">::</span><span class="token function">Logger</span><span class="token punctuation">(</span><span class="token constant">__FILE__</span><span class="token punctuation">,</span> <span class="token constant">__LINE__</span><span class="token punctuation">,</span> TinyMuduo<span class="token double-colon punctuation">::</span>Logger<span class="token double-colon punctuation">::</span>LogLevel<span class="token double-colon punctuation">::</span>FATAL<span class="token punctuation">,</span> __FUNCTION__<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getStream</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span></span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>由此可见,其实就是创建一个Logger临时对象,并且借助其stream.一句LOG语句大概可以分为三步:</p>
+<ul>
+<li>Logger构造函数的调用.如下所示:</li>
+</ul>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token class-name">Logger</span><span class="token double-colon punctuation">::</span><span class="token function">Logger</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span> filename<span class="token punctuation">,</span> <span class="token keyword keyword-unsigned">unsigned</span> <span class="token keyword keyword-int">int</span> lineno<span class="token punctuation">,</span> LogLevel level<span class="token punctuation">,</span> <span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>func<span class="token punctuation">)</span><span class="token operator">:</span>
+        <span class="token function">line_number_</span><span class="token punctuation">(</span>lineno<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">level_</span><span class="token punctuation">(</span>level<span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">stream_</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+        <span class="token function">time_stamp_</span><span class="token punctuation">(</span><span class="token class-name">TimeStamp</span><span class="token double-colon punctuation">::</span><span class="token function">getNowTimeStamp</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    stream_ <span class="token operator">&lt;&lt;</span> <span class="token string">"["</span> <span class="token operator">&lt;&lt;</span> time_stamp_<span class="token punctuation">.</span><span class="token function">getTimeFormatString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"]"</span><span class="token punctuation">;</span>
+    stream_ <span class="token operator">&lt;&lt;</span> <span class="token string">"[tid:"</span> <span class="token operator">&lt;&lt;</span> <span class="token class-name">CurrThreadSpace</span><span class="token double-colon punctuation">::</span><span class="token function">getCurrThreadId</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"]"</span><span class="token punctuation">;</span>
+    stream_ <span class="token operator">&lt;&lt;</span> <span class="token string">"["</span> <span class="token operator">&lt;&lt;</span> <span class="token function">getFileName</span><span class="token punctuation">(</span>filename<span class="token punctuation">)</span> <span class="token operator">&lt;&lt;</span> <span class="token string">": "</span> <span class="token operator">&lt;&lt;</span> lineno<span class="token punctuation">;</span>
+    stream_ <span class="token operator">&lt;&lt;</span> <span class="token string">" "</span> <span class="token operator">&lt;&lt;</span> func <span class="token operator">&lt;&lt;</span> <span class="token string">"]"</span><span class="token punctuation">;</span>
+    stream_ <span class="token operator">&lt;&lt;</span> <span class="token string">"["</span> <span class="token operator">&lt;&lt;</span> LevelMapVec<span class="token punctuation">[</span>level_<span class="token punctuation">]</span> <span class="token operator">&lt;&lt;</span> <span class="token string">"]"</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>其实本质上也就是利用其中的stream对象的"&lt;&lt;"将一些日志前缀信息加入到其中的buffer中.</p>
+<ul>
+<li>之后是利用Logger匿名对象返回的stream中的"&lt;&lt;"来处理日志消息的内容.</li>
+<li>最后,由于匿名对象的生命周期只限于这一条语句中,因此最终会触发Logger的析构函数.如下所示:</li>
+</ul>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token class-name">Logger</span><span class="token double-colon punctuation">::</span><span class="token operator">~</span><span class="token function">Logger</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>     <span class="token comment">// RAII真是无处不在</span>
+    <span class="token comment">// 将buffer中的内容代入到output函数中</span>
+    stream_ <span class="token operator">&lt;&lt;</span> <span class="token string">"\n"</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-auto">auto</span> buffer <span class="token operator">=</span> stream_<span class="token punctuation">.</span><span class="token function">getBuffer</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">LoggerOutput</span><span class="token punctuation">(</span>buffer<span class="token punctuation">,</span> stream_<span class="token punctuation">.</span><span class="token function">getBufferLen</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>LoggerOutput函数用于将buffer中的内容传送到日志后端,日志后端的class中,也就是调用AsyncLogging提供的一个append接口.</p>
+<h3 id="loggerstream与fixedbuffer">2).LoggerStream与FixedBuffer</h3>
+<p>LoggerStream中只包含了一个FixBuffer作为数据成员,FixedBuffer的实现很简单没什么好说的,就是一个固定大小的Buffer,其中有一个类似于迭代器的指针作为Buffer上的游标,其相关接口主要是为了实现append服务,就像相关的迭代器一样,比如说begin,end,getAvail等等.</p>
+<p>LoggerStream中关于"&lt;&lt;"重载的操作如下,以Int系的为例,举个例子:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-template">template</span><span class="token operator">&lt;</span><span class="token keyword keyword-class">class</span> <span class="token class-name">InterType</span><span class="token operator">&gt;</span>
+<span class="token keyword keyword-void">void</span> <span class="token class-name">LoggerStream</span><span class="token double-colon punctuation">::</span><span class="token function">appendForInter</span><span class="token punctuation">(</span>InterType val<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    std<span class="token double-colon punctuation">::</span>string <span class="token function">str</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">to_string</span><span class="token punctuation">(</span>val<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">append</span><span class="token punctuation">(</span>str<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> str<span class="token punctuation">.</span><span class="token function">length</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+LoggerStream <span class="token operator">&amp;</span>LoggerStream<span class="token double-colon punctuation">::</span><span class="token keyword keyword-operator">operator</span><span class="token operator">&lt;&lt;</span><span class="token punctuation">(</span><span class="token keyword keyword-int">int</span> val<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token generic-function"><span class="token function">appendForInter</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-int">int</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>val<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+LoggerStream <span class="token operator">&amp;</span>LoggerStream<span class="token double-colon punctuation">::</span><span class="token keyword keyword-operator">operator</span><span class="token operator">&lt;&lt;</span><span class="token punctuation">(</span>uint val<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token generic-function"><span class="token function">appendForInter</span><span class="token generic class-name"><span class="token operator">&lt;</span>uint<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>val<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+LoggerStream <span class="token operator">&amp;</span>LoggerStream<span class="token double-colon punctuation">::</span><span class="token keyword keyword-operator">operator</span><span class="token operator">&lt;&lt;</span><span class="token punctuation">(</span><span class="token keyword keyword-int64_t">int64_t</span> val<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token generic-function"><span class="token function">appendForInter</span><span class="token generic class-name"><span class="token operator">&lt;</span><span class="token keyword keyword-int64_t">int64_t</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span>val<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-return">return</span> <span class="token operator">*</span><span class="token keyword keyword-this">this</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>关于数字向字符串的转化,我使用了std::to_string进行.本质上<strong>就是调用了Buffer的append接口</strong>.关于Buffer中append的实现细节如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token function">append</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>content<span class="token punctuation">,</span> size_t len<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 需要考虑的是可用的条件</span>
+     <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token function">getAvail</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> len<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+         <span class="token function">memcpy</span><span class="token punctuation">(</span>curr_<span class="token punctuation">,</span> content<span class="token punctuation">,</span> len<span class="token punctuation">)</span><span class="token punctuation">;</span>
+         curr_ <span class="token operator">+=</span> len<span class="token punctuation">;</span>
+     <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>简而言之就是,拷贝内容并且移动指针即可.</p>
+<h2 id="backend">2. backend</h2>
+<p>通过之前的介绍,我们就了解到User Threads和Background
+thread构成了一个个生产者和一个消费者的关系,因此在backend中的设计中首先要考虑的是如何设计frontend到backend到接口,也就是上面提到的AsyncLogging的append接口,这一部分本质上仍然是在User
+Thread中进行的, <strong>日志系统的设计中,尽可能将少给User
+Thread带来耗时操作是关键</strong>,因此后面我们在关于append接口的设计中,我们需要考虑,这一部分有可能带来哪些耗时操作,如何避免或者将其代价尽可能降低.</p>
+<p>除了frontend和backend的交互部分,还有另一部分的设计也需要考虑.也就是<strong>Background
+thread本身的运行逻辑</strong>,这一部分往往是一个循环体,周期性地等待并将收集好的日志消息写入到日志文件中.</p>
+<p>在这里有一个简单而直观的办法,就是维护一个由Buffer所组成的队列,append就是将Logger的Buffer将入到该队列中,在主循环中,每当队列中的Buffer数量到达一定的数量,就将其写入到日志文件中,或者超过指定的Interval.但是这种设计的缺点很明显,就是由Buffer所组成的队列中造成的内存碎片过大,造成内存浪费.日志的长度往往长短不一,Logger中的Buffer为了能够容纳绝大多数日志消息的场景,因此都设置的挺大,我在我的实现中用了4096个字节,而大多数日志消息也就几十字节的样子,因此每个加入到队列中的Buffer都有巨大的内存碎片.</p>
+<blockquote>
+<p><strong>Logger(LoggerStream)中也维护了一个Buffer,其size往往也远大于日志消息字符串的长度,为什么不需要考虑这种内存碎片问题?</strong></p>
+<p>因为Logger本身是作为一个匿名对象被调用的,作为一个栈上对象其生命周期只存在于一个LOG语句之中,因此很快就被析构了,给内存带来的压力并不大.</p>
+</blockquote>
+<p>因此为了应对这个问题,再增加一个curr_buffer作为被User
+Thread直接写的Buffer,等到这个Buffer写满到一定大小之后,再加入到Buffer队列中,如果遇到curr_buffer已经放不开当前User
+Thread所产生的字符串的时候,就需要先将该Buffer放入到队列中,并且新分配一个新的Buffer,然后再加入到其中.这个设计方案确实避免了前面提到的内存碎片的问题,但是还有没有什么可以优化的余地?其中应当避免的耗时操作又是什么呢?</p>
+<p><strong>其中的耗时操作也就是curr_buffer写满时要new出来一个新的Buffer</strong>,因为内存分配是一笔较大的开销.muduo中着力于解决这个问题,其基本思想是<strong>在Background
+Thread给User Thread预备地留出可用的Buffer</strong>,因此避免了User
+Thread在append中因分配内存所带来的额外开销(正如前面所说的,我们应该尽可能减少User
+Thread因日志所造成的耗时操作).或者说这是<strong>一种双buffer的设计方案</strong>,一个是curr_buffer_另一个是next_buffer,一般情况下,在User
+Thread中的append中不再需要new出来新的Buffer,直接把next_buffer拿出来用就可以,至于相关的创建操作都转移到Background
+Thread的执行逻辑中了.这就好像是一个射手,只管开枪射击就好,在他射击的时候就已经有人给他填充好弹药了,射手因此无需射击完后再填充弹药,因此提高了攻击速度.</p>
+<h3 id="asncylogging">1).AsncyLogging</h3>
+<p>其中的核心数据成员如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>atomic_bool is_running_<span class="token punctuation">;</span>
+<span class="token keyword keyword-uint32_t">uint32_t</span> flush_interval_<span class="token punctuation">;</span>				<span class="token comment">// Background Thread等待周期的间隔</span>
+std<span class="token double-colon punctuation">::</span>string logfile_name_<span class="token punctuation">;</span>			<span class="token comment">// 所要输出到的日志文件</span>
+std<span class="token double-colon punctuation">::</span>unique_ptr<span class="token operator">&lt;</span>Thread<span class="token operator">&gt;</span> log_thread_<span class="token punctuation">;</span>     <span class="token comment">// Background Thread</span>
+std<span class="token double-colon punctuation">::</span>mutex mutex_<span class="token punctuation">;</span>				<span class="token comment">// 锁</span>
+std<span class="token double-colon punctuation">::</span>condition_variable condition_<span class="token punctuation">;</span>		<span class="token comment">// 条件变量</span>
+<span class="token comment">// 双buffer,一个是当前所可写的buffer,一个是预备用的buffer</span>
+BufferPtr curr_buffer_<span class="token punctuation">;</span>		
+BufferPtr next_buffer_<span class="token punctuation">;</span>
+<span class="token comment">// 写满的buffer都将加入到这里,被Background Thread一批批地处理(批处理)</span>
+BufferVec full_buffers_<span class="token punctuation">;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h3 id="append">2).append</h3>
+<p>这一部分的具体实现如下:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">AsyncLogging</span><span class="token double-colon punctuation">::</span><span class="token function">append</span><span class="token punctuation">(</span><span class="token keyword keyword-const">const</span> <span class="token keyword keyword-char">char</span> <span class="token operator">*</span>logmsg<span class="token punctuation">,</span> size_t len<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    std<span class="token double-colon punctuation">::</span>unique_lock<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">uniqueLock</span><span class="token punctuation">(</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>curr_buffer_<span class="token operator">-&gt;</span><span class="token function">getAvail</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> len<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        curr_buffer_<span class="token operator">-&gt;</span><span class="token function">append</span><span class="token punctuation">(</span>logmsg<span class="token punctuation">,</span> len<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span> <span class="token keyword keyword-else">else</span> <span class="token punctuation">{</span>
+        <span class="token comment">// 将curr_buffer加入到full_buffer中</span>
+        full_buffers_<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>curr_buffer_<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>next_buffer_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            next_buffer_ <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_unique</span><span class="token generic class-name"><span class="token operator">&lt;</span>Buffer<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 新new一个</span>
+        <span class="token punctuation">}</span>
+        curr_buffer_ <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>next_buffer_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        curr_buffer_<span class="token operator">-&gt;</span><span class="token function">append</span><span class="token punctuation">(</span>logmsg<span class="token punctuation">,</span> len<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        condition_<span class="token punctuation">.</span><span class="token function">notify_all</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token comment">// 毕竟只有一个正在条件变量上等待的</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>由于这里的User Threads和Background
+Thread之间是一种多生产者+单消费者的模式,因此append中的操作需要一个锁来保护.当curr_buffer大小足够时,直接加入进去就可以了.否则就需要将curr_buffer加入到full_buffers中,然后将next_buffer设置为curr_buffer.并将当前的消息字符串内容加入,随后唤醒正在等待休眠的Background
+Thread.</p>
+<blockquote>
+<p><strong>什么情况下没有已经分配好的next_buffer可用,仍然需要在append中创建呢?</strong></p>
+<p>如果frontend对于append的调用频率过高,导致刚刚创建的buffer就立马被消费完了.</p>
+</blockquote>
+<h3 id="logthreadfunc">3).logThreadFunc</h3>
+<p>其中的实现逻辑如下,首先是开始核心循环之前的一些预备操作.</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"><span class="token keyword keyword-void">void</span> <span class="token class-name">AsyncLogging</span><span class="token double-colon punctuation">::</span><span class="token function">logThreadFunc</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>        <span class="token comment">// 这个是日志线程的主要逻辑</span>
+    BufferPtr new_buffer1 <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_unique</span><span class="token generic class-name"><span class="token operator">&lt;</span>Buffer<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    BufferPtr new_buffer2 <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token generic-function"><span class="token function">make_unique</span><span class="token generic class-name"><span class="token operator">&lt;</span>Buffer<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    BufferVec output_buffers<span class="token punctuation">;</span>
+    output_buffers<span class="token punctuation">.</span><span class="token function">reserve</span><span class="token punctuation">(</span>DEFAULT_FULLBUFFERS_SIZE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword keyword-auto">auto</span> wait_condition <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token operator">&amp;</span><span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">-&gt;</span> <span class="token keyword keyword-bool">bool</span> <span class="token punctuation">{</span>
+        <span class="token keyword keyword-return">return</span> <span class="token operator">!</span>full_buffers_<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token comment">// 关于输出文件的stream</span>
+    std<span class="token double-colon punctuation">::</span>string newlogfile_name <span class="token operator">=</span> logfile_name_ <span class="token operator">+</span> <span class="token string">"_"</span> <span class="token operator">+</span>
+            <span class="token class-name">TimeStamp</span><span class="token double-colon punctuation">::</span><span class="token function">getNowTimeStamp</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getTimeFormatString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    std<span class="token double-colon punctuation">::</span>ofstream log_output<span class="token punctuation">;</span>
+    log_output<span class="token punctuation">.</span><span class="token function">open</span><span class="token punctuation">(</span>newlogfile_name<span class="token punctuation">.</span><span class="token function">c_str</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> std<span class="token double-colon punctuation">::</span>ios<span class="token double-colon punctuation">::</span>app<span class="token punctuation">)</span><span class="token punctuation">;</span>    <span class="token comment">// 只能append</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这一部分,我通过使用fstream文件流对象作为写入文件的方式.之前我们就提到过,Background
+Thread有“填充弹药”的义务,也就是将next_buffer的分配转移到了这个地方,一种直观的想法是,在其核心的循环中,每一轮都将next_buffer就new好就可以了.但是在这里的实现中又额外地创建了两个buffer,为什么需要这么做呢?
+因为在Background
+Thread的处理逻辑中不仅仅需要分配next_buffer,还需要分配curr_buffer.至于给curr_buffer分配内存的作用又是什么呢?这需要结合其核心循环体:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp"> <span class="token keyword keyword-while">while</span> <span class="token punctuation">(</span>is_running_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token punctuation">{</span>
+            std<span class="token double-colon punctuation">::</span>unique_lock<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">uniqueLock</span><span class="token punctuation">(</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>full_buffers_<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                condition_<span class="token punctuation">.</span><span class="token function">wait_for</span><span class="token punctuation">(</span>uniqueLock<span class="token punctuation">,</span> flush_interval_ <span class="token operator">*</span> std<span class="token double-colon punctuation">::</span>chrono<span class="token double-colon punctuation">::</span><span class="token function">seconds</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> wait_condition<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token comment">// 将current加入到full_buffers中</span>
+            full_buffers_<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>curr_buffer_<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            curr_buffer_ <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>new_buffer1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>next_buffer_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                next_buffer_ <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>new_buffer2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            output_buffers<span class="token punctuation">.</span><span class="token function">swap</span><span class="token punctuation">(</span>full_buffers_<span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// 交换过来, 之后使用output_buffer</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-for">for</span> <span class="token punctuation">(</span><span class="token keyword keyword-auto">auto</span> <span class="token operator">&amp;</span>output_buffer <span class="token operator">:</span> output_buffers<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token comment">// 输出该buffer中的内容</span>
+            log_output <span class="token operator">&lt;&lt;</span> output_buffer<span class="token operator">-&gt;</span><span class="token function">getData</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>output_buffers<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>        <span class="token comment">// 调整大小,只留2个,用于分配给new_buffer1和new_buffer2</span>
+            output_buffers<span class="token punctuation">.</span><span class="token function">resize</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>new_buffer1 <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>				
+            new_buffer1 <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>output_buffers<span class="token punctuation">.</span><span class="token function">back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>			<span class="token comment">// 利用out_buffers中用过的buffer,也就是之前就分配好的</span>
+            output_buffers<span class="token punctuation">.</span><span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            new_buffer1<span class="token operator">-&gt;</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+
+        <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>new_buffer2 <span class="token operator">==</span> <span class="token keyword keyword-nullptr">nullptr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>				<span class="token comment">// 同上</span>
+            new_buffer2 <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>output_buffers<span class="token punctuation">.</span><span class="token function">back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            output_buffers<span class="token punctuation">.</span><span class="token function">pop_back</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            new_buffer2<span class="token operator">-&gt;</span><span class="token function">reset</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        output_buffers<span class="token punctuation">.</span><span class="token function">clear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>					<span class="token comment">// 清空</span>
+        log_output<span class="token punctuation">.</span><span class="token function">flush</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>						<span class="token comment">// 刷</span>
+    <span class="token punctuation">}</span>
+		<span class="token comment">// 循环结束后的末尾.</span>
+    log_output<span class="token punctuation">.</span><span class="token function">flush</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>       
+    log_output<span class="token punctuation">.</span><span class="token function">close</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>每一轮循环的动作大致分为三个部分:</p>
+<ul>
+<li><strong>等待并取出</strong>.知道有新的buffer被填满,或者interval时间间隔已过的情况,之后将curr_buffer加入到full_buffer中,并且给curr_buffer和next_buffer通过new_buffer1和new_buffer2分配内存(如果需要),将full_buffers移动到临时变量output_buffers中.</li>
+</ul>
+<blockquote>
+<p><strong>为什么需要在给curr_buffer分配内存?</strong></p>
+<p>是因为无论当前curr_buffer是否已经写满,我们都需要将curr_buffer中的内容读出来,放入到full_buffers中.正如下面代码中所展示的:</p>
+<pre class="line-numbers language-cpp" data-language="cpp"><code class="language-cpp">std<span class="token double-colon punctuation">::</span>unique_lock<span class="token operator">&lt;</span>std<span class="token double-colon punctuation">::</span>mutex<span class="token operator">&gt;</span> <span class="token function">uniqueLock</span><span class="token punctuation">(</span>mutex_<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span>full_buffers_<span class="token punctuation">.</span><span class="token function">empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                condition_<span class="token punctuation">.</span><span class="token function">wait_for</span><span class="token punctuation">(</span>uniqueLock<span class="token punctuation">,</span> flush_interval_ <span class="token operator">*</span> std<span class="token double-colon punctuation">::</span>chrono<span class="token double-colon punctuation">::</span><span class="token function">seconds</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">,</span> wait_condition<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            <span class="token comment">// 将current加入到full_buffers中</span>
+            full_buffers_<span class="token punctuation">.</span><span class="token function">push_back</span><span class="token punctuation">(</span>std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>curr_buffer_<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            curr_buffer_ <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>new_buffer1<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>next_buffer_<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                next_buffer_ <span class="token operator">=</span> std<span class="token double-colon punctuation">::</span><span class="token function">move</span><span class="token punctuation">(</span>new_buffer2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+            output_buffers<span class="token punctuation">.</span><span class="token function">swap</span><span class="token punctuation">(</span>full_buffers_<span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// 交换过来, 之后使用output_buffer</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>如果不将curr_buffer加入到full_buffer中,对于一些日志密度很低的系统中(低到长期填不满一个buffer),将导致没有任何日志消息被写入.就类似于操作系统中所提到的“饥饿”现象.</p>
+</blockquote>
+<ul>
+<li><strong>集中写入output_buffers</strong>.遍历output_buffers,借助之前打开的文件流对象写入Buffer中的内容.</li>
+</ul>
+<blockquote>
+<p><strong>借助临时变量,缩短临界区,并将耗时操作转移到临界区之外.</strong></p>
+<p>之前就提到了一个细节,就是将收集好的Buffer,也就是full_buffers
+move到output_buffers中.如果不这么做,就需要带着锁去遍历这些Buffer并进行写文件,写文件本身就是耗时的IO操作,如果处于上锁中,将会导致User
+Thread在获取锁所需要的阻塞时间大大延长了,对性能造成了严重的损耗.</p>
+</blockquote>
+<ul>
+<li><strong>预备new_buffer1和new_buffer2</strong>.如果new_buffer1或者new_buffer2中有为空的,就将其分配并重置.</li>
+</ul>
+<blockquote>
+<p><strong>利用new_buffer1和new_buffer2进一步减少Background
+Thread中的内存分配操作</strong></p>
+<p>相比直接对curr_buffer和next_buffer进行new,将分配好的new_buffer1和new_buffer2避免了内存分配在Background
+Thread的耗时操作,但是这两个buffer又是怎样保证时刻可用的呢?</p>
+<p>其方式在于,当处理完output_buffers时,<strong>将其中废弃不同的buffer移动到new_buffer1和new_buffer2中</strong>.如何保证output_buffers中的数量足够用来填充的呢?关于out_buffers,在因为interval超时的情况下,output_buffer的size至少为1,然而这个时候next_buffer始终可用,因此也就不会有new_buffer2被移动给next_buffer的情况,所以这个时候1个就足够了(只需要给new_buffer1).在因为条件变量被User
+Thread唤醒的情况下,output_buffers的size起码为2,因为append中加进去了一个,在Background
+Thread被唤醒后又加入了一个.</p>
+</blockquote>
+<h2 id="总结">3. 总结</h2>
+<p>对于这个日志系统的设计,我最大的启发就是一个好的日志系统,应该尽可能地避免给User
+Thread带来额外开销,更不应该阻塞.这个设计围绕着双buffer展开了这么多额外的逻辑,其最终目的就是为了使User
+Thread始终有一个可用的预备Buffer,进而无需new出新的Buffer.</p>
+<p>但是个人认为这个系统设计仍然存在一些软肋:</p>
+<ul>
+<li>众多User
+Threads都需要获取同一个锁,当线程数量大起来之后,锁竞争的开销就会很大.</li>
+<li>为了避免“饥饿”现象, Background
+Thread每当苏醒过来都要将curr_buffer加入,这时curr_buffer往往没有写满,这个过程中可能会导致内存利用率较低的情况.</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+    <div class="blog-post-comments">
+        <div id="utterances_thread">
+            <noscript>加载评论需要在浏览器启用 JavaScript 脚本支持。</noscript>
+        </div>
+    </div>
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#frontend"><span class="toc-number">1.</span> <span class="toc-text">1. frontend</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#logger"><span class="toc-number">1.1.</span> <span class="toc-text">1).Logger</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#loggerstream%E4%B8%8Efixedbuffer"><span class="toc-number">1.2.</span> <span class="toc-text">2).LoggerStream与FixedBuffer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#backend"><span class="toc-number">2.</span> <span class="toc-text">2. backend</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#asncylogging"><span class="toc-number">2.1.</span> <span class="toc-text">1).AsncyLogging</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#append"><span class="toc-number">2.2.</span> <span class="toc-text">2).append</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#logthreadfunc"><span class="toc-number">2.3.</span> <span class="toc-text">3).logThreadFunc</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">3. 总结</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2023/011947300.html"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2023/011947300.html&text=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2023/011947300.html&is_video=false&description=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=一个简易的stream风格的异步日志系统的实现&body=Check out this article: http://example.com/2023/011947300.html"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2023/011947300.html&title=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2023/011947300.html&name=一个简易的stream风格的异步日志系统的实现&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2023/011947300.html&t=一个简易的stream风格的异步日志系统的实现"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2016-2023
+    yfs
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+      --><li><a href="/">首页</a></li><!--
+    --><!--
+      --><li><a href="/about/">关于</a></li><!--
+    --><!--
+      --><li><a href="/archives/">归档</a></li><!--
+    -->
+      </ul>
+      <ul>
+        
+          <!-- 不蒜子统计 -->
+          <span id="busuanzi_container_site_pv">
+              本站总访问量<span id="busuanzi_value_site_pv"></span>次
+          </span>
+          <span class="post-meta-divider">|</span>
+          <span id="busuanzi_container_site_uv" style='display:none'>
+                  本站访客数<span id="busuanzi_value_site_uv"></span>人
+          </span>
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+        
+      </ul>
+    </nav>
+  </div>
+  
+</footer>
+
+<script src="/js/prism/prism.js" async></script>
+
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'cactus-1';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+<!-- utterances Comments -->
+
+    <script type="text/javascript">
+      var utterances_repo = 'owner/githubrepo';
+      var utterances_issue_term = 'pathname';
+      var utterances_label = 'Comment';
+      var utterances_theme = 'github-dark';
+
+      (function(){
+          var script = document.createElement('script');
+
+          script.src = 'https://utteranc.es/client.js';
+          script.setAttribute('repo', utterances_repo);
+          script.setAttribute('issue-term', 'pathname');
+          script.setAttribute('label', utterances_label);
+          script.setAttribute('theme', utterances_theme);
+          script.setAttribute('crossorigin', 'anonymous');
+          script.async = true;
+          (document.getElementById('utterances_thread')).appendChild(script);
+      }());
+  </script>
+
+</body>
+</html>
