@@ -6,16 +6,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="TinyMuduo这个项目可以说是在理解并模仿陈硕的muduo的基础上所作,我在上个学期其实就想要着手去做这件事,不过中间因为种种原因搁浅了,到了寒假有时间了再次拾起,可以说是把之前挖的坑给填上了. 关于这个项目的价值,首先我认为muduo中对于Modern C++的应用以及代码风格非常具有借鉴价值,其次可以对系统编程和网络编程有很大的锻炼,尤其是这个过程中需要查阅许多Linux系统调用的资料、以">
+    <meta name="description" content="TinyMuduo这个项目可以说是在理解并模仿陈硕的muduo的基础上所作,我在上个学期其实就想要着手去做这件事,不过中间因为种种原因搁浅了,到了寒假有时间了再次拾起,可以说是把之前挖的坑给填上了,项目地址:TinyMuduo. 关于这个项目的价值,首先我认为muduo中对于Modern C++的应用以及代码风格非常具有借鉴价值,其次可以对系统编程和网络编程有很大的锻炼,尤其是这个过程中需要查阅许">
 <meta property="og:type" content="article">
 <meta property="og:title" content="记录一个网络库的核心实现">
 <meta property="og:url" content="http://example.com/2023/012016887.html">
 <meta property="og:site_name" content="Yfs&#39;s Box">
-<meta property="og:description" content="TinyMuduo这个项目可以说是在理解并模仿陈硕的muduo的基础上所作,我在上个学期其实就想要着手去做这件事,不过中间因为种种原因搁浅了,到了寒假有时间了再次拾起,可以说是把之前挖的坑给填上了. 关于这个项目的价值,首先我认为muduo中对于Modern C++的应用以及代码风格非常具有借鉴价值,其次可以对系统编程和网络编程有很大的锻炼,尤其是这个过程中需要查阅许多Linux系统调用的资料、以">
+<meta property="og:description" content="TinyMuduo这个项目可以说是在理解并模仿陈硕的muduo的基础上所作,我在上个学期其实就想要着手去做这件事,不过中间因为种种原因搁浅了,到了寒假有时间了再次拾起,可以说是把之前挖的坑给填上了,项目地址:TinyMuduo. 关于这个项目的价值,首先我认为muduo中对于Modern C++的应用以及代码风格非常具有借鉴价值,其次可以对系统编程和网络编程有很大的锻炼,尤其是这个过程中需要查阅许">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://yfspicturebad1-1309550486.cos.ap-nanjing.myqcloud.com/uPic/2023%2001%2021%2009%2035%2017%201674264917%201674264917961%20Ij68cW%20image-20230121093517832%20.png">
 <meta property="article:published_time" content="2023-01-20T01:27:28.000Z">
-<meta property="article:modified_time" content="2023-01-22T04:25:46.060Z">
+<meta property="article:modified_time" content="2023-01-27T01:07:15.110Z">
 <meta property="article:author" content="yfs">
 <meta property="article:tag" content="系统编程">
 <meta property="article:tag" content="C++">
@@ -159,7 +159,7 @@ onMessage回调少用栈上不定长buffer</span></a></li></ol></li></ol>
   
 
   <div class="content" itemprop="articleBody">
-    <p>TinyMuduo这个项目可以说是在理解并模仿陈硕的muduo的基础上所作,我在上个学期其实就想要着手去做这件事,不过中间因为种种原因搁浅了,到了寒假有时间了再次拾起,可以说是把之前挖的坑给填上了.</p>
+    <p>TinyMuduo这个项目可以说是在理解并模仿陈硕的muduo的基础上所作,我在上个学期其实就想要着手去做这件事,不过中间因为种种原因搁浅了,到了寒假有时间了再次拾起,可以说是把之前挖的坑给填上了,项目地址:<a target="_blank" rel="noopener" href="https://github.com/YfsBox/TinyMuduo">TinyMuduo</a>.</p>
 <p>关于这个项目的价值,首先我认为muduo中对于Modern
 C++的应用以及代码风格非常具有借鉴价值,其次可以对系统编程和网络编程有很大的锻炼,尤其是这个过程中需要查阅许多Linux系统调用的资料、以及多线程的一些东西,并且代码量也挺大,仅仅是我实现的这个Tiny版的,其核心库就有3k行左右的代码量,算上example和test大概都有将近5k行代码,虽然算不上是原创,但是自己一点一点地码出来并且进行debug,颇耗费时间.</p>
 <p>在这篇博客之中,我会首先介绍其总体架构,然后就其中的某些核心模块进行说明,最后写一些我从中学习到的一些经验性的东西.</p>
